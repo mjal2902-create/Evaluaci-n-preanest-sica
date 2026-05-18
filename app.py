@@ -6,7 +6,7 @@ import math
 st.set_page_config(page_title="Evaluador Preanestésico", page_icon="🩺", layout="wide")
 
 st.title("🩺 Asistente de Evaluación Preanestésica")
-st.write("Optimización clínica perioperatoria y cálculo de riesgo automatizado.")
+st.write("Optimización clínica perioperatoria, escalas avanzadas y analítica transquirúrgica.")
 
 col_izq, col_der = st.columns([1, 1.2])
 
@@ -61,9 +61,17 @@ with col_izq:
         tiene_insulina = st.checkbox("Diabetes con Insulina")
         tiene_cancer = st.checkbox("Cáncer Activo")
 
-    with st.expander("3. Vía Aérea"):
+    with st.expander("3. Vía Aérea e Intubación Potencial"):
         mallampati = st.selectbox("Mallampati", ["Clase I", "Clase II", "Clase III", "Clase IV"])
         dtm = st.number_input("Distancia Tiromentoniana (cm)", value=7.0)
+        
+        st.markdown("**Escala de Arné (Predicción de Vía Aérea Difícil)**")
+        arne_mallampati = st.selectbox("Arné - Mallampati:", [0, 1, 2, 4], format_func=lambda x: f"Clase I/II (0 pts)" if x==0 else f"Clase III (1 pt)" if x==1 else f"Clase IV (2 pts)" if x==2 else f"No evaluable (4 pts)")
+        arne_dtm = st.selectbox("Arné - Distancia Tiromentoniana:", [0, 4], format_func=lambda x: f"> 6.5 cm (0 pts)" if x==0 else f"≤ 6.5 cm (4 pts)")
+        arne_apertura = st.selectbox("Arné - Apertura bucal:", [0, 2, 6], format_func=lambda x: f"> 3.5 cm (0 pts)" if x==0 else f"2.5 a 3.5 cm (2 pts)" if x==2 else f"< 2.5 cm (6 pts)")
+        arne_movilidad = st.selectbox("Arné - Movilidad cervical:", [0, 2, 5], format_func=lambda x: f"> 90° (0 pts)" if x==0 else f"80° a 90° (2 pts)" if x==2 else f"< 80° (5 pts)")
+        arne_protrusion = st.selectbox("Arné - Protrusión mandibular:", [0, 2, 4], format_func=lambda x: f"Incisivos sup. superados (0 pts)" if x==0 else f"A tope / No superados (2 pts)" if x==2 else f"Imposible (4 pts)")
+        arne_antecedente = st.checkbox("Arné - Antecedente de VAD confirmada (+6 pts)")
 
     with st.expander("4. Laboratorios (Módulo Transquirúrgico)", expanded=True):
         st.markdown("**🧪 Perfil de Laboratorio Perioperatorio**")
@@ -71,7 +79,6 @@ with col_izq:
         
         dict_labs = {}
         
-        # 1. Hemoglobina / Hematocrito
         tiene_hb = st.checkbox("Hemoglobina / Hematocrito", value=True)
         if tiene_hb:
             c_hb1, c_hb2 = st.columns(2)
@@ -79,15 +86,7 @@ with col_izq:
             hto = c_hb2.number_input("Hematocrito (%)", min_value=10.0, max_value=75.0, value=40.0, step=1.0)
             dict_labs["Hemoglobina / Hematocrito"] = f"Hb: {hb} g/dL, Hto: {hto}%"
         
-        # 2. Plaquetas
         tiene_plt = st.checkbox("Conteo de Plaquetas", value=True)
         if tiene_plt:
-            plt = st.number_input("Plaquetas (x10³/µL)", min_value=10, max_value=1000, value=250, step=10)
-            dict_labs["Plaquetas"] = f"{plt} x10³/µL"
-            
-        # 3. Tiempos de Coagulación
-        tiene_coag = st.checkbox("Tiempos (TP / TPT / INR)", value=True)
-        if tiene_coag:
-            c_t1, c_t2 = st.columns(2)
-            tp = c_t1.number_input("TP (Segundos)", min_value=5.0, max_value=60.0, value=12.5, step=0.1)
-            
+            plt = st.number_input("Plaquetas (x10³/µL)", min_value=10, max
+                                  
