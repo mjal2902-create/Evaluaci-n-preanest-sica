@@ -92,7 +92,7 @@ with col_izq:
         tiene_edentulia = st.checkbox("Edentulia total o parcial")
         tiene_ronquido = st.checkbox("Historia de Ronquido severo / SAHOS")
 
-    # 4. Laboratorios y Exámenes (Módulo de Laboratorios)
+    # 4. Laboratorios y Exámenes
     with st.expander("4. Laboratorios (Módulo Transquirúrgico)", expanded=True):
         st.markdown("**🧪 Perfil de Laboratorio Analítico**")
         st.caption("Desmarque la casilla si el paciente no dispone del examen.")
@@ -155,11 +155,10 @@ with col_izq:
         
         otros_hallazgos_ekg = st.text_input("Otros hallazgos electrocardiográficos específicos:", "Ninguno")
 
-    # 6. Parámetros Quirúrgicos (MÓDULO DE CIRUGÍAS MÁS COMUNES)
+    # 6. Parámetros Quirúrgicos
     with st.expander("6. Datos Quirúrgicos", expanded=True):
         st.markdown("**📋 Selección de Procedimiento**")
         
-        # Diccionario con Cx comunes organizadas por riesgo intrínseco estimado (Guías AHA/ESC)
         cx_comunes = {
             "Colecistectomía Laparoscópica": "Intermedio (1-5% - ej. Abdominal, Cadera)",
             "Apendicectomía Laparoscópica / Abierta": "Intermedio (1-5% - ej. Abdominal, Cadera)",
@@ -181,18 +180,16 @@ with col_izq:
         
         cx_seleccionada = st.selectbox("Procedimiento Planeado:", options=list(cx_comunes.keys()))
         
-        # Si selecciona "Otra", permite escribirla, sino adopta el nombre del diccionario
         if cx_seleccionada == "Otra (Especificar manualmente)":
             nombre_cx = st.text_input("Escriba el nombre del procedimiento:", value="Cirugía General")
-            # En caso de manual, el usuario asigna el riesgo
             riesgo_cx_tipo = st.selectbox("Riesgo Intrínseco de la Cirugía", ["Intermedio (1-5% - ej. Abdominal, Cadera)", "Bajo (<1% - ej. Superficial, Cataratas)", "Alto (>5% - ej. Vascular Mayor, Torácica)"], index=0)
         else:
             nombre_cx = cx_seleccionada
-            # Indexación automática del riesgo predeterminado
             riesgo_predeterminado = cx_comunes[cx_seleccionada]
             lista_riesgos = ["Intermedio (1-5% - ej. Abdominal, Cadera)", "Bajo (<1% - ej. Superficial, Cataratas)", "Alto (>5% - ej. Vascular Mayor, Torácica)"]
             idx_riesgo = lista_riesgos.index(riesgo_predeterminado)
-            riesgo_cx_tipo = st.selectbox("Riesgo Intrínseco de la Cirugía (Auto)", list_riesgos, index=idx_riesgo)
+            # CORRECCIÓN AQUÍ: Se cambió "list_riesgos" por "lista_riesgos"
+            riesgo_cx_tipo = st.selectbox("Riesgo Intrínseco de la Cirugía (Auto)", lista_riesgos, index=idx_riesgo)
 
         cirugia_emergencia = st.checkbox("Cirugía de Emergencia")
 
@@ -298,7 +295,7 @@ if ekg_fa: lista_ekg.append("Fibrilación Auricular/Flutter")
 if ekg_bav1: lista_ekg.append("Bloqueo AV 1er Grado")
 if ekg_bav2: lista_ekg.append("Bloqueo AV 2do Grado")
 if ekg_bav3: lista_ekg.append("Bloqueo AV Completo (3er Grado)")
-if ekg_bricia: lista_ekg.append("Bloqueo de Rama (BRIHH/BRDHH)")
+if ekg_bicia: lista_ekg.append("Bloqueo de Rama (BRIHH/BRDHH)")
 if ekg_st_supra: lista_ekg.append("Supradesnivel del ST (Lesión)")
 if ekg_st_infra: lista_ekg.append("Infradesnivel ST / Inv. Onda T")
 if ekg_hvi: lista_ekg.append("Hipertrofia Ventricular Izquierda")
