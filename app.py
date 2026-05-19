@@ -22,7 +22,7 @@ with col_izq:
         peso_real = c3.number_input("Peso Real (kg)", min_value=30.0, max_value=250.0, value=70.0)
         talla_cm = st.number_input("Talla (cm)", min_value=100, max_value=220, value=165)
 
-    # 2. Seguridad, Alergias y Medicamentos (Módulo Optimizado)
+    # 2. Seguridad, Alergias y Medicamentos
     with st.expander("2. Seguridad, Alergias y Medicamentos", expanded=True):
         st.markdown("**🚨 Alergias**")
         opciones_med = [
@@ -68,7 +68,7 @@ with col_izq:
         tiene_cancer = c_ant1.checkbox("Cáncer Activo o previo")
         tiene_epoc = c_ant2.checkbox("EPOC o Enfermedad Pulmonar Crónica")
 
-    # 3. Exploración de Vía Aérea y Ventilación (Blindada contra el Traductor)
+    # 3. Exploración de Vía Aérea y Ventilación
     with st.expander("3. Valoración Estructural de la Vía Aérea"):
         c_va1, c_va2 = st.columns(2)
         mallampati = c_va1.selectbox("Clasificación Mallampati", ["Clase I", "Clase II", "Clase III", "Clase IV"])
@@ -84,7 +84,7 @@ with col_izq:
         patologia_vad = st.checkbox("Patología asociada a VAD")
         apertura_bucal = st.checkbox("Apertura Bucal < 3.5 cm")
         
-        movilidad_opt = [0, 1, 2] # Mapeo numérico puro para evitar fallos por comillas curvas
+        movilidad_opt = [0, 1, 2]
         movilidad_sel = st.selectbox("Movilidad Cabeza/Cuello (0=Normal, 1=Moderada, 2=Severa):", options=movilidad_opt)
 
         st.markdown("**Ventilación con Mascarilla (VMD) y SAHOS**")
@@ -92,7 +92,7 @@ with col_izq:
         tiene_edentulia = st.checkbox("Edentulia total o parcial")
         tiene_ronquido = st.checkbox("Historia de Ronquido severo / SAHOS")
 
-    # 4. Laboratorios y Exámenes (Módulo con Apagado Dinámico)
+    # 4. Laboratorios y Exámenes
     with st.expander("4. Laboratorios (Módulo Transquirúrgico)", expanded=True):
         st.markdown("**🧪 Perfil de Laboratorio Analítico**")
         st.caption("Desmarque la casilla si el paciente no dispone del examen.")
@@ -125,7 +125,7 @@ with col_izq:
             creatinina = c_r2.number_input("Creatinina Sérica (mg/dL)", min_value=0.1, max_value=15.0, value=0.9)
             dict_labs["Función Renal"] = f"Urea: {urea} mg/dL, Creatinina: {creatinina} mg/dL"
         else:
-            creatinina = 0.9 # Respaldo matemático
+            creatinina = 0.9
             
         tiene_alb = st.checkbox("Albúmina Sérica", value=True)
         if tiene_alb:
@@ -200,7 +200,7 @@ if cuello > 40: p_stop += 1
 if sexo == "Masculino": p_stop += 1
 
 p_lee = 0
-if riesgo_cx_tipo == "Alto (>5% - ej. Vascular Mayor, Torácica)": p_lee += 1
+if "Alto" in riesgo_cx_tipo: p_lee += 1
 if tiene_infarto: p_lee += 1
 if tiene_ic: p_lee += 1
 if tiene_acv: p_lee += 1
@@ -226,7 +226,7 @@ if edema_mi: p_caprini += 1
 if tiene_ic: p_caprini += 1
 if tiene_epoc: p_caprini += 1
 if tiene_infarto: p_caprini += 1
-if riesgo_cx_tipo != "Bajo (<1% - ej. Superficial, Cataratas)": p_caprini += 2
+if "Bajo" not in riesgo_cx_tipo: p_caprini += 2
 if inmovilizacion: p_caprini += 2
 if tiene_cancer: p_caprini += 2
 if acceso_central: p_caprini += 2
@@ -299,12 +299,15 @@ with col_der:
             #### 🧪 Módulo de Laboratorios y Función Renal
             """)
             
-            # Comprobación dinámica de laboratorios
+            # Construcción de la cadena de texto de laboratorios para el resumen copiable
+            str_labs_resumen = ""
             if not dict_labs:
                 st.error("❌ No hay datos de laboratorios registrados")
+                str_labs_resumen = "No provistos"
             else:
                 for item, valor in dict_labs.items():
                     st.markdown(f"• **{item}:** {valor}")
+                    str_labs_resumen += f"{item}: {valor} | "
             
             st.markdown(f"""
             * **Otras Alteraciones Analíticas:** {alteraciones_lab}
@@ -332,7 +335,52 @@ with col_der:
             ---
             #### 🫀 Interpretación Electrocardiográfica Directa (EKG)
             * **Patología Principal:** **{diagnostico_ekg.upper()}**
+            
+            ---
             """)
+            
+            # --- NUEVA SECCIÓN: TEXTO COPIABLE PARA HISTORIA CLÍNICA ---
+            st.subheader("📋 Resumen para Copiar a Historia Clínica")
+            st.caption("Mantén presionado sobre el cuadro de abajo para seleccionar y copiar todo el texto.")
+            
+            # Construcción de las cadenas de antecedentes
+            ant_lista = []
+            if tiene_infarto: ant_lista.append("Infarto <6 meses")
+            if tiene_ic: ant_lista.append("ICC")
+            if tiene_acv: ant_lista.append("ACV/AIT")
+            if tiene_insulina: ant_lista.append("DM2+Insulina")
+            if tiene_ev: ant_lista.append(">5 EV/min")
+            if tiene_ritmo_no_s: ant_lista.append("Ritmo No Sinusal")
+            if tiene_cancer: ant_lista.append("Cáncer")
+            if tiene_epoc: ant_lista.append("EPOC")
+            ant_texto = ", ".join(ant_lista) if ant_lista else "Negados"
+
+            # Formateo del bloque plano de texto médico
+            texto_hc = (
+                f"NOTA DE EVALUACIÓN PREANESTÉSICA\n"
+                f"---------------------------------\n"
+                f"PACIENTE: {sexo} | Edad: {edad} años. IMC: {imc:.1f} kg/m2. ASC: {asc:.2f} m2.\n"
+                f"PESOS: Ideal: {peso_ideal:.1f} kg | Predicho: {peso_predicho:.1f} kg | Vt protector: {peso_predicho*6:.0f}-{peso_predicho*8:.0f} mL.\n"
+                f"ALERGIAS: Meds/Látex: {str_alergias_med.upper()} | Alimentos: {str_alergias_com.upper()}\n"
+                f"MEDICACIÓN CRÍTICA: {str_farmacos}\n"
+                f"ANTECEDENTES: {ant_texto}\n\n"
+                f"VÍA AÉREA: Mallampati {mallampati}, DTM {dtm} cm, DEM {dem} cm, Cuello {cuello} cm.\n"
+                f"- Índice de Arné: {p_arne} pts (Riesgo Intubación: {'ALTO' if p_arne>=11 else 'BAJO'}).\n"
+                f"- Predictores VMD: {'SÍ' if (tiene_barba or imc>30 or edad>55 or tiene_edentulia or tiene_ronquido) else 'NO'}.\n"
+                f"- STOP-BANG: {p_stop}/8 pts (Riesgo SAHOS: {'Alto' if p_stop>=5 else 'Intermedio' if p_stop>=3 else 'Bajo'}).\n\n"
+                f"LABORATORIOS: {str_labs_resumen}Otras alterac: {alteraciones_lab}\n"
+                f"FUNCIÓN RENAL: Creatinina {creatinina:.2f} mg/dL | TFG (CKD-EPI): {tfg_ckd:.0f} mL/min | ClCr (C-G): {clcr_cg:.0f} mL/min.\n"
+                f"EKG: {diagnostico_ekg.upper()}\n\n"
+                f"ESTRATIFICACIÓN DE RIESGO PERIOPERATORIO:\n"
+                f"- Procedimiento: {nombre_cx} ({riesgo_cx_tipo.split(' ')[0]} riesgo intrinséco).\n"
+                f"- Riesgo Cardíaco (Lee RCRI): Clase {'I' if p_lee==0 else 'II' if p_lee==1 else 'III' if p_lee==2 else 'IV'} ({p_lee} criterios).\n"
+                f"- Riesgo Cardíaco (Goldman): Clase {'I' if p_goldman<=5 else 'II' if p_goldman<=12 else 'III' if p_goldman<=25 else 'IV'} ({p_goldman} pts).\n"
+                f"- Riesgo Tromboembólico (Caprini): {p_caprini} pts (Riesgo: {'ALTO' if p_caprini>=5 else 'Moderado' if p_caprini>=3 else 'Bajo'}).\n"
+                f"- Riesgo NVPO (Apfel): {p_apfel}/4 pts."
+            )
+            
+            # El componente text_area permite copiar todo el bloque de golpe en móviles
+            st.text_area(label="📋 Bloque de Texto Médico (Copiar)", value=texto_hc, height=350)
+
     else:
         st.info("💡 Complete o modifique los datos clínicos en el panel de la izquierda y presione el botón de arriba para generar el reporte unificado.")
-    
