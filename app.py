@@ -92,7 +92,7 @@ with col_izq:
         tiene_edentulia = st.checkbox("Edentulia total o parcial")
         tiene_ronquido = st.checkbox("Historia de Ronquido severo / SAHOS")
 
-    # 4. Laboratorios y Exámenes
+    # 4. Laboratorios y Exámenes (Módulo de Laboratorios)
     with st.expander("4. Laboratorios (Módulo Transquirúrgico)", expanded=True):
         st.markdown("**🧪 Perfil de Laboratorio Analítico**")
         st.caption("Desmarque la casilla si el paciente no dispone del examen.")
@@ -134,16 +134,39 @@ with col_izq:
 
         st.markdown("---")
         alteraciones_lab = st.text_area("Otras alteraciones de laboratorio (opcional)", "Sin alteraciones")
-        diagnostico_ekg = st.text_input("Patología / Diagnóstico Principal del EKG", "Ritmo sinusal normal")
 
-    # 5. Parámetros Quirúrgicos
-    with st.expander("5. Datos Quirúrgicos"):
+    # NUEVO MÓDULO APARTADO DE EKG CON CAMBIOS PATOLÓGICOS COMUNES
+    with st.expander("5. Hallazgos y Patologías del EKG", expanded=True):
+        st.markdown("**🫀 Selección de Hallazgos Electrocardiográficos**")
+        st.caption("Marque las casillas correspondientes a las alteraciones observadas:")
+        
+        c_ekg1, c_ekg2 = st.columns(2)
+        
+        # Ritmo y Conducción
+        ekg_sinusal = c_ekg1.checkbox("Ritmo Sinusal Normal", value=True)
+        ekg_fa = c_ekg1.checkbox("Fibrilación Auricular / Flutter")
+        ekg_bav1 = c_ekg1.checkbox("Bloqueo AV de Primer Grado")
+        ekg_bav2 = c_ekg1.checkbox("Bloqueo AV de Segundo Grado (Mobitz I/II)")
+        ekg_bav3 = c_ekg1.checkbox("Bloqueo AV Completo (Tercer Grado)")
+        
+        # Bloqueos de Rama e Isquemia
+        ekg_bricia = c_ekg2.checkbox("Bloqueo de Rama Izquierda (BRDHH/BRIHH)")
+        ekg_st_supra = c_ekg2.checkbox("Supradesnivel del segmento ST (Lesión aguda)")
+        ekg_st_infra = c_ekg2.checkbox("Infradesnivel del segmento ST / Inversión Onda T")
+        ekg_hvi = c_ekg2.checkbox("Signos de Hipertrofia Ventricular (Sokolow-Lyon +)")
+        ekg_qt_largo = c_ekg2.checkbox("Intervalo QT Prolongado (QTc > 470/480ms)")
+        
+        # Campo manual remanente
+        otros_hallazgos_ekg = st.text_input("Otros hallazgos electrocardiográficos específicos:", "Ninguno")
+
+    # 6. Parámetros Quirúrgicos (Antes sección 5)
+    with st.expander("6. Datos Quirúrgicos"):
         nombre_cx = st.text_input("Procedimiento Planeado", "Colecistectomía Laparoscópica")
         riesgo_cx_tipo = st.selectbox("Riesgo Intrínseco de la Cirugía", ["Intermedio (1-5% - ej. Abdominal, Cadera)", "Bajo (<1% - ej. Superficial, Cataratas)", "Alto (>5% - ej. Vascular Mayor, Torácica)"])
         cirugia_emergencia = st.checkbox("Cirugía de Emergencia")
 
-    # 6. Escala de Apfel y Caprini Adicionales
-    with st.expander("6. Factores de Riesgo Adicionales (Caprini/Apfel)"):
+    # 7. Escala de Apfel y Caprini Adicionales (Antes sección 6)
+    with st.expander("7. Factores de Riesgo Adicionales (Caprini/Apfel)"):
         no_fumador = st.checkbox("Paciente es NO Fumador", value=True)
         historia_nvpo = st.checkbox("Historia previa de NVPO o Cinetosis")
         opioides_post = st.checkbox("Uso planeado de opioides postoperatorios", value=True)
@@ -176,7 +199,7 @@ else:
     peso_ajust_20 = peso_real
     peso_ajust_40 = peso_real
 
-clcr_cg = ((140 - edad) * peso_real / (72 * creatinina)) * cg_factor
+clcr_cg = ((140 - edad) * peso_real / (72 * max(creatinina, 0.1))) * cg_factor
 creat_term = max(creatinina / ckd_kappa, 1) ** ckd_alfa
 edad_term = 0.993 ** edad
 tfg_ckd = ckd_const * (min(creatinina / ckd_kappa, 1) ** ckd_alfa) * creat_term * edad_term
@@ -237,6 +260,22 @@ if sexo == "Femenino": p_apfel += 1
 if no_fumador: p_apfel += 1
 if historia_nvpo: p_apfel += 1
 if opioides_post: p_apfel += 1
+
+# Procesamiento de hallazgos del EKG para el reporte
+lista_ekg = []
+if ekg_sinusal: lista_ekg.append("Ritmo Sinusal Normal")
+if ekg_fa: lista_ekg.append("Fibrilación Auricular/Flutter")
+if ekg_bav1: lista_ekg.append("Bloqueo AV 1er Grado")
+if ekg_bav2: lista_ekg.append("Bloqueo AV 2do Grado")
+if ekg_bav3: lista_ekg.append("Bloqueo AV Completo (3er Grado)")
+if ekg_bricia: lista_ekg.append("Bloqueo de Rama (BRIHH/BRDHH)")
+if ekg_st_supra: lista_ekg.append("Supradesnivel del ST (Lesión)")
+if ekg_st_infra: lista_ekg.append("Infradesnivel ST / Inv. Onda T")
+if ekg_hvi: lista_ekg.append("Hipertrofia Ventricular Izquierda")
+if ekg_qt_largo: lista_ekg.append("QTc Prolongado")
+if otros_hallazgos_ekg != "Ninguno" and otros_hallazgos_ekg != "":
+    lista_ekg.append(otros_hallazgos_ekg)
+diagnostico_ekg_consolidado = ", ".join(lista_ekg) if lista_ekg else "Sin hallazgos registrados"
 
 # Formateo de strings para salida limpia
 str_alergias_med = ", ".join(alergias_med) if alergias_med else "Negadas"
@@ -299,7 +338,6 @@ with col_der:
             #### 🧪 Módulo de Laboratorios y Función Renal
             """)
             
-            # Construcción de la cadena de texto de laboratorios para el resumen copiable
             str_labs_resumen = ""
             if not dict_labs:
                 st.error("❌ No hay datos de laboratorios registrados")
@@ -334,7 +372,7 @@ with col_der:
             
             ---
             #### 🫀 Interpretación Electrocardiográfica Directa (EKG)
-            * **Patología Principal:** **{diagnostico_ekg.upper()}**
+            * **Patología Principal:** **{diagnostico_ekg_consolidado.upper()}**
             
             ---
             """)
@@ -343,7 +381,6 @@ with col_der:
             st.subheader("📋 Resumen para Copiar a Historia Clínica")
             st.caption("Mantén presionado sobre el cuadro de abajo para seleccionar y copiar todo el texto.")
             
-            # Construcción de las cadenas de antecedentes
             ant_lista = []
             if tiene_infarto: ant_lista.append("Infarto <6 meses")
             if tiene_ic: ant_lista.append("ICC")
@@ -355,7 +392,6 @@ with col_der:
             if tiene_epoc: ant_lista.append("EPOC")
             ant_texto = ", ".join(ant_lista) if ant_lista else "Negados"
 
-            # Formateo del bloque plano de texto médico
             texto_hc = (
                 f"NOTA DE EVALUACIÓN PREANESTÉSICA\n"
                 f"---------------------------------\n"
@@ -370,7 +406,7 @@ with col_der:
                 f"- STOP-BANG: {p_stop}/8 pts (Riesgo SAHOS: {'Alto' if p_stop>=5 else 'Intermedio' if p_stop>=3 else 'Bajo'}).\n\n"
                 f"LABORATORIOS: {str_labs_resumen}Otras alterac: {alteraciones_lab}\n"
                 f"FUNCIÓN RENAL: Creatinina {creatinina:.2f} mg/dL | TFG (CKD-EPI): {tfg_ckd:.0f} mL/min | ClCr (C-G): {clcr_cg:.0f} mL/min.\n"
-                f"EKG: {diagnostico_ekg.upper()}\n\n"
+                f"EKG: {diagnostico_ekg_consolidado.upper()}\n\n"
                 f"ESTRATIFICACIÓN DE RIESGO PERIOPERATORIO:\n"
                 f"- Procedimiento: {nombre_cx} ({riesgo_cx_tipo.split(' ')[0]} riesgo intrinséco).\n"
                 f"- Riesgo Cardíaco (Lee RCRI): Clase {'I' if p_lee==0 else 'II' if p_lee==1 else 'III' if p_lee==2 else 'IV'} ({p_lee} criterios).\n"
@@ -379,7 +415,6 @@ with col_der:
                 f"- Riesgo NVPO (Apfel): {p_apfel}/4 pts."
             )
             
-            # El componente text_area permite copiar todo el bloque de golpe en móviles
             st.text_area(label="📋 Bloque de Texto Médico (Copiar)", value=texto_hc, height=350)
 
     else:
