@@ -147,7 +147,8 @@ with col_izq:
         ekg_bav2 = c_ekg1.checkbox("Bloqueo AV de Segundo Grado (Mobitz I/II)")
         ekg_bav3 = c_ekg1.checkbox("Bloqueo AV Completo (Tercer Grado)")
         
-        ekg_bricia = c_ekg2.checkbox("Bloqueo de Rama Izquierda (BRDHH/BRIHH)")
+        # CORRECCIÓN CLAVE: Eliminada la "r" para que coincida exactamente con la variable de abajo
+        ekg_bicia = c_ekg2.checkbox("Bloqueo de Rama Izquierda o Derecha (BRIHH/BRDHH)")
         ekg_st_supra = c_ekg2.checkbox("Supradesnivel del segmento ST (Lesión aguda)")
         ekg_st_infra = c_ekg2.checkbox("Infradesnivel del segmento ST / Inversión Onda T")
         ekg_hvi = c_ekg2.checkbox("Signos de Hipertrofia Ventricular (Sokolow-Lyon +)")
@@ -188,7 +189,6 @@ with col_izq:
             riesgo_predeterminado = cx_comunes[cx_seleccionada]
             lista_riesgos = ["Intermedio (1-5% - ej. Abdominal, Cadera)", "Bajo (<1% - ej. Superficial, Cataratas)", "Alto (>5% - ej. Vascular Mayor, Torácica)"]
             idx_riesgo = lista_riesgos.index(riesgo_predeterminado)
-            # CORRECCIÓN AQUÍ: Se cambió "list_riesgos" por "lista_riesgos"
             riesgo_cx_tipo = st.selectbox("Riesgo Intrínseco de la Cirugía (Auto)", lista_riesgos, index=idx_riesgo)
 
         cirugia_emergencia = st.checkbox("Cirugía de Emergencia")
