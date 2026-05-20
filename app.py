@@ -413,7 +413,7 @@ with col_der:
     # PESTAÑA 2: PLAN TRANSQUIRÚRGICO (NUEVO MÓDULO)
     # ----------------------------------------------------------------
     with tab_transquirurgico:
-        if st.button("⚙️ GENERAR PLAN TRANSQUIRÚRGICO", type="primary", key="btn_trans"):
+         if st.button("⚙️ GENERAR PLAN TRANSQUIRÚRGICO", type="primary", key="btn_trans"):
             st.markdown(f"### ⚙️ Plan de Manejo Intraoperatorio")
             st.markdown(f"**Paciente:** {sexo} | **IMC:** {imc:.1f} kg/m² | **Peso Predicho:** {peso_predicho:.1f} kg")
             
@@ -465,3 +465,21 @@ with col_der:
                 f"PROFILAXIS: NVPO doble terapia (Apfel {p_apfel}). TVP profilaxis según protocolo institucional (Caprini {p_caprini}).\n"
             )
             st.code(texto_trans, language="text")
+   # ----------------------------------------------------------------
+    # PESTAÑA 3: DOSIFICACIÓN (NUEVA)
+    # ----------------------------------------------------------------
+    with tab_dosificacion:
+        st.subheader(f"🧪 Dosificación: {plan_anestesico}")
+        if plan_anestesico == "General":
+            prop = st.slider("Propofol (mg/kg)", 1.0, 3.0, 2.0, 0.1)
+            rocu = st.slider("Rocuronio (mg/kg)", 0.5, 1.2, 0.6, 0.1)
+            st.write(f"• **Dosis Propofol:** {peso_real * prop:.1f} mg")
+            st.write(f"• **Dosis Rocuronio:** {peso_real * rocu:.1f} mg")
+        elif plan_anestesico == "Raquídea":
+            bupi = st.slider("Bupivacaína Pesada (mg)", 7.5, 20.0, 12.5, 0.5)
+            st.write(f"• **Dosis Bupivacaína:** {bupi:.1f} mg")
+        elif plan_anestesico == "Sedación":
+            midaz = st.slider("Midazolam (mg)", 1.0, 5.0, 2.0, 0.5)
+            st.write(f"• **Dosis Midazolam:** {midaz:.1f} mg")
+        else:
+            st.write("Dosificación específica pendiente de configuración para esta técnica.")
