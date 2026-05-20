@@ -493,8 +493,8 @@ with col_der:
         
         # Inputs para el monitor
         c_vent1, c_vent2 = st.columns(2)
-        fr_act = c_vent1.number_input("FR Act (rpm)", value=12)
-        vt_act = c_vent2.number_input("VT Act (mL)", value=500)
+        fr_act = c_vent1.number_input("FR Act (rpm)", value=12, key="fr_monitor_act")
+        vt_act = c_vent2.number_input("VT Act (mL)", value=500, key="vt_monitor_act")
         
         # Cálculos de monitorización
         vol_min = (fr_act * vt_act) / 1000
@@ -506,8 +506,8 @@ with col_der:
         
         # Ajuste de Capnografía
         c_paco1, c_paco2 = st.columns(2)
-        paco_act = c_paco1.number_input("PaCO2 Act (mmHg)", value=50)
-        paco_obj = c_paco2.number_input("PaCO2 Obj (mmHg)", value=40)
+        paco_act = c_paco1.number_input("PaCO2 Act (mmHg)", value=50, key="paco_monitor_act")
+        paco_obj = c_paco2.number_input("PaCO2 Obj (mmHg)", value=40, key="paco_monitor_obj")
         
         # Lógica de ajuste sugerido (Ecuación simplificada)
         # FR_nueva = (FR_act * PaCO2_act) / PaCO2_obj
