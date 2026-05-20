@@ -465,3 +465,16 @@ with col_der:
                 f"PROFILAXIS: NVPO doble terapia (Apfel {p_apfel}). TVP profilaxis según protocolo institucional (Caprini {p_caprini}).\n"
             )
             st.code(texto_trans, language="text")
+    with t3:
+        st.subheader(f"🧪 Dosificación: {plan_anestesico}")
+        if plan_anestesico == "General":
+            dosis_prop = st.slider("Propofol (mg/kg)", 1.0, 3.0, 2.0, 0.1)
+            st.write(f"**Dosis Propofol:** {peso_real * dosis_prop:.1f} mg")
+        elif plan_anestesico == "Raquídea":
+            dosis_bupi = st.slider("Bupivacaína (mg)", 5.0, 20.0, 12.5, 0.5)
+            st.write(f"**Dosis Bupivacaína:** {dosis_bupi:.1f} mg")
+        elif plan_anestesico == "Sedación":
+            dosis_midaz = st.slider("Midazolam (mg)", 1.0, 5.0, 2.0, 0.5)
+            st.write(f"**Dosis Midazolam:** {dosis_midaz:.1f} mg")
+        else:
+            st.write("Dosificación específica pendiente de configuración.")
