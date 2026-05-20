@@ -409,7 +409,10 @@ with col_der:
             )
             st.code(texto_hc, language="text")
 
-with tab_transquirurgico:
+# ----------------------------------------------------------------
+    # PESTAÑA 2: PLAN TRANSQUIRÚRGICO (Módulo Experto)
+    # ----------------------------------------------------------------
+    with tab_transquirurgico:
         st.subheader("🩸 Monitor de Sangrado & PSP")
         
         # Fila de inputs de sangrado
