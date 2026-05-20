@@ -409,53 +409,92 @@ with col_der:
             )
             st.code(texto_hc, language="text")
 
-# ----------------------------------------------------------------
-    # PESTAÑA 2: PLAN TRANSQUIRÚRGICO (Módulo Interactivo)
-    # ----------------------------------------------------------------
-    with tab_transquirurgico:
+with tab_transquirurgico:
         st.subheader("🩸 Monitor de Sangrado & PSP")
         
-        # Sincronizamos con el valor de Hto de la columna izquierda (Módulo Labs)
-        # Si no se ingresó en los laboratorios, tomamos el valor por defecto
-        hto_actual = hto 
-        
+        # Inputs de laboratorio y sangrado
         c_sang1, c_sang2, c_sang3 = st.columns(3)
         with c_sang1:
-            st.metric("Hto Act (%)", f"{hto_actual:.1f}")
+            st.metric("Hto Act (%)", f"{hto:.1f}")
         with c_sang2:
-            hto_meta_input = st.number_input("Hto Mín (%)", value=30.0)
+            hto_meta = st.number_input("Hto Mín (%)", value=30.0)
         with c_sang3:
-            sangrado_ingresado = st.number_input("Sangrado Total (mL)", min_value=0.0, value=0.0, step=50.0)
+            sangrado_ml = st.number_input("Sangrado Total (mL)", min_value=0.0, value=0.0, step=50.0)
             
-        # Cálculo de PSP según fórmula de Gross
-        # Volemia estimada: 70mL/kg hombres, 65mL/kg mujeres
-        volemia_est = peso_real * (70 if sexo == "Masculino" else 65)
-        psp_max = volemia_est * (hto_actual - hto_meta_input) / hto_actual
+        # Lógica PSP
+        volemia = peso_real * (70 if sexo == "Masculino" else 65)
+        psp_max = volemia * (hto - hto_meta) / hto
         
-        # Visualización dinámica
         c_res1, c_res2 = st.columns(2)
         c_res1.metric("PSP MÁXIMA", f"{max(0, psp_max):.0f} mL")
-        
-        if sangrado_ingresado >= psp_max:
-            c_res2.error(f"⚠️ ¡ALERTA CRÍTICA: Sangrado superior a PSP!")
-        else:
-            c_res2.success(f"✅ Sangrado dentro del rango permisible")
+        c_res2.info(f"Estado: {'⚠️ ALERTA' if sangrado_ml >= psp_max else '✅ OK'}")
 
         st.markdown("---")
         st.subheader("💧 Plan Transoperatorio")
         
-        # Tabla de fluidos dinámica
-        import pandas as pd
+        # Cálculos de fluidos
         mant = peso_real + 40
+        insensibles = 4 * peso_real # Asumiendo 4 mL/kg/h
+        
+        # Creamos la tabla
+        import pandas as pd
         data = {
             "Componente (mL)": ["Mant. (4-2-1)", "Insensibles", "Rep. Ayuno"],
-            "H1": [mant, 4*peso_real, 320], # Ejemplo base
-            "H2": [mant, 4*peso_real, 160],
-            "H3": [mant, 4*peso_real, 160]
+            "H1": [mant, insensibles, 320],
+            "H2": [mant, insensibles, 160],
+            "H3": [mant, insensibles, 160]
         }
-        st.table(pd.DataFrame(data))
+        df = pd.DataFrame(data)
+        st.table(df)
         
-        st.code(f"REPORTE: Sangrado {sangrado_ingresado:.0f}mL / PSP {psp_max:.0f}mL. Hto Meta {hto_meta_input}%.", language="text")
+        # Cálculo del TOTAL DE LÍQUIDOS A PASAR
+        total_h1 = mant + insensibles + 320
+        total_h2 = mant + insensibles + 160
+        total_h3 = mant + insensibles + 160
+        total_global = total_h1 + total_h2 + total_h3
+        
+        # Mostramos los totales al final
+        c_t1, c_t2, c_t3 = st.columns(3)
+        c_t1.metric("Total H1", f"{total_h1:.0f} mL")
+        c_t2.metric("Total H2/H3", f"{total_h2:.0f} mL")
+        c_t3.metric("TOTAL GLOBAL", f"{total_global:.0f} mL")
+    
+        st.markdown("---")
+        st.subheader("🫁 Monitor Respiratorio y Ajuste de Capnografía")
+        
+        # Inputs para el monitor
+        c_vent1, c_vent2 = st.columns(2)
+        fr_act = c_vent1.number_input("FR Act (rpm)", value=12)
+        vt_act = c_vent2.number_input("VT Act (mL)", value=500)
+        
+        # Cálculos de monitorización
+        vol_min = (fr_act * vt_act) / 1000
+        rel_peso_ideal = vt_act / pbw # Usando pbw definido previamente
+        
+        c_resv1, c_resv2 = st.columns(2)
+        c_resv1.metric("VOL. MINUTO", f"{vol_min:.2f} L/min")
+        c_resv2.metric("REL. PESO IDEAL", f"{rel_peso_ideal:.1f} mL/kg")
+        
+        # Ajuste de Capnografía
+        c_paco1, c_paco2 = st.columns(2)
+        paco_act = c_paco1.number_input("PaCO2 Act (mmHg)", value=50)
+        paco_obj = c_paco2.number_input("PaCO2 Obj (mmHg)", value=40)
+        
+        # Lógica de ajuste sugerido (Ecuación simplificada)
+        # FR_nueva = (FR_act * PaCO2_act) / PaCO2_obj
+        fr_sugerida = (fr_act * paco_act) / paco_obj
+        vt_sugerido = (vt_act * paco_act) / paco_obj
+        
+        st.markdown("### 📊 Ajuste Sugerido de Capnografía")
+        c_sug1, c_sug2 = st.columns(2)
+        c_sug1.metric("Modificar FR", f"{fr_sugerida:.0f} rpm")
+        c_sug2.metric("Modificar VT", f"{vt_sugerido:.0f} mL")
+        
+        # Alerta de seguridad (Ventilación Protectora)
+        if (vt_sugerido / pbw) > 8:
+            st.warning("⚠️ Alerta: El VT sugerido excede los 8 mL/kg (Riesgo de volutrauma).")
+        else:
+            st.success("✅ Ajuste dentro de rangos protectores.")
     # ----------------------------------------------------------------
     # PESTAÑA 3: DOSIFICACIÓN (INTERACTIVA)
     # ----------------------------------------------------------------
