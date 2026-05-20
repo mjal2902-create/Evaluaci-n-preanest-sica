@@ -409,46 +409,49 @@ with col_der:
             )
             st.code(texto_hc, language="text")
 
-   # ----------------------------------------------------------------
-    # PESTAÑA 2: PLAN TRANSQUIRÚRGICO (Módulo Experto)
-    # ----------------------------------------------------------------
-    with tab_transquirurgico:
-        if st.button("⚙️ GENERAR PLAN TRANSQUIRÚRGICO", type="primary", key="btn_trans"):
-            st.subheader("⚙️ Plan de Manejo Intraoperatorio (Experto)")
-            
-            # Cálculo obligado de PBW para ventilación protectora
-            pbw = (50.0 if sexo == "Masculino" else 45.5) + 0.91 * (talla_cm - 152.4)
-            
-            st.markdown("#### 🫁 1. Ventilación Mecánica Protectora (Meta: PBW)")
-            st.info(f"• **Vt (6 mL/kg PBW):** {pbw * 6:.0f} mL")
-            st.info(f"• **Vt (8 mL/kg PBW):** {pbw * 8:.0f} mL")
-            st.write(f"• **PEEP Sugerido:** {10 if imc >= 30 else 5} cmH2O")
-            st.write(f"• **FR Meta:** 12-16 rpm (Ajustar para EtCO2 35-45 mmHg)")
-            st.write(f"• **FiO2 Mínima:** 40% (Ajustar según SpO2 92-96%)")
+with tab_transquirurgico:
+        st.subheader("🩸 Monitor de Sangrado & PSP")
+        
+        # Fila de inputs de sangrado
+        c_sang1, c_sang2, c_sang3 = st.columns(3)
+        hto_act = c_sang1.number_input("Hto Act (%)", value=40.0)
+        hto_min = c_sang2.number_input("Hto Mín (%)", value=30.0)
+        sangrado_ml = c_sang3.number_input("Sangrado (mL)", value=0)
+        
+        # Lógica de cálculo PSP (Pérdida Sanguínea Permisible)
+        volemia = peso_real * (70 if sexo == "Masculino" else 65)
+        psp_max = volemia * (hto_act - hto_min) / hto_act
+        
+        # Display dinámico de PSP
+        c_res1, c_res2 = st.columns(2)
+        c_res1.metric("PSP MÁXIMA", f"{psp_max:.0f} mL")
+        c_res2.info(f"Estado: {'⚠️ ALERTA: Sangrado crítico' if sangrado_ml >= psp_max else '✅ Sin Sangrado Crítico'}")
 
-            st.markdown("---")
-            st.markdown("#### 💧 2. Fluidos y Hemodinámica")
-            st.write(f"• **Mantenimiento (4-2-1):** {peso_real + 40:.0f} mL/hr")
-            st.write(f"• **Sangrado Permisible:** {sangrado_permisible:.0f} mL")
-            st.warning("⚠️ *Nota: Si el sangrado supera el permitido, considerar terapia guiada por metas (VPP/PPV).*")
-
-            st.markdown("---")
-            st.markdown("#### 🛡️ 3. Profilaxis de Seguridad")
-            st.write(f"• **NVPO (Apfel {p_apfel}/4):** {'Profilaxis Doble/Triple' if p_apfel >= 2 else 'Monoterapia'}")
-            st.write(f"• **TVP (Caprini {p_caprini}):** {'Mecánica + Farmacológica' if p_caprini >= 5 else 'Mecánica'}")
-            
-            # Alerta crítica nueva
-            if riesgo_cx_tipo == "Alto":
-                st.error("🚨 **Cirugía de Alto Riesgo:** Monitorización invasiva (Línea Arterial) recomendada.")
-
-            st.subheader("📋 Copiar Plan Quirúrgico")
-            texto_trans = (
-                f"PLAN TRANSQUIRÚRGICO\n"
-                f"VENTILACIÓN: Vt {pbw*6:.0f}-{pbw*8:.0f}mL PBW. PEEP {10 if imc>=30 else 5}cmH2O.\n"
-                f"FLUIDOS: Basal {peso_real+40:.0f}mL/hr. Sangrado Permisible: {sangrado_permisible:.0f}mL.\n"
-                f"PROFILAXIS: NVPO Apfel {p_apfel}/4, TVP Caprini {p_caprini}."
-            )
-            st.code(texto_trans, language="text")
+        st.markdown("---")
+        st.subheader("💧 Plan Transoperatorio (Regla 4-2-1)")
+        
+        # Tabla dinámica de componentes
+        mant = peso_real + 40
+        insensibles = 4 # Valor estándar por kg/h
+        repos_ayuno = 960 / 3 # Ejemplo de déficit distribuido en 3 horas
+        
+        # Datos para la tabla
+        data = {
+            "Componente": ["Mant. (4-2-1)", "Insensibles", "Repos. Ayuno"],
+            "H1": [mant, insensibles*peso_real, repos_ayuno],
+            "H2": [mant, insensibles*peso_real, repos_ayuno/2],
+            "H3": [mant, insensibles*peso_real, repos_ayuno/2]
+        }
+        
+        # Renderizado de tabla interactiva
+        import pandas as pd
+        df = pd.DataFrame(data)
+        st.table(df)
+        
+        # Totales inferiores
+        c_t1, c_t2 = st.columns(2)
+        c_t1.metric("Mant. Total", f"{mant*3:.0f}")
+        c_t2.metric("TOTAL LÍQUIDOS", f"{(mant*3) + (insensibles*peso_real*3) + 960:.0f} mL")
     # ----------------------------------------------------------------
     # PESTAÑA 3: DOSIFICACIÓN (INTERACTIVA)
     # ----------------------------------------------------------------
