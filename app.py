@@ -99,6 +99,9 @@ with col_izq:
         
         dict_labs = {}
         
+        # Variables por defecto para cálculos seguros
+        hb, hto, creatinina = 13.0, 40.0, 0.9 
+        
         tiene_hb = st.checkbox("Hemoglobina / Hematocrito", value=True)
         if tiene_hb:
             c_hb1, c_hb2 = st.columns(2)
@@ -124,8 +127,6 @@ with col_izq:
             urea = c_r1.number_input("Urea (mg/dL)", min_value=5, max_value=300, value=30)
             creatinina = c_r2.number_input("Creatinina Sérica (mg/dL)", min_value=0.1, max_value=15.0, value=0.9)
             dict_labs["Función Renal"] = f"Urea: {urea} mg/dL, Creatinina: {creatinina} mg/dL"
-        else:
-            creatinina = 0.9
             
         tiene_alb = st.checkbox("Albúmina Sérica", value=True)
         if tiene_alb:
@@ -205,7 +206,7 @@ with col_izq:
         trombofilia = st.checkbox("Trombofilia conocida")
         acceso_central = st.checkbox("Uso de acceso venoso central")
 
-# --- LÓGICA DE CÁLCULO ---
+# --- LÓGICA DE CÁLCULO GENERAL ---
 talla_m = talla_cm / 100.0
 imc = peso_real / (talla_m ** 2)
 asc = math.sqrt((peso_real * talla_cm) / 3600)
@@ -230,6 +231,21 @@ clcr_cg = ((140 - edad) * peso_real / (72 * max(creatinina, 0.1))) * cg_factor
 creat_term = max(creatinina / ckd_kappa, 1) ** ckd_alfa
 edad_term = 0.993 ** edad
 tfg_ckd = ckd_const * (min(creatinina / ckd_kappa, 1) ** ckd_alfa) * creat_term * edad_term
+
+# --- LÓGICA DE CÁLCULO TRANSQUIRÚRGICO (NUEVO) ---
+# 1. Ventilación
+vt_min = peso_predicho * 6
+vt_max = peso_predicho * 8
+peep_ideal = 5 if imc < 30 else 8 if imc < 40 else 10
+
+# 2. Fluidoterapia (Regla Holliday-Segar 4-2-1 para adultos)
+# Para adultos >20kg la fórmula simplificada es Peso + 40
+fluido_mantenimiento = peso_real + 40 
+
+# 3. Volemia y Sangrado Permisible
+volemia_est = peso_real * (70 if sexo == "Masculino" else 65)
+hto_meta = 30.0 if (tiene_ic or tiene_infarto) else 25.0
+sangrado_permisible = volemia_est * (hto - hto_meta) / hto if hto > hto_meta else 0
 
 # --- PUNTUACIÓN DE ESCALAS ---
 p_arne = 0
@@ -312,137 +328,19 @@ str_farmacos = ", ".join(farmacos_criticos) if farmacos_criticos else "Ninguno"
 if otros_farmacos:
     str_farmacos = f"{str_farmacos}, Otros: {otros_farmacos}" if str_farmacos != "Ninguno" else otros_farmacos
 
-# --- COLUMNA DE REPORTE (PROCESADO) ---
+# --- COLUMNA DE REPORTE CON PESTAÑAS (TABS) ---
 with col_der:
-    st.header("📊 Reporte Clínico Consolidado")
+    st.header("📊 Panel Clínico Integrado")
     
-    if st.button("🔄 ACTUALIZAR Y RECALCULAR VARIABLES PERIOPERATORIAS", type="primary"):
-        st.markdown("""
-        <style>
-        .reporte-box { background-color: #f8f9fa; padding: 20px; border-radius: 10px; border: 1px solid #dee2e6; }
-        h4 { color: #1e3d59; }
-        </style>
-        """, unsafe_allow_html=True)
-        
-        with st.container():
-            st.markdown(f"""
-            ### 🩺 Reporte de Evaluación Preanestésica Avanzada
-            **Paciente:** {sexo} | {edad} años | **Peso Real:** {peso_real:.1f} kg | **Talla:** {talla_cm} cm
-            **Área de Superficie Corporal (Mosteller):** **{asc:.2f} m²**
+    # Creación de las dos pestañas nativas
+    tab_preanestesia, tab_transquirurgico = st.tabs(["📝 Reporte Preanestésico", "⚙️ Plan Transquirúrgico"])
+    
+    # ----------------------------------------------------------------
+    # PESTAÑA 1: EVALUACIÓN PREANESTÉSICA (El reporte clásico)
+    # ----------------------------------------------------------------
+    with tab_preanestesia:
+        if st.button("🔄 ACTUALIZAR EVALUACIÓN PREANESTÉSICA", type="primary"):
+            st.markdown("""<style>.reporte-box { background-color: #f8f9fa; padding: 20px; border-radius: 10px; border: 1px solid #dee2e6; } h4 { color: #1e3d59; }</style>""", unsafe_allow_html=True)
             
-            ---
-            #### 🧮 Evaluación del IMC y Pesos Clínicos
-            * **IMC:** **{imc:.1f} kg/m²** → ({'Bajo Peso' if imc < 18.5 else 'Normal' if imc < 25 else 'Sobrepeso' if imc < 30 else 'Obesidad'})
-            * **Peso Ideal (Devine):** **{peso_ideal:.1f} kg** *(Referencia para volumen central / bolo inicial)*
-            * **Peso Predicho (ARDSNet):** **{peso_predicho:.1f} kg**
-            * 🎯 **Volumen Corriente Protector (6-8 mL/kg):** **{peso_predicho*6:.0f} mL - {peso_predicho*8:.0f} mL**
-            """)
-            
-            if imc >= 25:
-                st.markdown(f"""
-                > ⚠️ **Pesos Ajustados por Sobrepeso/Obesidad:**
-                > * **Peso Ajustado al 20% (TIVA/Lipofílicos):** **{peso_ajust_20:.1f} kg**
-                > * **Peso Ajustado al 40% (RMM/Hidrofílicos):** **{peso_ajust_40:.1f} kg**
-                """)
-                
-            st.markdown(f"""
-            ---
-            #### 🚨 Seguridad Perioperatoria, Alergias y Fármacos
-            * **Alergias Medicamentosas / Látex:** **{str_alergias_med.upper()}**
-            * **Alergias Alimentarias:** **{str_alergias_com.upper()}**
-            * **Fármacos Críticos en Uso:** {str_farmacos}
-            
-            ---
-            #### 🫁 Evaluación de la Vía Aérea y Ventilación
-            * **Mallampati:** {mallampati} | **DTM:** {dtm} cm | **DEM:** {dem} cm | **Cuello:** {cuello} cm
-            * 📋 **Índice Multivariable de Arné:** **{p_arne} puntos** → RIESGO DE INTUBACIÓN: **{"ALTO (≥11)" if p_arne >= 11 else "BAJO (<11)"}**
-            * **Predictores de Ventilación Difícil (VMD):** {'SÍ' if (tiene_barba or imc > 30 or edad > 55 or tiene_edentulia or tiene_ronquido) else 'NO'}
-            * 💤 **STOP-BANG (Riesgo SAHOS):** **{p_stop} / 8 puntos** → Riesgo **{"Alto (≥5)" if p_stop >= 5 else "Intermedio (3-4)" if p_stop >= 3 else "Bajo (0-2)"}**
-            
-            ---
-            #### 🧪 Módulo de Laboratorios y Función Renal
-            """)
-            
-            str_labs_resumen = ""
-            if not dict_labs:
-                st.error("❌ No hay datos de laboratorios registrados")
-                str_labs_resumen = "No provistos"
-            else:
-                for item, valor in dict_labs.items():
-                    st.markdown(f"• **{item}:** {valor}")
-                    str_labs_resumen += f"{item}: {valor} | "
-            
-            st.markdown(f"""
-            * **Otras Alteraciones Analíticas:** {alteraciones_lab}
-            * **Creatinina Sérica Basal:** {creatinina:.2f} mg/dL
-            * 🔮 **TFG (CKD-EPI):** **{tfg_ckd:.0f} mL/min/1.73m²** | 🔮 **Aclaramiento (Cockcroft-Gault):** **{clcr_cg:.0f} mL/min**
-            
-            ---
-            #### 🛡️ Módulo de Estratificación de Riesgo Perioperatorio Total
-            
-            ##### 🏗️ 1. Riesgo Quirúrgico Intrínseco
-            * **Cirugía:** {nombre_cx}
-            * **Clasificación Quirúrgica:** **{riesgo_cx_tipo.upper()}**
-            {'⚠️ ALERTA: PROCEDIMIENTO DE EMERGENCIA' if cirugia_emergencia else ''}
-            
-            ##### 🫀 2. Riesgo Cardiológico Perioperatorio Total
-            * **Índice de Lee (RCRI):** Clase **{'I' if p_lee==0 else 'II' if p_lee==1 else 'III' if p_lee==2 else 'IV'}** ({p_lee} criterios, Riesgo MACE: {"0.4%" if p_lee==0 else "0.9%" if p_lee==1 else "6.6%" if p_lee==2 else "11.0%"})
-            * **Índice de Goldman Modificado:** Clase **{'I (0-5)' if p_goldman<=5 else 'II (6-12)' if p_goldman<=12 else 'III (13-25)' if p_goldman<=25 else 'IV (≥26)'}** ({p_goldman} pts)
-            * 🎯 **Riesgo Cardiológico Global Asignado:** **{"RIESGO BAJO" if p_lee <= 1 and p_goldman <= 12 else "RIESGO MODERADO" if p_lee == 2 else "RIESGO ALTO"}**
-            
-            ##### 🩸 3. Riesgo Tromboembólico (Caprini)
-            * **Puntaje Caprini:** **{p_caprini} puntos** → Riesgo: **{"ALTO (≥5)" if p_caprini >= 5 else "Moderado (3-4)" if p_caprini >= 3 else "Bajo (1-2)" if p_caprini >= 1 else "Muy Bajo (0)"}**
-            
-            ##### 🤢 4. Riesgo de Náuseas y Vómitos (Apfel)
-            * **Puntaje Apfel:** **{p_apfel} / 4** → Incidencia estimada de NVPO: **{"60-80%" if p_apfel >= 3 else "20-40%" if p_apfel >= 2 else "10%"}**
-            
-            ---
-            #### 🫀 Interpretación Electrocardiográfica Directa (EKG)
-            * **Patología Principal:** **{diagnostico_ekg_consolidado.upper()}**
-            
-            ---
-            """)
-            
-            # --- NUEVO FORMATO DE RESUMEN COPIABLE (Con Botón Nativo) ---
-            st.subheader("📋 Resumen Copiable")
-            st.caption("👇 Haz clic en el ícono de las dos hojas en la esquina superior derecha del cuadro para copiar todo el texto.")
-            
-            ant_lista = []
-            if tiene_infarto: ant_lista.append("Infarto <6 meses")
-            if tiene_ic: ant_lista.append("ICC")
-            if tiene_acv: ant_lista.append("ACV/AIT")
-            if tiene_insulina: ant_lista.append("DM2+Insulina")
-            if tiene_ev: ant_lista.append(">5 EV/min")
-            if tiene_ritmo_no_s: ant_lista.append("Ritmo No Sinusal")
-            if tiene_cancer: ant_lista.append("Cáncer")
-            if tiene_epoc: ant_lista.append("EPOC")
-            ant_texto = ", ".join(ant_lista) if ant_lista else "Negados"
-
-            texto_hc = (
-                f"NOTA DE EVALUACIÓN PREANESTÉSICA\n"
-                f"---------------------------------\n"
-                f"PACIENTE: {sexo} | Edad: {edad} años. IMC: {imc:.1f} kg/m2. ASC: {asc:.2f} m2.\n"
-                f"PESOS: Ideal: {peso_ideal:.1f} kg | Predicho: {peso_predicho:.1f} kg | Vt protector: {peso_predicho*6:.0f}-{peso_predicho*8:.0f} mL.\n"
-                f"ALERGIAS: Meds/Látex: {str_alergias_med.upper()} | Alimentos: {str_alergias_com.upper()}\n"
-                f"MEDICACIÓN CRÍTICA: {str_farmacos}\n"
-                f"ANTECEDENTES: {ant_texto}\n\n"
-                f"VÍA AÉREA: Mallampati {mallampati}, DTM {dtm} cm, DEM {dem} cm, Cuello {cuello} cm.\n"
-                f"- Índice de Arné: {p_arne} pts (Riesgo Intubación: {'ALTO' if p_arne>=11 else 'BAJO'}).\n"
-                f"- Predictores VMD: {'SÍ' if (tiene_barba or imc>30 or edad>55 or tiene_edentulia or tiene_ronquido) else 'NO'}.\n"
-                f"- STOP-BANG: {p_stop}/8 pts (Riesgo SAHOS: {'Alto' if p_stop>=5 else 'Intermedio' if p_stop>=3 else 'Bajo'}).\n\n"
-                f"LABORATORIOS: {str_labs_resumen}Otras alterac: {alteraciones_lab}\n"
-                f"FUNCIÓN RENAL: Creatinina {creatinina:.2f} mg/dL | TFG (CKD-EPI): {tfg_ckd:.0f} mL/min | ClCr (C-G): {clcr_cg:.0f} mL/min.\n"
-                f"EKG: {diagnostico_ekg_consolidado.upper()}\n\n"
-                f"ESTRATIFICACIÓN DE RIESGO PERIOPERATORIO:\n"
-                f"- Procedimiento: {nombre_cx} ({riesgo_cx_tipo.split(' ')[0]} riesgo intrínseco). {'[EMERGENCIA]' if cirugia_emergencia else ''}\n"
-                f"- Riesgo Cardíaco (Lee RCRI): Clase {'I' if p_lee==0 else 'II' if p_lee==1 else 'III' if p_lee==2 else 'IV'} ({p_lee} criterios).\n"
-                f"- Riesgo Cardíaco (Goldman): Clase {'I' if p_goldman<=5 else 'II' if p_goldman<=12 else 'III' if p_goldman<=25 else 'IV'} ({p_goldman} pts).\n"
-                f"- Riesgo Tromboembólico (Caprini): {p_caprini} pts (Riesgo: {'ALTO' if p_caprini>=5 else 'Moderado' if p_caprini>=3 else 'Bajo'}).\n"
-                f"- Riesgo NVPO (Apfel): {p_apfel}/4 pts."
-            )
-            
-            # Se usa st.code para habilitar el botón de copiado nativo de Streamlit
-            st.code(texto_hc, language="text")
-
-    else:
-        st.info("💡 Complete o modifique los datos clínicos en el panel de la izquierda y presione el botón de arriba para generar el reporte unificado.")
+            st.markdown(f"### 🩺 Reporte de Evaluación Preanestésica Avanzada")
+            st.markdown(f"**Paciente:** {sex
