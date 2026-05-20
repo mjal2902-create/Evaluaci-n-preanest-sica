@@ -536,48 +536,75 @@ with col_der:
         else:
             st.write("Dosificación específica pendiente de configuración para esta técnica.")
     # ----------------------------------------------------------------
-    # PESTAÑA 4: GASOMETRIA
+    # PESTAÑA 4: GASOMETRÍA Y HOMEOSTASIS ÁCIDO-BASE (Módulo Experto)
     # ----------------------------------------------------------------
     with tab_gasometria:
-        st.subheader("🩸 Análisis Ácido-Base y Homeostasis")
+        st.subheader("🩸 Análisis Ácido-Base Avanzado")
         
-        # 1. Inputs de Gasometría
-        c_g1, c_g2, c_g3 = st.columns(3)
-        ph = c_g1.number_input("pH", min_value=6.8, max_value=7.8, value=7.40, step=0.01)
-        pco2 = c_g2.number_input("PaCO2 (mmHg)", value=40.0)
-        hco3 = c_g3.number_input("HCO3 (mEq/L)", value=24.0)
+        st.markdown("#### 1. Parámetros Medidos")
+        col1, col2, col3 = st.columns(3)
+        ph = col1.number_input("pH", value=7.40, format="%.2f", step=0.01, key="gas_ph")
+        pco2 = col2.number_input("PaCO2 (mmHg)", value=40.0, key="gas_pco2")
+        hco3 = col3.number_input("HCO3 (mEq/L)", value=24.0, key="gas_hco3")
+        
+        col4, col5 = st.columns(2)
+        na = col4.number_input("Sodio - Na+ (mEq/L)", value=140.0, key="gas_na")
+        cl = col5.number_input("Cloro - Cl- (mEq/L)", value=104.0, key="gas_cl")
 
         st.markdown("---")
+        st.markdown("#### 2. Diagnóstico y Compensación")
         
-        # 2. Módulo de Reposición de Bicarbonato (Déficit de Base)
-        st.markdown("#### 💊 Reposición de Bicarbonato")
-        # Fórmula: Déficit HCO3 = (HCO3_meta - HCO3_actual) * 0.4 * Peso
-        hco3_meta = st.slider("HCO3 Meta (mEq/L)", 18, 24, 22)
-        deficit = (hco3_meta - hco3) * 0.4 * peso_real
+        # Cálculos Matemáticos Clínicos
+        anion_gap = na - (cl + hco3)
+        # Fórmula de Winter: PaCO2 = (1.5 x HCO3) + 8 ± 2
+        pco2_esperada = (1.5 * hco3) + 8 
         
-        c_r1, c_r2 = st.columns(2)
-        c_r1.metric("Déficit de HCO3", f"{max(0, deficit):.1f} mEq")
-        c_r2.info("Dosis sugerida: Administrar 50% en 2-4 horas.")
-
-        st.markdown("---")
-        
-        # 3. Módulo de Ajuste Respiratorio (Homeostasis)
-        st.markdown("#### 🫁 Ajuste Respiratorio (PaCO2)")
-        # Fórmula: PaCO2_meta = (pH_meta - pH_actual) * factor_correcion + PaCO2_actual
-        # Simplificación clínica para ajuste ventilatorio
-        ph_meta = 7.40
-        factor = 10 # Aproximación clínica estándar
-        pco2_meta = pco2 + ((ph_meta - ph) * factor)
-        
-        st.metric("PaCO2 Objetivo", f"{pco2_meta:.1f} mmHg", help="PaCO2 necesaria para alcanzar pH 7.40")
-        
+        # Lógica de Trastorno Primario
+        diag_primario = "Normal"
         if ph < 7.35:
-            st.warning(f"🚨 Acidemia detectada. Incrementar Ventilación Minuto para alcanzar {pco2_meta:.1f} mmHg.")
+            diag_primario = "Acidosis Metabólica" if hco3 < 22 else "Acidosis Respiratoria"
         elif ph > 7.45:
-            st.warning(f"🚨 Alcalemia detectada. Disminuir Ventilación Minuto para alcanzar {pco2_meta:.1f} mmHg.")
-        else:
-            st.success("✅ Homeostasis ácida-base conservada.")
+            diag_primario = "Alcalosis Metabólica" if hco3 > 26 else "Alcalosis Respiratoria"
+            
+        c_d1, c_d2, c_d3 = st.columns(3)
+        c_d1.metric("Estado Primario", diag_primario)
+        c_d2.metric("Anion Gap", f"{anion_gap:.1f} mEq/L", help="Rango normal: 8 - 12 mEq/L")
+        c_d3.metric("PaCO2 de Winter", f"{pco2_esperada:.1f} ±2 mmHg", help="Compensación esperada")
 
-        # Referencia para tu tesis
-        st.divider()
-        st.caption("Fórmulas basadas en: *Adrogue HJ, Madias NE. Management of life-threatening acid-base disorders. N Engl J Med. 1998.*")
+        # Alerta de Trastornos Mixtos (Guardrail Cognitivo)
+        if diag_primario == "Acidosis Metabólica":
+            if pco2 > (pco2_esperada + 2.5):
+                st.error("🚨 **Trastorno Mixto:** Acidosis Metabólica + Acidosis Respiratoria sobreañadida (Falla de compensación).")
+            elif pco2 < (pco2_esperada - 2.5):
+                st.warning("⚠️ **Trastorno Mixto:** Acidosis Metabólica + Alcalosis Respiratoria.")
+            else:
+                st.success("✅ Compensación respiratoria fisiológica adecuada.")
+
+        st.markdown("---")
+        st.markdown("#### 3. Terapia Dirigida y Ajuste Transquirúrgico")
+        
+        col_t1, col_t2 = st.columns(2)
+        
+        with col_t1:
+            st.write("**Reposición de Bicarbonato**")
+            # Espacio de distribución de HCO3 (0.4 x TBW)
+            hco3_meta = st.slider("HCO3 Meta (mEq/L)", 15.0, 24.0, 20.0, step=1.0)
+            deficit_hco3 = (hco3_meta - hco3) * 0.4 * peso_real
+            
+            if deficit_hco3 > 0:
+                st.metric("Déficit a Reponer", f"{deficit_hco3:.1f} mEq")
+                if ph < 7.20:
+                    st.error(f"Administrar 50% de la dosis ({deficit_hco3/2:.1f} mEq) en infusión lenta (30-60 min).")
+                else:
+                    st.info("pH > 7.20. La corrección metabólica suele resolverse optimizando hemodinamia y ventilación.")
+            else:
+                st.write("✅ Sin requerimiento de HCO3 extógeno.")
+
+        with col_t2:
+            st.write("**Ajuste de Ventilación Mecánica**")
+            pco2_meta = st.number_input("PaCO2 Objetivo (mmHg)", value=40.0)
+            fr_ventilador = st.number_input("FR Actual del Ventilador", value=12)
+            
+            # Ajuste de FR = (FR actual x PaCO2 actual) / PaCO2 objetivo
+            fr_nueva = (fr_ventilador * pco2) / pco2_meta if pco2_meta > 0 else 0
+            st.metric("FR Sugerida", f"{fr_nueva:.0f} rpm", help="Modificar frecuencia para barrer o retener CO2 sin alterar el VT protector")
