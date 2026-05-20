@@ -147,7 +147,6 @@ with col_izq:
         ekg_bav2 = c_ekg1.checkbox("Bloqueo AV de Segundo Grado (Mobitz I/II)")
         ekg_bav3 = c_ekg1.checkbox("Bloqueo AV Completo (Tercer Grado)")
         
-        # CORRECCIÓN CLAVE: Eliminada la "r" para que coincida exactamente con la variable de abajo
         ekg_bicia = c_ekg2.checkbox("Bloqueo de Rama Izquierda o Derecha (BRIHH/BRDHH)")
         ekg_st_supra = c_ekg2.checkbox("Supradesnivel del segmento ST (Lesión aguda)")
         ekg_st_infra = c_ekg2.checkbox("Infradesnivel del segmento ST / Inversión Onda T")
@@ -376,8 +375,7 @@ with col_der:
             st.markdown(f"""
             * **Otras Alteraciones Analíticas:** {alteraciones_lab}
             * **Creatinina Sérica Basal:** {creatinina:.2f} mg/dL
-            * 🔮 **TFG (CKD-EPI):** **{tfg_ckd:.0f} mL/min/1.73m²**
-            * 🔮 **Aclaramiento (Cockcroft-Gault):** **{clcr_cg:.0f} mL/min**
+            * 🔮 **TFG (CKD-EPI):** **{tfg_ckd:.0f} mL/min/1.73m²** | 🔮 **Aclaramiento (Cockcroft-Gault):** **{clcr_cg:.0f} mL/min**
             
             ---
             #### 🛡️ Módulo de Estratificación de Riesgo Perioperatorio Total
@@ -405,8 +403,9 @@ with col_der:
             ---
             """)
             
-            # --- TEXTO COPIABLE PARA HISTORIA CLÍNICA ---
-            st.subheader("📋 Resumen para Copiar a Historia Clínica")
+            # --- NUEVO FORMATO DE RESUMEN COPIABLE (Con Botón Nativo) ---
+            st.subheader("📋 Resumen Copiable")
+            st.caption("👇 Haz clic en el ícono de las dos hojas en la esquina superior derecha del cuadro para copiar todo el texto.")
             
             ant_lista = []
             if tiene_infarto: ant_lista.append("Infarto <6 meses")
@@ -442,7 +441,8 @@ with col_der:
                 f"- Riesgo NVPO (Apfel): {p_apfel}/4 pts."
             )
             
-            st.text_area(label="📋 Bloque de Texto Médico (Copiar)", value=texto_hc, height=350)
+            # Se usa st.code para habilitar el botón de copiado nativo de Streamlit
+            st.code(texto_hc, language="text")
 
     else:
         st.info("💡 Complete o modifique los datos clínicos en el panel de la izquierda y presione el botón de arriba para generar el reporte unificado.")
