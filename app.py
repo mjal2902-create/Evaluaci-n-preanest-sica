@@ -53,11 +53,11 @@ with col_izq:
     # 4. Laboratorios
     with st.expander("4. Laboratorios y Paraclínicos"):
         creatinina = st.number_input("Creatinina Sérica (mg/dL)", min_value=0.1, max_value=15.0, value=0.9, step=0.1)
-        alteraciones_lab = st.text_area("Otras alteraciones de laboratorio", "Sin alteraciones")
+        alteraciones_lab = st.text_area("Otras alteraciones de laboratorio", "Sin alteraciones de importancia perioperatoria.")
 
     # 5. EKG Patológico
     with st.expander("5. Hallazgos EKG"):
-        ekg_sinusal = st.checkbox("Ritmo Sinusal", value=True)
+        ekg_sinusal = st.checkbox("Ritmo Sinusal Normal", value=True)
         ekg_fa = st.checkbox("Fibrilación Auricular / Flutter")
         ekg_bav1 = st.checkbox("Bloqueo AV 1er Grado")
         ekg_bav2 = st.checkbox("Bloqueo AV 2do Grado")
@@ -92,59 +92,47 @@ with col_izq:
         no_fumador = st.checkbox("Paciente es NO Fumador", value=True)
         historia_nvpo = st.checkbox("Historia previa de NVPO")
         opioides_post = st.checkbox("Uso planeado de opioides post-op", value=True)
-        varices = st.checkbox("Várices venosas")
-        edema_mi = st.checkbox("Edema de miembros inferiores")
+        varices = st.checkbox("Várices")
+        edema_mi = st.checkbox("Edema MMII")
         inmovilizacion = st.checkbox("Inmovilización > 72 horas")
         trombofilia = st.checkbox("Trombofilia")
-        acceso_central = st.checkbox("Acceso venoso central")
+        acceso_central = st.checkbox("Acceso central")
 
 # --- LÓGICA DE CÁLCULO ---
 talla_m = talla_cm / 100.0
 imc = peso_real / (talla_m ** 2)
 asc = math.sqrt((peso_real * talla_cm) / 3600)
-peso_ideal = (50.0 if sexo == "Masculino" else 45.5) + 2.3 * ((talla_cm / 2.54) - 60.0)
 peso_predicho = (50.0 if sexo == "Masculino" else 45.5) + 0.91 * (talla_cm - 152.4)
-clcr_cg = ((140 - edad) * peso_real / (72 * max(creatinina, 0.1))) * (1.0 if sexo == "Masculino" else 0.85)
-
-# Transquirúrgico
-vt_min, vt_max = peso_predicho * 6, peso_predicho * 8
-peep_ideal = 10 if imc >= 40 else 8 if imc >= 30 else 5
-fluido_mantenimiento = peso_real + 40
-sangrado_permisible = (peso_real * (70 if sexo == "Masculino" else 65)) * (0.07 if (tiene_ic or tiene_infarto) else 0.12)
-
-# Escalas
 p_arne = (5 if historia_vad else 0) + (5 if patologia_vad else 0) + (2 if mallampati=="Clase III" else 5 if mallampati=="Clase IV" else 0)
-p_lee = (1 if "Alto" in riesgo_cx_tipo else 0) + (1 if tiene_infarto else 0) + (1 if tiene_ic else 0) + (1 if tiene_acv else 0) + (1 if tiene_insulina else 0) + (1 if creatinina>2.0 else 0)
+p_lee = (1 if riesgo_cx_tipo=="Alto" else 0) + (1 if tiene_infarto else 0) + (1 if tiene_ic else 0) + (1 if tiene_acv else 0) + (1 if tiene_insulina else 0) + (1 if creatinina>2.0 else 0)
 p_caprini = (1 if 41<=edad<=60 else 2 if 61<=edad<=74 else 3 if edad>=75 else 0) + (2 if riesgo_cx_tipo!="Bajo" else 0) + (2 if inmovilizacion else 0) + (2 if tiene_cancer else 0)
 p_apfel = (1 if sexo=="Femenino" else 0) + (1 if no_fumador else 0) + (1 if historia_nvpo else 0) + (1 if opioides_post else 0)
 
-# EKG consolidado
 lista_ekg = [k for k, v in [("Sinusal", ekg_sinusal), ("FA/Flutter", ekg_fa), ("BAV1", ekg_bav1), ("BAV2", ekg_bav2), ("BAV3", ekg_bav3), ("Bloqueo Rama", ekg_bicia), ("ST Supra", ekg_st_supra), ("ST Infra", ekg_st_infra), ("HVI", ekg_hvi), ("QT Largo", ekg_qt_largo)] if v]
 if otros_hallazgos_ekg != "Ninguno": lista_ekg.append(otros_hallazgos_ekg)
 diag_ekg = ", ".join(lista_ekg) if lista_ekg else "Normal"
 
-# --- REPORTE ---
+# --- REPORTE Y PESTAÑAS ---
 with col_der:
     st.header("📊 Reporte Clínico Consolidado")
     tab1, tab2 = st.tabs(["📝 Reporte Preanestésico", "⚙️ Plan Transquirúrgico"])
     
     with tab1:
         if st.button("🔄 ACTUALIZAR REPORTE", type="primary"):
-            st.markdown(f"**Paciente:** {sexo}, {edad} años. IMC: {imc:.1f}.")
-            st.markdown(f"**Alergias:** {alergias}. **Fármacos:** {medicamentos}.")
-            st.markdown(f"**Vía Aérea:** Mallampati {mallampati}. Riesgo Arné: {p_arne} pts.")
-            st.markdown(f"**EKG:** {diag_ekg}.")
-            st.markdown(f"**Plan Anestésico:** {plan_anestesico.upper()}.")
-            st.markdown("---")
+            st.write(f"**Paciente:** {sexo}, {edad} años. **Cirugía:** {nombre_cx}.")
+            st.write(f"**Plan Anestésico:** {plan_anestesico}")
+            st.write(f"**Riesgo:** Arné: {p_arne}, Lee: {p_lee}, Caprini: {p_caprini}, Apfel: {p_apfel}/4.")
+            st.write(f"**EKG:** {diag_ekg}")
             st.subheader("📋 Resumen para Copiar")
-            texto_hc = f"PREANESTESIA: {sexo}, {edad}a. IMC {imc:.1f}. Cx: {nombre_cx}. Anestesia: {plan_anestesico}. Lee: {p_lee}. EKG: {diag_ekg}."
+            texto_hc = f"PREANESTESIA: {sexo}, {edad}a. IMC {imc:.1f}. Cx: {nombre_cx}. Anestesia: {plan_anestesico}. Lee: {p_lee}. EKG: {diag_ekg}. Alergias: {alergias}. Arné: {p_arne} pts."
             st.code(texto_hc, language="text")
             
     with tab2:
-        if st.button("⚙️ GENERAR PLAN TRANSQUIRÚRGICO", type="primary"):
+        if st.button("⚙️ GENERAR PLAN", type="primary"):
             st.subheader("⚙️ Plan Intraoperatorio")
-            st.write(f"• **Ventilación:** Vt {vt_min:.0f}-{vt_max:.0f}mL, PEEP {peep_ideal}cmH2O.")
-            st.write(f"• **Fluidos:** Basal {fluido_mantenimiento:.0f}mL/hr.")
-            st.write(f"• **Sangrado Permisible:** {sangrado_permisible:.0f}mL.")
-            st.write(f"• **Profilaxis:** NVPO (Apfel {p_apfel}), TVP (Caprini {p_caprini}).")
-            st.code(f"PLAN {plan_anestesico.upper()}: Vt {vt_min:.0f}-{vt_max:.0f}mL. PEEP {peep_ideal}. Fluidos {fluido_mantenimiento:.0f}mL/hr.", language="text")
+            vt = peso_predicho * 7
+            st.write(f"• **Vt Protector:** {vt:.0f} mL")
+            st.write(f"• **PEEP Sugerido:** {10 if imc>=30 else 5} cmH2O")
+            st.write(f"• **Mantenimiento:** {peso_real+40:.0f} mL/hr")
+            st.write(f"• **Plan Anestésico:** {plan_anestesico}")
+            st.code(f"PLAN {plan_anestesico.upper()}: Vt {vt:.0f}mL. Mantenimiento {peso_real+40:.0f}mL/hr.", language="text")
