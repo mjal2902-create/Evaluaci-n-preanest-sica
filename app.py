@@ -421,6 +421,7 @@ with col_der:
         imc = peso_real / ((talla_cm / 100) ** 2)
         abw_20 = ibw + 0.2 * (peso_real - ibw)
         abw_40 = ibw + 0.4 * (peso_real - ibw)
+        pbw = (50.0 if sexo == "Masculino" else 45.5) + 0.91 * (talla_cm - 152.4)
         
         # Display de métricas en columnas (Layout Profesional)
         c_ant1, c_ant2 = st.columns(2)
@@ -452,7 +453,11 @@ with col_der:
         c_res1, c_res2 = st.columns(2)
         c_res1.metric("PSP MÁXIMA", f"{max(0, psp_max):.0f} mL")
         c_res2.info(f"Estado: {'⚠️ ALERTA' if sangrado_ml >= psp_max else '✅ OK'}")
-
+        st.markdown("---")
+        st.subheader("🫁 Monitor Respiratorio")
+        c_vent1, c_vent2 = st.columns(2)
+        fr_act = c_vent1.number_input("FR Act (rpm)", value=12)
+        vt_act = c_vent2.number_input("VT Act (mL)", value=500)
         st.markdown("---")
         st.subheader("💧 Plan Transoperatorio")
         
