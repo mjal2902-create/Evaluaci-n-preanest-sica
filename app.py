@@ -535,64 +535,7 @@ with col_der:
             st.write(f"• **Dosis Midazolam:** {midaz:.1f} mg")
         else:
             st.write("Dosificación específica pendiente de configuración para esta técnica.")
-  # ----------------------------------------------------------------
-    # PESTAÑA 4: GASOMETRÍA Y HOMEOSTASIS (Diagnóstico Completo)
-    # ----------------------------------------------------------------
-    with tab_gasometria:
-        st.subheader("🩸 Análisis Ácido-Base Diagnóstico")
-        
-        # 1. Inputs de Gasometría
-        col1, col2, col3 = st.columns(3)
-        ph = col1.number_input("pH", value=7.40, format="%.2f", step=0.01, key="g_ph")
-        pco2 = col2.number_input("PaCO2 (mmHg)", value=40.0, key="g_pco2")
-        hco3 = col3.number_input("HCO3- (mEq/L)", value=24.0, key="g_hco3")
-
-        # 2. Motor de Diagnóstico Ácido-Base
-        ph_min, ph_max = 7.35, 7.45
-        pco2_min, pco2_max = 35.0, 45.0
-        hco3_min, hco3_max = 22.0, 26.0
-
-        diagnostico = "Normal"
-        
-        if ph < ph_min:  # ACIDEMIA
-            if pco2 > pco2_max and hco3 < hco3_min:
-                diagnostico = "Trastorno Mixto (Acidosis Metabólica + Respiratoria)"
-            elif pco2 > pco2_max:
-                if hco3 > hco3_max:
-                    diagnostico = "Acidosis Respiratoria Parcialmente Compensada"
-                elif hco3_min <= hco3 <= hco3_max:
-                    diagnostico = "Acidosis Respiratoria No Compensada"
-            elif hco3 < hco3_min:
-                if pco2 < pco2_min:
-                    diagnostico = "Acidosis Metabólica Parcialmente Compensada"
-                elif pco2_min <= pco2 <= pco2_max:
-                    diagnostico = "Acidosis Metabólica No Compensada"
-                    
-        elif ph > ph_max:  # ALCALEMIA
-            if pco2 < pco2_min and hco3 > hco3_max:
-                diagnostico = "Trastorno Mixto (Alcalosis Metabólica + Respiratoria)"
-            elif pco2 < pco2_min:
-                if hco3 < hco3_min:
-                    diagnostico = "Alcalosis Respiratoria Parcialmente Compensada"
-                elif hco3_min <= hco3 <= hco3_max:
-                    diagnostico = "Alcalosis Respiratoria No Compensada"
-            elif hco3 > hco3_max:
-                if pco2 > pco2_max:
-                    diagnostico = "Alcalosis Metabólica Parcialmente Compensada"
-                elif pco2_min <= pco2 <= pco2_max:
-                    diagnostico = "Alcalosis Metabólica No Compensada"
-                    
-        else:  # pH NORMAL (Compensación o Normalidad)
-            if pco2 > pco2_max and hco3 > hco3_max:
-                diagnostico = "Acidosis Respiratoria Compensada" if ph <= 7.40 else "Alcalosis Metabólica Compensada"
-            elif pco2 < pco2_min and hco3 < hco3_min:
-                diagnostico = "Acidosis Metabólica Compensada" if ph <= 7.40 else "Alcalosis Respiratoria Compensada"
-            elif pco2_min <= pco2 <= pco2_max and hco3_min <= hco3 <= hco3_max:
-                diagnostico = "Gasometría dentro de parámetros normales"
-
-        # Mostrar Diagnóstico
-        st.markdown("---")
-        st.info(f"🧬 **Interpretación Diagnóstica:** {diagnostico}")
+ 
 # ----------------------------------------------------------------
     # PESTAÑA 4: GASOMETRÍA Y HOMEOSTASIS ÁCIDO-BASE (Unificada)
     # ----------------------------------------------------------------
