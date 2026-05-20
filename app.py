@@ -535,3 +535,5 @@ with col_der:
             st.write(f"• **Dosis Midazolam:** {midaz:.1f} mg")
         else:
             st.write("Dosificación específica pendiente de configuración para esta técnica.")
+st.divider()
+st.caption("Autor: **Dr. Marcos Aviles**")
