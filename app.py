@@ -409,60 +409,44 @@ with col_der:
             )
             st.code(texto_hc, language="text")
 
-    # ----------------------------------------------------------------
-    # PESTAÑA 2: PLAN TRANSQUIRÚRGICO (NUEVO MÓDULO)
+   # ----------------------------------------------------------------
+    # PESTAÑA 2: PLAN TRANSQUIRÚRGICO (Módulo Experto)
     # ----------------------------------------------------------------
     with tab_transquirurgico:
-         if st.button("⚙️ GENERAR PLAN TRANSQUIRÚRGICO", type="primary", key="btn_trans"):
-            st.markdown(f"### ⚙️ Plan de Manejo Intraoperatorio")
-            st.markdown(f"**Paciente:** {sexo} | **IMC:** {imc:.1f} kg/m² | **Peso Predicho:** {peso_predicho:.1f} kg")
+        if st.button("⚙️ GENERAR PLAN TRANSQUIRÚRGICO", type="primary", key="btn_trans"):
+            st.subheader("⚙️ Plan de Manejo Intraoperatorio (Experto)")
             
-            st.markdown("---")
-            st.markdown("#### 🫁 1. Estrategia de Ventilación Protectora")
-            st.info(f"🎯 **Volumen Corriente (Vt):** Entre **{vt_min:.0f} mL** y **{vt_max:.0f} mL** *(6-8 mL/kg Peso Predicho)*")
-            st.write(f"• **PEEP Sugerido:** **{peep_ideal} cmH2O** *(Ajustado por IMC)*")
-            if imc > 35:
-                st.warning("⚠️ **Alerta por Obesidad Severa:** Se recomienda PEEP ≥ 10 cmH2O y realizar maniobras de reclutamiento alveolar periódicas. Considere usar Peso Ajustado (TIVA) o Peso Ideal (Volátiles).")
+            # Cálculo obligado de PBW para ventilación protectora
+            pbw = (50.0 if sexo == "Masculino" else 45.5) + 0.91 * (talla_cm - 152.4)
             
-            st.markdown("---")
-            st.markdown("#### 💧 2. Manejo de Fluidos y Hemodinámica")
-            st.success(f"🚰 **Mantenimiento Basal (Regla 4-2-1):** **{fluido_mantenimiento:.0f} mL/hr**")
-            st.write(f"• **Volemia Estimada:** **{volemia_est:.0f} mL**")
-            
-            if tiene_hb and hto > hto_meta:
-                st.error(f"🩸 **Sangrado Permisible Máximo:** **{sangrado_permisible:.0f} mL** *(Hasta llegar a un Hto meta de {hto_meta}%)*")
-            elif tiene_hb and hto <= hto_meta:
-                st.error(f"⚠️ **Atención:** El hematocrito actual ({hto}%) ya está en o por debajo del umbral de transfusión ({hto_meta}%). Prepare hemoderivados.")
-            else:
-                st.write("• *Sangrado Permisible:* No calculable (Falta Hematocrito preoperatorio).")
-            
-            st.markdown("---")
-            st.markdown("#### 🛡️ 3. Profilaxis y Cuidados Dirigidos")
-            
-            # Anti-eméticos basados en Apfel
-            if p_apfel >= 2:
-                st.write(f"• 🤢 **NVPO (Apfel {p_apfel}/4):** Riesgo Moderado/Alto. **Requiere profilaxis doble** (Ej. Dexametasona + Ondansetrón).")
-            else:
-                st.write(f"• 🤢 **NVPO (Apfel {p_apfel}/4):** Riesgo Bajo. Monoterapia o rescate según evolución.")
-                
-            # TVP basado en Caprini
-            if p_caprini >= 5:
-                st.write(f"• 🩸 **TEV/TVP (Caprini {p_caprini}):** RIESGO ALTO. Medidas mecánicas (Medias compresión/CNE) obligatorias + HBPM farmacológica profiláctica autorizada por cirugía.")
-            elif p_caprini >= 3:
-                st.write(f"• 🩸 **TEV/TVP (Caprini {p_caprini}):** Riesgo Moderado. Considere compresión neumática intermitente.")
-                
-            # Ajuste Renal
-            if creatinina > 1.5 or tfg_ckd < 60:
-                st.write(f"• 🧪 **Precaución Renal (TFG {tfg_ckd:.0f}):** Ajustar dosis de inducción. Evitar AINEs. Preferir Atracurio/Cisatracurio si se requiere BNM.")
+            st.markdown("#### 🫁 1. Ventilación Mecánica Protectora (Meta: PBW)")
+            st.info(f"• **Vt (6 mL/kg PBW):** {pbw * 6:.0f} mL")
+            st.info(f"• **Vt (8 mL/kg PBW):** {pbw * 8:.0f} mL")
+            st.write(f"• **PEEP Sugerido:** {10 if imc >= 30 else 5} cmH2O")
+            st.write(f"• **FR Meta:** 12-16 rpm (Ajustar para EtCO2 35-45 mmHg)")
+            st.write(f"• **FiO2 Mínima:** 40% (Ajustar según SpO2 92-96%)")
 
             st.markdown("---")
+            st.markdown("#### 💧 2. Fluidos y Hemodinámica")
+            st.write(f"• **Mantenimiento (4-2-1):** {peso_real + 40:.0f} mL/hr")
+            st.write(f"• **Sangrado Permisible:** {sangrado_permisible:.0f} mL")
+            st.warning("⚠️ *Nota: Si el sangrado supera el permitido, considerar terapia guiada por metas (VPP/PPV).*")
+
+            st.markdown("---")
+            st.markdown("#### 🛡️ 3. Profilaxis de Seguridad")
+            st.write(f"• **NVPO (Apfel {p_apfel}/4):** {'Profilaxis Doble/Triple' if p_apfel >= 2 else 'Monoterapia'}")
+            st.write(f"• **TVP (Caprini {p_caprini}):** {'Mecánica + Farmacológica' if p_caprini >= 5 else 'Mecánica'}")
+            
+            # Alerta crítica nueva
+            if riesgo_cx_tipo == "Alto":
+                st.error("🚨 **Cirugía de Alto Riesgo:** Monitorización invasiva (Línea Arterial) recomendada.")
+
             st.subheader("📋 Copiar Plan Quirúrgico")
             texto_trans = (
                 f"PLAN TRANSQUIRÚRGICO\n"
-                f"VENTILACIÓN: Vt {vt_min:.0f}-{vt_max:.0f} mL | PEEP: {peep_ideal} cmH2O.\n"
-                f"FLUIDOS: Basal {fluido_mantenimiento:.0f} mL/hr | Volemia: {volemia_est:.0f} mL.\n"
-                f"SANGRADO MÁX. PERMISIBLE: {sangrado_permisible:.0f} mL (Meta Hto {hto_meta}%).\n"
-                f"PROFILAXIS: NVPO doble terapia (Apfel {p_apfel}). TVP profilaxis según protocolo institucional (Caprini {p_caprini}).\n"
+                f"VENTILACIÓN: Vt {pbw*6:.0f}-{pbw*8:.0f}mL PBW. PEEP {10 if imc>=30 else 5}cmH2O.\n"
+                f"FLUIDOS: Basal {peso_real+40:.0f}mL/hr. Sangrado Permisible: {sangrado_permisible:.0f}mL.\n"
+                f"PROFILAXIS: NVPO Apfel {p_apfel}/4, TVP Caprini {p_caprini}."
             )
             st.code(texto_trans, language="text")
     # ----------------------------------------------------------------
