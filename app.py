@@ -535,76 +535,89 @@ with col_der:
             st.write(f"• **Dosis Midazolam:** {midaz:.1f} mg")
         else:
             st.write("Dosificación específica pendiente de configuración para esta técnica.")
-    # ----------------------------------------------------------------
-    # PESTAÑA 4: GASOMETRÍA Y HOMEOSTASIS ÁCIDO-BASE (Módulo Experto)
+  # ----------------------------------------------------------------
+    # PESTAÑA 4: GASOMETRÍA Y HOMEOSTASIS (Diagnóstico Completo)
     # ----------------------------------------------------------------
     with tab_gasometria:
-        st.subheader("🩸 Análisis Ácido-Base Avanzado")
+        st.subheader("🩸 Análisis Ácido-Base Diagnóstico")
         
-        st.markdown("#### 1. Parámetros Medidos")
+        # 1. Inputs de Gasometría
         col1, col2, col3 = st.columns(3)
-        ph = col1.number_input("pH", value=7.40, format="%.2f", step=0.01, key="gas_ph")
-        pco2 = col2.number_input("PaCO2 (mmHg)", value=40.0, key="gas_pco2")
-        hco3 = col3.number_input("HCO3 (mEq/L)", value=24.0, key="gas_hco3")
-        
-        col4, col5 = st.columns(2)
-        na = col4.number_input("Sodio - Na+ (mEq/L)", value=140.0, key="gas_na")
-        cl = col5.number_input("Cloro - Cl- (mEq/L)", value=104.0, key="gas_cl")
+        ph = col1.number_input("pH", value=7.40, format="%.2f", step=0.01, key="g_ph")
+        pco2 = col2.number_input("PaCO2 (mmHg)", value=40.0, key="g_pco2")
+        hco3 = col3.number_input("HCO3- (mEq/L)", value=24.0, key="g_hco3")
 
+        # 2. Motor de Diagnóstico Ácido-Base
+        ph_min, ph_max = 7.35, 7.45
+        pco2_min, pco2_max = 35.0, 45.0
+        hco3_min, hco3_max = 22.0, 26.0
+
+        diagnostico = "Normal"
+        
+        if ph < ph_min:  # ACIDEMIA
+            if pco2 > pco2_max and hco3 < hco3_min:
+                diagnostico = "Trastorno Mixto (Acidosis Metabólica + Respiratoria)"
+            elif pco2 > pco2_max:
+                if hco3 > hco3_max:
+                    diagnostico = "Acidosis Respiratoria Parcialmente Compensada"
+                elif hco3_min <= hco3 <= hco3_max:
+                    diagnostico = "Acidosis Respiratoria No Compensada"
+            elif hco3 < hco3_min:
+                if pco2 < pco2_min:
+                    diagnostico = "Acidosis Metabólica Parcialmente Compensada"
+                elif pco2_min <= pco2 <= pco2_max:
+                    diagnostico = "Acidosis Metabólica No Compensada"
+                    
+        elif ph > ph_max:  # ALCALEMIA
+            if pco2 < pco2_min and hco3 > hco3_max:
+                diagnostico = "Trastorno Mixto (Alcalosis Metabólica + Respiratoria)"
+            elif pco2 < pco2_min:
+                if hco3 < hco3_min:
+                    diagnostico = "Alcalosis Respiratoria Parcialmente Compensada"
+                elif hco3_min <= hco3 <= hco3_max:
+                    diagnostico = "Alcalosis Respiratoria No Compensada"
+            elif hco3 > hco3_max:
+                if pco2 > pco2_max:
+                    diagnostico = "Alcalosis Metabólica Parcialmente Compensada"
+                elif pco2_min <= pco2 <= pco2_max:
+                    diagnostico = "Alcalosis Metabólica No Compensada"
+                    
+        else:  # pH NORMAL (Compensación o Normalidad)
+            if pco2 > pco2_max and hco3 > hco3_max:
+                diagnostico = "Acidosis Respiratoria Compensada" if ph <= 7.40 else "Alcalosis Metabólica Compensada"
+            elif pco2 < pco2_min and hco3 < hco3_min:
+                diagnostico = "Acidosis Metabólica Compensada" if ph <= 7.40 else "Alcalosis Respiratoria Compensada"
+            elif pco2_min <= pco2 <= pco2_max and hco3_min <= hco3 <= hco3_max:
+                diagnostico = "Gasometría dentro de parámetros normales"
+
+        # Mostrar Diagnóstico
         st.markdown("---")
-        st.markdown("#### 2. Diagnóstico y Compensación")
-        
-        # Cálculos Matemáticos Clínicos
-        anion_gap = na - (cl + hco3)
-        # Fórmula de Winter: PaCO2 = (1.5 x HCO3) + 8 ± 2
-        pco2_esperada = (1.5 * hco3) + 8 
-        
-        # Lógica de Trastorno Primario
-        diag_primario = "Normal"
-        if ph < 7.35:
-            diag_primario = "Acidosis Metabólica" if hco3 < 22 else "Acidosis Respiratoria"
-        elif ph > 7.45:
-            diag_primario = "Alcalosis Metabólica" if hco3 > 26 else "Alcalosis Respiratoria"
-            
-        c_d1, c_d2, c_d3 = st.columns(3)
-        c_d1.metric("Estado Primario", diag_primario)
-        c_d2.metric("Anion Gap", f"{anion_gap:.1f} mEq/L", help="Rango normal: 8 - 12 mEq/L")
-        c_d3.metric("PaCO2 de Winter", f"{pco2_esperada:.1f} ±2 mmHg", help="Compensación esperada")
+        st.info(f"🧬 **Interpretación Diagnóstica:** {diagnostico}")
 
-        # Alerta de Trastornos Mixtos (Guardrail Cognitivo)
-        if diag_primario == "Acidosis Metabólica":
-            if pco2 > (pco2_esperada + 2.5):
-                st.error("🚨 **Trastorno Mixto:** Acidosis Metabólica + Acidosis Respiratoria sobreañadida (Falla de compensación).")
-            elif pco2 < (pco2_esperada - 2.5):
-                st.warning("⚠️ **Trastorno Mixto:** Acidosis Metabólica + Alcalosis Respiratoria.")
-            else:
-                st.success("✅ Compensación respiratoria fisiológica adecuada.")
-
-        st.markdown("---")
-        st.markdown("#### 3. Terapia Dirigida y Ajuste Transquirúrgico")
-        
+        # 3. Módulos de Ajuste (Terapia)
+        st.markdown("#### ⚙️ Parámetros de Ajuste Terapéutico")
         col_t1, col_t2 = st.columns(2)
         
         with col_t1:
-            st.write("**Reposición de Bicarbonato**")
-            # Espacio de distribución de HCO3 (0.4 x TBW)
-            hco3_meta = st.slider("HCO3 Meta (mEq/L)", 15.0, 24.0, 20.0, step=1.0)
-            deficit_hco3 = (hco3_meta - hco3) * 0.4 * peso_real
-            
-            if deficit_hco3 > 0:
-                st.metric("Déficit a Reponer", f"{deficit_hco3:.1f} mEq")
+            st.write("**Reposición Metabólica (HCO3)**")
+            if "Acidosis Metabólica" in diagnostico or "Mixto" in diagnostico:
+                hco3_meta = st.slider("HCO3 Meta (mEq/L)", 15.0, 24.0, 20.0, step=1.0)
+                deficit_hco3 = (hco3_meta - hco3) * 0.4 * peso_real
+                st.metric("Déficit Estimado", f"{max(0, deficit_hco3):.1f} mEq")
                 if ph < 7.20:
-                    st.error(f"Administrar 50% de la dosis ({deficit_hco3/2:.1f} mEq) en infusión lenta (30-60 min).")
-                else:
-                    st.info("pH > 7.20. La corrección metabólica suele resolverse optimizando hemodinamia y ventilación.")
+                    st.error("pH crítico. Sugerencia: Reponer 50% en infusión lenta y reevaluar.")
             else:
-                st.write("✅ Sin requerimiento de HCO3 extógeno.")
+                st.success("Sin indicación prioritaria de reposición exógena.")
 
         with col_t2:
-            st.write("**Ajuste de Ventilación Mecánica**")
-            pco2_meta = st.number_input("PaCO2 Objetivo (mmHg)", value=40.0)
-            fr_ventilador = st.number_input("FR Actual del Ventilador", value=12)
-            
-            # Ajuste de FR = (FR actual x PaCO2 actual) / PaCO2 objetivo
-            fr_nueva = (fr_ventilador * pco2) / pco2_meta if pco2_meta > 0 else 0
-            st.metric("FR Sugerida", f"{fr_nueva:.0f} rpm", help="Modificar frecuencia para barrer o retener CO2 sin alterar el VT protector")
+            st.write("**Ajuste Ventilatorio (PaCO2)**")
+            # Compensación esperada en metabólica (Fórmula de Winter)
+            if "Acidosis Metabólica" in diagnostico:
+                pco2_esperada = (1.5 * hco3) + 8 
+                st.metric("PaCO2 Esperada (Winter)", f"{pco2_esperada:.1f} ± 2 mmHg")
+            else:
+                # Ajuste general del ventilador
+                fr_ventilador = st.number_input("FR Actual Ventilador", value=12, key="fr_vent_ajuste")
+                pco2_meta = st.number_input("PaCO2 Meta (mmHg)", value=40.0, key="pco2_meta")
+                fr_nueva = (fr_ventilador * pco2) / pco2_meta if pco2_meta > 0 else 0
+                st.metric("FR Sugerida para Meta", f"{fr_nueva:.0f} rpm")
