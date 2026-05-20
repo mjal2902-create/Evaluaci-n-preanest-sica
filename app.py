@@ -593,7 +593,56 @@ with col_der:
         # Mostrar Diagnóstico
         st.markdown("---")
         st.info(f"🧬 **Interpretación Diagnóstica:** {diagnostico}")
-
+# ----------------------------------------------------------------
+        # 4. APARTADO DE RESCATE: ACIDEMIA / ACIDOSIS RESPIRATORIA
+        # ----------------------------------------------------------------
+        if ph < 7.35:
+            st.markdown("---")
+            st.error("🚨 **Protocolo de Optimización Ventilatoria en Acidemia**")
+            
+            # Paso 1: Cálculo automático de Peso Predicho (PBW) para seguridad pulmonar
+            pbw_gas = (50.0 if sexo == "Masculino" else 45.5) + 0.91 * (talla_cm - 152.4)
+            
+            # Paso 2: Establecer límites estrictos de Volumen Corriente (Vt)
+            vt_6_gas = pbw_gas * 6
+            vt_8_gas = pbw_gas * 8
+            
+            st.markdown(f"##### 📏 1. Límites de Ventilación Protectora (PBW: {pbw_gas:.1f} kg)")
+            c_vgas1, c_vgas2 = st.columns(2)
+            c_vgas1.metric("Vt Mínimo (6 mL/kg)", f"{vt_6_gas:.0f} mL")
+            c_vgas2.metric("Vt Máximo (8 mL/kg)", f"{vt_8_gas:.0f} mL")
+            
+            st.markdown("##### ⚙️ 2. Ajuste Fisiológico del Ventilador")
+            c_par1, c_par2, c_par3 = st.columns(3)
+            fr_input_gas = c_par1.number_input("FR Actual (rpm)", value=12, key="fr_p4_input")
+            vt_input_gas = c_par2.number_input("VT Actual (mL)", value=500, key="vt_p4_input")
+            pco2_meta_gas = c_par3.number_input("PaCO2 Objetivo (mmHg)", value=40.0, key="pco2_p4_meta")
+            
+            # Paso 3: Aplicación de fórmulas de clearance inversamente proporcional de CO2
+            fr_requerida = (fr_input_gas * pco2) / pco2_meta_gas if pco2_meta_gas > 0 else 0
+            vt_requerido = (vt_input_gas * pco2) / pco2_meta_gas if pco2_meta_gas > 0 else 0
+            
+            st.markdown("##### 🎯 Opciones de Modificación en Máquina de Anestesia")
+            c_opt1, c_opt2 = st.columns(2)
+            
+            # Opción A: Modificación segura de la Frecuencia Respiratoria (Primera Línea)
+            with c_opt1:
+                st.info("**Opción A: Ajustar Frecuencia**")
+                st.metric("Nueva FR Sugerida", f"{fr_requerida:.1f} rpm")
+                st.caption(f"Mantiene el Vt actual de {vt_input_gas} mL sin variar presiones.")
+                
+            # Opción B: Modificación del Volumen Corriente (Monitoreando Volutrauma)
+            with c_opt2:
+                st.info("**Opción B: Ajustar Volumen**")
+                st.metric("Nuevo VT Sugerido", f"{vt_requerido:.0f} mL")
+                
+                # Guardrail crítico de protección alveolar basado en el PBW calculado arriba
+                if vt_requerido > vt_8_gas:
+                    st.warning(f"⚠️ **Riesgo de Volutrauma:** El VT sugerido ({vt_requerido:.0f} mL) excede el límite de 8 mL/kg ({vt_8_gas:.0f} mL). Prefiera la **Opción A** o considere hipercapnia permisible.")
+                elif vt_requerido < vt_6_gas:
+                    st.caption(f"ℹ️ El VT sugerido está por debajo de 6 mL/kg. Riesgo potencial de atelectasias por absorción.")
+                else:
+                    st.success("✅ Ajuste volumétrico dentro de rangos fisiológicos seguros.")
         # 3. Módulos de Ajuste (Terapia)
         st.markdown("#### ⚙️ Parámetros de Ajuste Terapéutico")
         col_t1, col_t2 = st.columns(2)
