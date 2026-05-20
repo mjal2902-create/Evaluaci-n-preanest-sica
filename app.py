@@ -535,5 +535,49 @@ with col_der:
             st.write(f"• **Dosis Midazolam:** {midaz:.1f} mg")
         else:
             st.write("Dosificación específica pendiente de configuración para esta técnica.")
-st.divider()
-st.caption("Autor: **Dr. Marcos Aviles**")
+# ----------------------------------------------------------------
+    # PESTAÑA 4: GASOMETRIA
+    # ----------------------------------------------------------------
+with tab_gasometria:
+        st.subheader("🩸 Análisis Ácido-Base y Homeostasis")
+        
+        # 1. Inputs de Gasometría
+        c_g1, c_g2, c_g3 = st.columns(3)
+        ph = c_g1.number_input("pH", min_value=6.8, max_value=7.8, value=7.40, step=0.01)
+        pco2 = c_g2.number_input("PaCO2 (mmHg)", value=40.0)
+        hco3 = c_g3.number_input("HCO3 (mEq/L)", value=24.0)
+
+        st.markdown("---")
+        
+        # 2. Módulo de Reposición de Bicarbonato (Déficit de Base)
+        st.markdown("#### 💊 Reposición de Bicarbonato")
+        # Fórmula: Déficit HCO3 = (HCO3_meta - HCO3_actual) * 0.4 * Peso
+        hco3_meta = st.slider("HCO3 Meta (mEq/L)", 18, 24, 22)
+        deficit = (hco3_meta - hco3) * 0.4 * peso_real
+        
+        c_r1, c_r2 = st.columns(2)
+        c_r1.metric("Déficit de HCO3", f"{max(0, deficit):.1f} mEq")
+        c_r2.info("Dosis sugerida: Administrar 50% en 2-4 horas.")
+
+        st.markdown("---")
+        
+        # 3. Módulo de Ajuste Respiratorio (Homeostasis)
+        st.markdown("#### 🫁 Ajuste Respiratorio (PaCO2)")
+        # Fórmula: PaCO2_meta = (pH_meta - pH_actual) * factor_correcion + PaCO2_actual
+        # Simplificación clínica para ajuste ventilatorio
+        ph_meta = 7.40
+        factor = 10 # Aproximación clínica estándar
+        pco2_meta = pco2 + ((ph_meta - ph) * factor)
+        
+        st.metric("PaCO2 Objetivo", f"{pco2_meta:.1f} mmHg", help="PaCO2 necesaria para alcanzar pH 7.40")
+        
+        if ph < 7.35:
+            st.warning(f"🚨 Acidemia detectada. Incrementar Ventilación Minuto para alcanzar {pco2_meta:.1f} mmHg.")
+        elif ph > 7.45:
+            st.warning(f"🚨 Alcalemia detectada. Disminuir Ventilación Minuto para alcanzar {pco2_meta:.1f} mmHg.")
+        else:
+            st.success("✅ Homeostasis ácida-base conservada.")
+
+        # Referencia para tu tesis
+        st.divider()
+        st.caption("Fórmulas basadas en: *Adrogue HJ, Madias NE. Management of life-threatening acid-base disorders. N Engl J Med. 1998.*")
