@@ -333,7 +333,7 @@ with col_der:
     st.header("📊 Panel Clínico Integrado")
     
     # Creación de las dos pestañas nativas
-    tab_preanestesia, tab_transquirurgico, tab_dosificacion = st.tabs(["📝 Reporte Preanestésico", "⚙️ Plan Transquirúrgico","🧪 Dosificación"])
+    tab_preanestesia, tab_transquirurgico, tab_dosificacion, tab_gasometria = st.tabs(["📝 Reporte Preanestésico", "⚙️ Plan Transquirúrgico","🧪 Dosificación", "🩸 Gasometría"])
     
     # ----------------------------------------------------------------
     # PESTAÑA 1: EVALUACIÓN PREANESTÉSICA (El reporte clásico)
