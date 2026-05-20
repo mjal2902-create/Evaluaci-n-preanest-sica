@@ -409,7 +409,7 @@ with col_der:
             )
             st.code(texto_hc, language="text")
 
- with tab_transquirurgico:
+    with tab_transquirurgico:
         st.subheader("🩸 Monitor de Sangrado & PSP")
         
         # Inputs de laboratorio y sangrado
@@ -498,7 +498,7 @@ with col_der:
     # ----------------------------------------------------------------
     # PESTAÑA 3: DOSIFICACIÓN (INTERACTIVA)
     # ----------------------------------------------------------------
- with tab_dosificacion:
+    with tab_dosificacion:
         st.subheader(f"🧪 Dosificación: {plan_anestesico}")
         if plan_anestesico == "General":
             prop = st.slider("Propofol (mg/kg)", 1.0, 3.0, 2.0, 0.1)
