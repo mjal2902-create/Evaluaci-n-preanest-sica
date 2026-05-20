@@ -192,7 +192,11 @@ with col_izq:
             riesgo_cx_tipo = st.selectbox("Riesgo Intrínseco de la Cirugía (Auto)", lista_riesgos, index=idx_riesgo)
 
         cirugia_emergencia = st.checkbox("Cirugía de Emergencia")
-
+        st.markdown(f"* **Plan Anestésico Propuesto:** {plan_anestesico}")
+        st.markdown(f"* **Riesgo Cardíaco (Lee RCRI):** Clase {('I' if p_lee==0 else 'II' if p_lee==1 else 'III' if p_lee==2 else 'IV')} ({p_lee} criterios)")
+        st.markdown("---")
+        st.markdown("**💉 Técnica Anestésica Planificada**")
+        plan_anestesico = st.selectbox("Plan Anestésico Principal:", ["General", "Sedación", "Raquídea", "Epidural"])
     # 7. Escala de Apfel y Caprini Adicionales
     with st.expander("7. Factores de Riesgo Adicionales (Caprini/Apfel)"):
         no_fumador = st.checkbox("Paciente es NO Fumador", value=True)
@@ -428,7 +432,21 @@ with col_der:
             st.markdown("#### 💧 2. Manejo de Fluidos y Hemodinámica")
             st.success(f"🚰 **Mantenimiento Basal (Regla 4-2-1):** **{fluido_mantenimiento:.0f} mL/hr**")
             st.write(f"• **Volemia Estimada:** **{volemia_est:.0f} mL**")
+
+            st.markdown("---")
+            st.markdown(f"#### 💉 3. Optimización para Anestesia {plan_anestesico}")
             
+            if plan_anestesico == "General":
+                st.write("• **Ventilación:** Priorizar la estrategia protectora calculada arriba.")
+                st.write("• **Neuromuscular:** Monitorización cuantitativa del bloqueo; asegurar reversión completa antes de la extubación.")
+            
+            elif plan_anestesico in ["Raquídea", "Epidural"]:
+                st.write("• **Hemodinámica:** Prevención activa de hipotensión por simpatectomía (co-carga de cristaloides y vasopresores listos).")
+                st.write("• **Monitoreo:** Vigilar nivel sensitivo dermatómico y mecánica respiratoria.")
+            
+            elif plan_anestesico == "Sedación":
+                st.write("• **Ventilación:** Mantener monitorización continua de la ventilación espontánea y capnografía de flujo libre.")
+                st.write("• **Seguridad:** Disponer de oxígeno suplementario y equipo de vía aérea listo por riesgo de sobre-sedación.")
             if tiene_hb and hto > hto_meta:
                 st.error(f"🩸 **Sangrado Permisible Máximo:** **{sangrado_permisible:.0f} mL** *(Hasta llegar a un Hto meta de {hto_meta}%)*")
             elif tiene_hb and hto <= hto_meta:
