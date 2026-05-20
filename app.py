@@ -410,51 +410,52 @@ with col_der:
             st.code(texto_hc, language="text")
 
 # ----------------------------------------------------------------
-    # PESTAÑA 2: PLAN TRANSQUIRÚRGICO (Módulo Experto)
+    # PESTAÑA 2: PLAN TRANSQUIRÚRGICO (Módulo Interactivo)
     # ----------------------------------------------------------------
     with tab_transquirurgico:
         st.subheader("🩸 Monitor de Sangrado & PSP")
         
-        # Fila de inputs de sangrado
+        # Sincronizamos con el valor de Hto de la columna izquierda (Módulo Labs)
+        # Si no se ingresó en los laboratorios, tomamos el valor por defecto
+        hto_actual = hto 
+        
         c_sang1, c_sang2, c_sang3 = st.columns(3)
-        hto_act = c_sang1.number_input("Hto Act (%)", value=40.0)
-        hto_min = c_sang2.number_input("Hto Mín (%)", value=30.0)
-        sangrado_ml = c_sang3.number_input("Sangrado (mL)", value=0)
+        with c_sang1:
+            st.metric("Hto Act (%)", f"{hto_actual:.1f}")
+        with c_sang2:
+            hto_meta_input = st.number_input("Hto Mín (%)", value=30.0)
+        with c_sang3:
+            sangrado_ingresado = st.number_input("Sangrado Total (mL)", min_value=0.0, value=0.0, step=50.0)
+            
+        # Cálculo de PSP según fórmula de Gross
+        # Volemia estimada: 70mL/kg hombres, 65mL/kg mujeres
+        volemia_est = peso_real * (70 if sexo == "Masculino" else 65)
+        psp_max = volemia_est * (hto_actual - hto_meta_input) / hto_actual
         
-        # Lógica de cálculo PSP (Pérdida Sanguínea Permisible)
-        volemia = peso_real * (70 if sexo == "Masculino" else 65)
-        psp_max = volemia * (hto_act - hto_min) / hto_act
-        
-        # Display dinámico de PSP
+        # Visualización dinámica
         c_res1, c_res2 = st.columns(2)
-        c_res1.metric("PSP MÁXIMA", f"{psp_max:.0f} mL")
-        c_res2.info(f"Estado: {'⚠️ ALERTA: Sangrado crítico' if sangrado_ml >= psp_max else '✅ Sin Sangrado Crítico'}")
+        c_res1.metric("PSP MÁXIMA", f"{max(0, psp_max):.0f} mL")
+        
+        if sangrado_ingresado >= psp_max:
+            c_res2.error(f"⚠️ ¡ALERTA CRÍTICA: Sangrado superior a PSP!")
+        else:
+            c_res2.success(f"✅ Sangrado dentro del rango permisible")
 
         st.markdown("---")
-        st.subheader("💧 Plan Transoperatorio (Regla 4-2-1)")
+        st.subheader("💧 Plan Transoperatorio")
         
-        # Tabla dinámica de componentes
-        mant = peso_real + 40
-        insensibles = 4 # Valor estándar por kg/h
-        repos_ayuno = 960 / 3 # Ejemplo de déficit distribuido en 3 horas
-        
-        # Datos para la tabla
-        data = {
-            "Componente": ["Mant. (4-2-1)", "Insensibles", "Repos. Ayuno"],
-            "H1": [mant, insensibles*peso_real, repos_ayuno],
-            "H2": [mant, insensibles*peso_real, repos_ayuno/2],
-            "H3": [mant, insensibles*peso_real, repos_ayuno/2]
-        }
-        
-        # Renderizado de tabla interactiva
+        # Tabla de fluidos dinámica
         import pandas as pd
-        df = pd.DataFrame(data)
-        st.table(df)
+        mant = peso_real + 40
+        data = {
+            "Componente (mL)": ["Mant. (4-2-1)", "Insensibles", "Rep. Ayuno"],
+            "H1": [mant, 4*peso_real, 320], # Ejemplo base
+            "H2": [mant, 4*peso_real, 160],
+            "H3": [mant, 4*peso_real, 160]
+        }
+        st.table(pd.DataFrame(data))
         
-        # Totales inferiores
-        c_t1, c_t2 = st.columns(2)
-        c_t1.metric("Mant. Total", f"{mant*3:.0f}")
-        c_t2.metric("TOTAL LÍQUIDOS", f"{(mant*3) + (insensibles*peso_real*3) + 960:.0f} mL")
+        st.code(f"REPORTE: Sangrado {sangrado_ingresado:.0f}mL / PSP {psp_max:.0f}mL. Hto Meta {hto_meta_input}%.", language="text")
     # ----------------------------------------------------------------
     # PESTAÑA 3: DOSIFICACIÓN (INTERACTIVA)
     # ----------------------------------------------------------------
