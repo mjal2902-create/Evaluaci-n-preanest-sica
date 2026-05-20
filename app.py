@@ -343,4 +343,125 @@ with col_der:
             st.markdown("""<style>.reporte-box { background-color: #f8f9fa; padding: 20px; border-radius: 10px; border: 1px solid #dee2e6; } h4 { color: #1e3d59; }</style>""", unsafe_allow_html=True)
             
             st.markdown(f"### 🩺 Reporte de Evaluación Preanestésica Avanzada")
-            st.markdown(f"**Paciente:** {sex
+           st.markdown(f"**Paciente:** {sexo} | {edad} años | **Peso Real:** {peso_real:.1f} kg | **Talla:** {talla_cm} cm\n\n**Área de Superficie Corporal (Mosteller):** **{asc:.2f} m²**")
+            
+            st.markdown(f"---\n#### 🧮 Evaluación del IMC y Pesos Clínicos")
+            st.markdown(f"* **IMC:** **{imc:.1f} kg/m²** → ({'Bajo Peso' if imc < 18.5 else 'Normal' if imc < 25 else 'Sobrepeso' if imc < 30 else 'Obesidad'})")
+            st.markdown(f"* **Peso Ideal (Devine):** **{peso_ideal:.1f} kg**")
+            st.markdown(f"* **Peso Predicho (ARDSNet):** **{peso_predicho:.1f} kg**")
+            if imc >= 25:
+                st.markdown(f"> ⚠️ **Pesos Ajustados:** TIVA/Lipofílicos: **{peso_ajust_20:.1f} kg** | RMM/Hidrofílicos: **{peso_ajust_40:.1f} kg**")
+            
+            st.markdown(f"---\n#### 🚨 Seguridad Perioperatoria y Fármacos")
+            st.markdown(f"* **Alergias:** {str_alergias_med.upper()} (Meds) | {str_alergias_com.upper()} (Alimentos)")
+            st.markdown(f"* **Fármacos Críticos:** {str_farmacos}")
+            
+            st.markdown(f"---\n#### 🫁 Evaluación de la Vía Aérea y Ventilación")
+            st.markdown(f"* **Mallampati:** {mallampati} | **DTM:** {dtm} cm | **DEM:** {dem} cm | **Cuello:** {cuello} cm")
+            st.markdown(f"* 📋 **Índice de Arné:** **{p_arne} puntos** → RIESGO INTUBACIÓN: **{'ALTO (≥11)' if p_arne >= 11 else 'BAJO'}**")
+            st.markdown(f"* 💤 **STOP-BANG (SAHOS):** **{p_stop} / 8 puntos**")
+            
+            st.markdown(f"---\n#### 🧪 Laboratorios y Función Renal")
+            str_labs_resumen = ""
+            if not dict_labs:
+                st.error("❌ No hay datos de laboratorios")
+                str_labs_resumen = "No provistos"
+            else:
+                for item, valor in dict_labs.items():
+                    st.markdown(f"• **{item}:** {valor}")
+                    str_labs_resumen += f"{item}: {valor} | "
+            st.markdown(f"* **TFG (CKD-EPI):** {tfg_ckd:.0f} mL/min | **Aclaramiento (C-G):** {clcr_cg:.0f} mL/min")
+            
+            st.markdown(f"---\n#### 🛡️ Estratificación de Riesgo Perioperatorio")
+            st.markdown(f"* **Cirugía:** {nombre_cx} ({riesgo_cx_tipo.upper()}) {'⚠️ EMERGENCIA' if cirugia_emergencia else ''}")
+            st.markdown(f"* **Riesgo Cardíaco (Lee RCRI):** Clase {('I' if p_lee==0 else 'II' if p_lee==1 else 'III' if p_lee==2 else 'IV')} ({p_lee} criterios)")
+            st.markdown(f"* **Riesgo Cardíaco (Goldman):** Clase {('I (0-5)' if p_goldman<=5 else 'II (6-12)' if p_goldman<=12 else 'III (13-25)' if p_goldman<=25 else 'IV (≥26)')} ({p_goldman} pts)")
+            st.markdown(f"* **Tromboembólico (Caprini):** {p_caprini} puntos")
+            st.markdown(f"* **NVPO (Apfel):** {p_apfel} / 4")
+            
+            st.markdown(f"---\n#### 🫀 Interpretación EKG")
+            st.markdown(f"* **Patología Principal:** {diagnostico_ekg_consolidado.upper()}")
+            
+            st.markdown("---")
+            st.subheader("📋 Resumen para Copiar")
+            
+            ant_lista = []
+            if tiene_infarto: ant_lista.append("Infarto <6m")
+            if tiene_ic: ant_lista.append("ICC")
+            if tiene_acv: ant_lista.append("ACV")
+            if tiene_insulina: ant_lista.append("DM2+Insulina")
+            if tiene_ev: ant_lista.append(">5 EV")
+            if tiene_ritmo_no_s: ant_lista.append("Ritmo No Sinusal")
+            if tiene_cancer: ant_lista.append("Cáncer")
+            if tiene_epoc: ant_lista.append("EPOC")
+            ant_texto = ", ".join(ant_lista) if ant_lista else "Negados"
+
+            texto_hc = (
+                f"NOTA PREANESTÉSICA\n"
+                f"PACIENTE: {sexo} | Edad: {edad}a. IMC: {imc:.1f} kg/m2. ASC: {asc:.2f} m2.\n"
+                f"ALERGIAS: {str_alergias_med.upper()} / {str_alergias_com.upper()}\n"
+                f"MEDICACIÓN: {str_farmacos}\n"
+                f"ANTECEDENTES: {ant_texto}\n"
+                f"VÍA AÉREA: Mallampati {mallampati}, DTM {dtm}cm, DEM {dem}cm. Arné: {p_arne}pts. STOP-BANG: {p_stop}/8.\n"
+                f"LABS: {str_labs_resumen} | TFG: {tfg_ckd:.0f} mL/min.\n"
+                f"EKG: {diagnostico_ekg_consolidado.upper()}\n"
+                f"RIESGOS: Cx: {nombre_cx}. Lee RCRI: Clase {'I' if p_lee==0 else 'II' if p_lee==1 else 'III' if p_lee==2 else 'IV'}. Goldman: {p_goldman}pts. Caprini: {p_caprini}pts. Apfel: {p_apfel}/4."
+            )
+            st.code(texto_hc, language="text")
+
+    # ----------------------------------------------------------------
+    # PESTAÑA 2: PLAN TRANSQUIRÚRGICO (NUEVO MÓDULO)
+    # ----------------------------------------------------------------
+    with tab_transquirurgico:
+        if st.button("⚙️ GENERAR PLAN TRANSQUIRÚRGICO", type="primary", key="btn_trans"):
+            st.markdown(f"### ⚙️ Plan de Manejo Intraoperatorio")
+            st.markdown(f"**Paciente:** {sexo} | **IMC:** {imc:.1f} kg/m² | **Peso Predicho:** {peso_predicho:.1f} kg")
+            
+            st.markdown("---")
+            st.markdown("#### 🫁 1. Estrategia de Ventilación Protectora")
+            st.info(f"🎯 **Volumen Corriente (Vt):** Entre **{vt_min:.0f} mL** y **{vt_max:.0f} mL** *(6-8 mL/kg Peso Predicho)*")
+            st.write(f"• **PEEP Sugerido:** **{peep_ideal} cmH2O** *(Ajustado por IMC)*")
+            if imc > 35:
+                st.warning("⚠️ **Alerta por Obesidad Severa:** Se recomienda PEEP ≥ 10 cmH2O y realizar maniobras de reclutamiento alveolar periódicas. Considere usar Peso Ajustado (TIVA) o Peso Ideal (Volátiles).")
+            
+            st.markdown("---")
+            st.markdown("#### 💧 2. Manejo de Fluidos y Hemodinámica")
+            st.success(f"🚰 **Mantenimiento Basal (Regla 4-2-1):** **{fluido_mantenimiento:.0f} mL/hr**")
+            st.write(f"• **Volemia Estimada:** **{volemia_est:.0f} mL**")
+            
+            if tiene_hb and hto > hto_meta:
+                st.error(f"🩸 **Sangrado Permisible Máximo:** **{sangrado_permisible:.0f} mL** *(Hasta llegar a un Hto meta de {hto_meta}%)*")
+            elif tiene_hb and hto <= hto_meta:
+                st.error(f"⚠️ **Atención:** El hematocrito actual ({hto}%) ya está en o por debajo del umbral de transfusión ({hto_meta}%). Prepare hemoderivados.")
+            else:
+                st.write("• *Sangrado Permisible:* No calculable (Falta Hematocrito preoperatorio).")
+            
+            st.markdown("---")
+            st.markdown("#### 🛡️ 3. Profilaxis y Cuidados Dirigidos")
+            
+            # Anti-eméticos basados en Apfel
+            if p_apfel >= 2:
+                st.write(f"• 🤢 **NVPO (Apfel {p_apfel}/4):** Riesgo Moderado/Alto. **Requiere profilaxis doble** (Ej. Dexametasona + Ondansetrón).")
+            else:
+                st.write(f"• 🤢 **NVPO (Apfel {p_apfel}/4):** Riesgo Bajo. Monoterapia o rescate según evolución.")
+                
+            # TVP basado en Caprini
+            if p_caprini >= 5:
+                st.write(f"• 🩸 **TEV/TVP (Caprini {p_caprini}):** RIESGO ALTO. Medidas mecánicas (Medias compresión/CNE) obligatorias + HBPM farmacológica profiláctica autorizada por cirugía.")
+            elif p_caprini >= 3:
+                st.write(f"• 🩸 **TEV/TVP (Caprini {p_caprini}):** Riesgo Moderado. Considere compresión neumática intermitente.")
+                
+            # Ajuste Renal
+            if creatinina > 1.5 or tfg_ckd < 60:
+                st.write(f"• 🧪 **Precaución Renal (TFG {tfg_ckd:.0f}):** Ajustar dosis de inducción. Evitar AINEs. Preferir Atracurio/Cisatracurio si se requiere BNM.")
+
+            st.markdown("---")
+            st.subheader("📋 Copiar Plan Quirúrgico")
+            texto_trans = (
+                f"PLAN TRANSQUIRÚRGICO\n"
+                f"VENTILACIÓN: Vt {vt_min:.0f}-{vt_max:.0f} mL | PEEP: {peep_ideal} cmH2O.\n"
+                f"FLUIDOS: Basal {fluido_mantenimiento:.0f} mL/hr | Volemia: {volemia_est:.0f} mL.\n"
+                f"SANGRADO MÁX. PERMISIBLE: {sangrado_permisible:.0f} mL (Meta Hto {hto_meta}%).\n"
+                f"PROFILAXIS: NVPO doble terapia (Apfel {p_apfel}). TVP profilaxis según protocolo institucional (Caprini {p_caprini}).\n"
+            )
+            st.code(texto_trans, language="text")
