@@ -339,7 +339,7 @@ with col_der:
     # PESTAÑA 1: EVALUACIÓN PREANESTÉSICA (El reporte clásico)
     # ----------------------------------------------------------------
     with tab_preanestesia:
-        if st.button("🔄 ACTUALIZAR EVALUACIÓN PREANESTÉSICA", type="primary"):
+            ("🔄 ACTUALIZAR EVALUACIÓN PREANESTÉSICA", type="primary"):
             st.markdown("""<style>.reporte-box { background-color: #f8f9fa; padding: 20px; border-radius: 10px; border: 1px solid #dee2e6; } h4 { color: #1e3d59; }</style>""", unsafe_allow_html=True)
             
             st.markdown(f"### 🩺 Reporte de Evaluación Preanestésica Avanzada")
