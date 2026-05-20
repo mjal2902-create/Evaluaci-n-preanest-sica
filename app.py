@@ -350,7 +350,7 @@ with col_der:
             st.markdown(f"* **Peso Ideal (Devine):** **{peso_ideal:.1f} kg**")
             st.markdown(f"* **Peso Predicho (ARDSNet):** **{peso_predicho:.1f} kg**")
             if imc >= 25:
-            st.markdown(f"> ⚠️ **Pesos Ajustados:** TIVA/Lipofílicos: **{peso_ajust_20:.1f} kg** | RMM/Hidrofílicos: **{peso_ajust_40:.1f} kg**")
+                st.markdown(f"> ⚠️ **Pesos Ajustados:** TIVA/Lipofílicos: **{peso_ajust_20:.1f} kg** | RMM/Hidrofílicos: **{peso_ajust_40:.1f} kg**")
             
             st.markdown(f"---\n#### 🚨 Seguridad Perioperatoria y Fármacos")
             st.markdown(f"* **Alergias:** {str_alergias_med.upper()} (Meds) | {str_alergias_com.upper()} (Alimentos)")
