@@ -408,8 +408,32 @@ with col_der:
                 f"RIESGOS: Cx: {nombre_cx}. Lee RCRI: Clase {'I' if p_lee==0 else 'II' if p_lee==1 else 'III' if p_lee==2 else 'IV'}. Goldman: {p_goldman}pts. Caprini: {p_caprini}pts. Apfel: {p_apfel}/4."
             )
             st.code(texto_hc, language="text")
-
+# ----------------------------------------------------------------
+    # PESTAÑA 2: PLAN TRANSQUIRÚRGICO (Módulo Interactivo)
+    # ----------------------------------------------------------------
     with tab_transquirurgico:
+      # 1. CÁLCULOS ANTROPOMÉTRICOS (Anclados a la derecha)
+        st.subheader("📏 Perfil Antropométrico (Basal)")
+        
+        # Fórmulas de cálculo rápido
+        sc = ((talla_cm * peso_real) / 3600) ** 0.5
+        ibw = (50.0 if sexo == "Masculino" else 45.5) + 0.91 * (talla_cm - 152.4)
+        imc = peso_real / ((talla_cm / 100) ** 2)
+        abw_20 = ibw + 0.2 * (peso_real - ibw)
+        abw_40 = ibw + 0.4 * (peso_real - ibw)
+        
+        # Display de métricas en columnas (Layout Profesional)
+        c_ant1, c_ant2 = st.columns(2)
+        c_ant1.metric("Peso Ideal (IBW)", f"{ibw:.1f} kg")
+        c_ant2.metric("Sup. Corporal", f"{sc:.2f} m²")
+        
+        c_ant3, c_ant4 = st.columns(2)
+        c_ant3.metric("ABW 20%", f"{abw_20:.1f} kg")
+        c_ant4.metric("ABW 40%", f"{abw_40:.1f} kg")
+        
+        st.info(f"**IMC Actual:** {imc:.1f} kg/m² | **Clasificación:** {'Obesidad' if imc >= 30 else 'Normopeso/Sobrepeso'}")
+        
+        st.markdown("---")
         st.subheader("🩸 Monitor de Sangrado & PSP")
         
         # Inputs de laboratorio y sangrado
