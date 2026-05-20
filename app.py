@@ -535,10 +535,10 @@ with col_der:
             st.write(f"• **Dosis Midazolam:** {midaz:.1f} mg")
         else:
             st.write("Dosificación específica pendiente de configuración para esta técnica.")
-# ----------------------------------------------------------------
+    # ----------------------------------------------------------------
     # PESTAÑA 4: GASOMETRIA
     # ----------------------------------------------------------------
-with tab_gasometria:
+    with tab_gasometria:
         st.subheader("🩸 Análisis Ácido-Base y Homeostasis")
         
         # 1. Inputs de Gasometría
