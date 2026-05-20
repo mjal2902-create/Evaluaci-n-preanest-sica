@@ -192,7 +192,7 @@ with col_izq:
             riesgo_cx_tipo = st.selectbox("Riesgo Intrínseco de la Cirugía (Auto)", lista_riesgos, index=idx_riesgo)
 
         cirugia_emergencia = st.checkbox("Cirugía de Emergencia")
-
+        plan_anestesico = st.selectbox("Plan Anestésico:", ["General", "Sedación", "Raquídea", "Epidural"])
     # 7. Escala de Apfel y Caprini Adicionales
     with st.expander("7. Factores de Riesgo Adicionales (Caprini/Apfel)"):
         no_fumador = st.checkbox("Paciente es NO Fumador", value=True)
