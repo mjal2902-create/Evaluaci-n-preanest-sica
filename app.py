@@ -343,14 +343,14 @@ with col_der:
             st.markdown("""<style>.reporte-box { background-color: #f8f9fa; padding: 20px; border-radius: 10px; border: 1px solid #dee2e6; } h4 { color: #1e3d59; }</style>""", unsafe_allow_html=True)
             
             st.markdown(f"### 🩺 Reporte de Evaluación Preanestésica Avanzada")
-           st.markdown(f"**Paciente:** {sexo} | {edad} años | **Peso Real:** {peso_real:.1f} kg | **Talla:** {talla_cm} cm\n\n**Área de Superficie Corporal (Mosteller):** **{asc:.2f} m²**")
+            st.markdown(f"**Paciente:** {sexo} | {edad} años | **Peso Real:** {peso_real:.1f} kg | **Talla:** {talla_cm} cm\n\n**Área de Superficie Corporal (Mosteller):** **{asc:.2f} m²**")
             
             st.markdown(f"---\n#### 🧮 Evaluación del IMC y Pesos Clínicos")
             st.markdown(f"* **IMC:** **{imc:.1f} kg/m²** → ({'Bajo Peso' if imc < 18.5 else 'Normal' if imc < 25 else 'Sobrepeso' if imc < 30 else 'Obesidad'})")
             st.markdown(f"* **Peso Ideal (Devine):** **{peso_ideal:.1f} kg**")
             st.markdown(f"* **Peso Predicho (ARDSNet):** **{peso_predicho:.1f} kg**")
             if imc >= 25:
-                st.markdown(f"> ⚠️ **Pesos Ajustados:** TIVA/Lipofílicos: **{peso_ajust_20:.1f} kg** | RMM/Hidrofílicos: **{peso_ajust_40:.1f} kg**")
+            st.markdown(f"> ⚠️ **Pesos Ajustados:** TIVA/Lipofílicos: **{peso_ajust_20:.1f} kg** | RMM/Hidrofílicos: **{peso_ajust_40:.1f} kg**")
             
             st.markdown(f"---\n#### 🚨 Seguridad Perioperatoria y Fármacos")
             st.markdown(f"* **Alergias:** {str_alergias_med.upper()} (Meds) | {str_alergias_com.upper()} (Alimentos)")
