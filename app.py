@@ -466,11 +466,11 @@ with col_der:
             )
             st.code(texto_trans, language="text")
     # ----------------------------------------------------------------
-    # PESTAÑA 3: DOSIFICACIÓN (NUEVA)
+    # PESTAÑA 3: DOSIFICACIÓN (INTERACTIVA)
     # ----------------------------------------------------------------
     with tab_dosificacion:
-         st.subheader(f"🧪 Dosificación: {plan_anestesico}")
-         if plan_anestesico == "General":
+        st.subheader(f"🧪 Dosificación: {plan_anestesico}")
+        if plan_anestesico == "General":
             prop = st.slider("Propofol (mg/kg)", 1.0, 3.0, 2.0, 0.1)
             rocu = st.slider("Rocuronio (mg/kg)", 0.5, 1.2, 0.6, 0.1)
             st.write(f"• **Dosis Propofol:** {peso_real * prop:.1f} mg")
