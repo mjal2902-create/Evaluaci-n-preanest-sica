@@ -228,7 +228,7 @@ fluido_mantenimiento = peso_real + 40
         
         # --- PARCHE DE SEGURIDAD PARA ANTECEDENTES ---
         # Conectamos las variables antiguas con el nuevo multiselect de antecedentes
-        try:
+try:
             tiene_ic = any(enf in str(selected_antecedentes) for enf in ["Insuficiencia", "Cardiopatía"])
             tiene_infarto = "Infarto" in str(selected_antecedentes)
         except NameError:
