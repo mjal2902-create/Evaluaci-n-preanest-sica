@@ -22,7 +22,7 @@ with col_izq:
         peso_real = c3.number_input("Peso Real (kg)", min_value=30.0, max_value=250.0, value=70.0)
         talla_cm = st.number_input("Talla (cm)", min_value=100, max_value=220, value=165)
 # --- MÓDULO DE ANTECEDENTES Y MEDICACIONES ---
-        st.subheader("📋 Antecedentes y Medicación")
+st.subheader("📋 Antecedentes y Medicación")
 
 # 1. Antecedentes Patológicos Comunes (Multiselect)
 antecedentes_comunes = [
