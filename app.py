@@ -22,11 +22,12 @@ with col_izq:
         peso_real = c3.number_input("Peso Real (kg)", min_value=30.0, max_value=250.0, value=70.0)
         talla_cm = st.number_input("Talla (cm)", min_value=100, max_value=220, value=165)
 # --- MÓDULO DE ANTECEDENTES Y MEDICACIONES ---
+    
     with st.expander("2. Antecedentes y medicaciones", expanded=True):
-    st.header("📋 Antecedentes y Medicación")
+        st.header("📋 Antecedentes y Medicación")
 
 # 1. Antecedentes Patológicos Comunes (Multiselect)
-antecedentes_comunes = [
+    antecedentes_comunes = [
     "Hipertensión Arterial (HTA)",
     "Diabetes Mellitus Tipo 2",
     "Hipotiroidismo",
@@ -36,7 +37,7 @@ antecedentes_comunes = [
     "Apnea Obstructiva del Sueño (SAHOS)"
 ]
 
-selected_antecedentes = st.multiselect(
+    selected_antecedentes = st.multiselect(
     "Antecedentes Patológicos",
     options=antecedentes_comunes,
     key="antecedentes_select"
@@ -117,8 +118,9 @@ nota_med = st.text_input("Otras medicaciones / Dosis específicas", key="notas_m
         tiene_cancer = c_ant1.checkbox("Cáncer Activo o previo")
         tiene_epoc = c_ant2.checkbox("EPOC o Enfermedad Pulmonar Crónica")
 
-    # 3. Exploración de Vía Aérea y Ventilación
-    with st.expander("3. Valoración Estructural de la Vía Aérea"):
+    # 4. Exploración de Vía Aérea y Ventilación
+
+    with st.expander("4. Valoración Estructural de la Vía Aérea"):
         c_va1, c_va2 = st.columns(2)
         mallampati = c_va1.selectbox("Clasificación Mallampati", ["Clase I", "Clase II", "Clase III", "Clase IV"])
         dtm = c_va1.number_input("Distancia Tiromentoniana (cm)", min_value=2.0, max_value=20.0, value=7.0)
@@ -141,8 +143,8 @@ nota_med = st.text_input("Otras medicaciones / Dosis específicas", key="notas_m
         tiene_edentulia = st.checkbox("Edentulia total o parcial")
         tiene_ronquido = st.checkbox("Historia de Ronquido severo / SAHOS")
 
-    # 4. Laboratorios y Exámenes
-    with st.expander("4. Laboratorios (Módulo Transquirúrgico)", expanded=True):
+    # 5. Laboratorios y Exámenes
+    with st.expander("5. Laboratorios (Módulo Transquirúrgico)", expanded=True):
         st.markdown("**🧪 Perfil de Laboratorio Analítico**")
         st.caption("Desmarque la casilla si el paciente no dispone del examen.")
         
