@@ -21,59 +21,36 @@ with col_izq:
         edad = c2.number_input("Edad (años)", min_value=1, max_value=120, value=50)
         peso_real = c3.number_input("Peso Real (kg)", min_value=30.0, max_value=250.0, value=70.0)
         talla_cm = st.number_input("Talla (cm)", min_value=100, max_value=220, value=165)
-# --- MÓDULO DE ANTECEDENTES Y MEDICACIONES ---
-    
-    with st.expander("3. Seguridad, Alergias y Medicamentos", expanded=True):
-        st.markdown("**🚨 Alergias**")
-        
-        # Módulo de Antecedentes y Medicación
+        # Variables Antropométricas Globales (Disponibles para toda la app)
+        talla_m = talla_cm / 100
+        imc = peso_real / (talla_m ** 2) if talla_m > 0 else 0
+        pbw = (50.0 if sexo == "Masculino" else 45.5) + 0.91 * (talla_cm - 152.4)
+        peso_ideal = 22 * (talla_m ** 2) # Fórmula simplificada alternativa
+        asc = math.sqrt((talla_cm * peso_real) / 3600)
+        peso_ajust_20 = pbw + 0.2 * (peso_real - pbw)
+        peso_ajust_40 = pbw + 0.4 * (peso_real - pbw)
+        volemia_est = peso_real * (70 if sexo == "Masculino" else 65)
+# --- 2. ANTECEDENTES Y MEDICACIÓN ---
+    with st.expander("2. Seguridad, Alergias y Medicamentos", expanded=True):
         st.subheader("📋 Antecedentes y Medicación")
         
-        antecedentes_comunes = [
-            "Hipertensión Arterial (HTA)",
-            "Diabetes Mellitus Tipo 2",
-            "Hipotiroidismo",
-            "Asma / EPOC",
-            "Cardiopatía Isquémica",
-            "Reflujo Gastroesofágico (ERGE)",
-            "Apnea Obstructiva del Sueño (SAHOS)"
-        ]
+        antecedentes_comunes = ["Ninguno", "HTA", "Diabetes Mellitus Tipo 2", "Hipotiroidismo", "Asma / EPOC", "Cardiopatía Isquémica", "ERGE", "SAHOS"]
+        antecedentes_select = st.multiselect("Antecedentes Patológicos", options=antecedentes_comunes, default=["Ninguno"])
         
-        selected_antecedentes = st.multiselect(
-            "Antecedentes Patológicos",
-            options=antecedentes_comunes,
-            key="antecedentes_select"
-        )
-        
-        medicaciones_comunes = [
-            "Antihipertensivos (IECA/ARA II)",
-            "Beta-bloqueadores",
-            "Metformina",
-            "Insulina",
-            "Anticoagulantes (Aspirina/Clopidogrel/DOACs)",
-            "Estatinas",
-            "Inhaladores (Beta-agonistas/Corticoides)"
-        ]
-        
-        selected_medicaciones = st.multiselect(
-            "Medicación Habitual",
-            options=medicaciones_comunes,
-            key="medicaciones_select"
-        )
-        
-        st.markdown("---")
-        st.markdown("**Antecedentes Clínicos (Marque los presentes):**")
-        c_ant1, c_ant2 = st.columns(2)
-        tiene_infarto = c_ant1.checkbox("Infarto de Miocardio (< 6 meses)")
-        tiene_ic = c_ant1.checkbox("Insuficiencia Cardíaca Congestiva")
-        tiene_acv = c_ant1.checkbox("Historia de ACV o AIT")
-        tiene_insulina = c_ant2.checkbox("Diabetes bajo tratamiento con Insulina")
-        tiene_ev = c_ant2.checkbox("> 5 Extrasístoles Ventriculares/min")
-        tiene_ritmo_no_s = c_ant2.checkbox("Ritmo no sinusal / EAs en EKG")
-        tiene_cancer = c_ant1.checkbox("Cáncer Activo o previo")
-        tiene_epoc = c_ant2.checkbox("EPOC o Enfermedad Pulmonar Crónica")
+        medicaciones_comunes = ["Ninguna", "IECA / ARA II", "Beta-bloqueadores", "Metformina", "Insulina", "Anticoagulantes / Antiagregantes", "Estatinas"]
+        medicaciones_select = st.multiselect("Medicación Habitual", options=medicaciones_comunes, default=["Ninguna"])
+        notas_med = st.text_input("Otras medicaciones / Dosis específicas")
 
-    
+        st.markdown("---")
+        st.subheader("🚨 Alergias")
+        alergias_med = st.multiselect("Medicamentosas / Sustancias:", options=["Ninguna", "Penicilina", "AINEs", "Látex", "Opioides", "Relajantes Musculares"], default=["Ninguna"])
+        alergias_alim = st.multiselect("Alimentarias:", options=["Ninguna", "Mariscos", "Huevo", "Soja"], default=["Ninguna"])
+
+        # Procesamiento de strings para el reporte
+        str_antecedentes = ", ".join(antecedentes_select)
+        str_medicacion = f"{', '.join(medicaciones_select)} | {notas_med}".strip(" |")
+        str_alergias_med = ", ".join(alergias_med)
+        str_alergias_alim = ", ".join(alergias_alim)
     # 4. Exploración de Vía Aérea y Ventilación
     with st.expander("4. Valoración Estructural de la Vía Aérea"):
         c_va1, c_va2 = st.columns(2)
