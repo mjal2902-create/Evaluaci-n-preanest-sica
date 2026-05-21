@@ -77,64 +77,23 @@ with col_izq:
             hospital_final = hosp_sel
             hospital_valido = True
             
-    elif tipo_institucion == "Otro Centro / Práctica Privada":
-        hospital_final = st.text_input("Escriba el nombre de la Clínica o Centro Médico:", key="mod_inst_otro_txt")
-        if hospital_final.strip() != "": hospital_valido = True
+   elif tipo_institucion == "Otro Centro / Práctica Privada":
+            hospital_final = st.text_input("Escriba el nombre de la Clínica o Centro Médico:", key="mod_inst_otro_txt")
+            if hospital_final.strip() != "": hospital_valido = True
 
-    
+    # =========================================================
+    # ESTE ES EL CANDADO QUE TE FALTA PONER:
+    # =========================================================
+    if not hospital_valido:
+        st.info("🔒 Por favor, complete la selección de la institución arriba para desbloquear la evaluación.")
+        
+    else: # SI EL HOSPITAL ES VÁLIDO, ENTONCES DIBUJA LO DEMÁS
+        st.success(f"✅ Centro registrado: **{hospital_final}**")
+        st.divider()
     # ---------------------------------------------------------
     # MÓDULO 1: DATOS DEMOGRÁFICOS Y QUIRÚRGICOS
     # ---------------------------------------------------------
-    with st.expander("1. Datos Demográficos y Contexto Quirúrgico", expanded=True):
-
-        # --- SECCIÓN HOSPITALARIA (Para Contexto de Tesis) ---
-        st.markdown("**🏥 Centro Hospitalario de Registro**")
-        
-        # El carácter general no es obligatorio ("No especificado" por defecto)
-        tipo_institucion = st.selectbox(
-            "Clasificación Institucional (Opcional)",
-            ["No especificado", "Red Pública (MSP / IESS / JBG)", "Sector Privado", "Otro Centro / Práctica Privada"],
-            key="mod1_tipo_inst"
-        )
-        
-        hospital_final = "No especificado"
-        
-        # Viñeta especial: Si se selecciona una categoría, se vuelve obligatoria la selección del hospital
-        if tipo_institucion == "Red Pública (MSP / IESS / JBG)":
-            lista_publicos = [
-                "Hospital de Especialidades Abel Gilbert Pontón (MSP)",
-                "Hospital General del Norte de Guayaquil Los Ceibos (IESS)",
-                "Hospital de Especialidades Teodoro Maldonado Carbo (IESS)",
-                "Hospital General Monte Sinaí (MSP)",
-                "Hospital Universitario de Guayaquil (MSP)",
-                "Hospital de Niños Dr. Roberto Gilbert Elizalde (JBG)",
-                "Hospital Gineco-Obstétrico Alfredo G. Paulson (JBG)",
-                "Otro Hospital Público (Especificar)"
-            ]
-            hosp_sel = st.selectbox("📍 Seleccione el Hospital Público (Obligatorio para el registro)", lista_publicos, key="mod1_hosp_pub")
-            if hosp_sel == "Otro Hospital Público (Especificar)":
-                hospital_final = st.text_input("Escriba el nombre del hospital público:", key="mod1_hosp_pub_txt")
-            else:
-                hospital_final = hosp_sel
-                
-        elif tipo_institucion == "Sector Privado":
-            lista_privados = [
-                "Omni Hospital",
-                "Hospital Clínica Kennedy (Policentro / Alborada / Samborondón)",
-                "Hospital Alcívar",
-                "Interhospital",
-                "Hospital Clínica Panamericana",
-                "Otro Centro Privado (Especificar)"
-            ]
-            hosp_sel = st.selectbox("📍 Seleccione el Centro Privado (Obligatorio para el registro)", lista_privados, key="mod1_hosp_priv")
-            if hosp_sel == "Otro Centro Privado (Especificar)":
-                hospital_final = st.text_input("Escriba el nombre del centro privado:", key="mod1_hosp_priv_txt")
-            else:
-                hospital_final = hosp_sel
-                
-        elif tipo_institucion == "Otro Centro / Práctica Privada":
-            hospital_final = st.text_input("Escriba el nombre de la Clínica o Centro Médico (Obligatorio):", key="mod1_hosp_otro_txt")
-
+        with st.expander("1. Datos Demográficos y Contexto Quirúrgico", expanded=True):
         st.divider() 
         # Fila 1: Demografía y Sangre
         c_demo1, c_demo2, c_demo3 = st.columns(3)
@@ -239,7 +198,7 @@ with col_izq:
         # ---------------------------------------------------------
     # MÓDULO 2: SEGURIDAD, ALERGIAS Y ANTECEDENTES (Actualizado)
     # ---------------------------------------------------------
-    with st.expander("2. Seguridad, Alergias y Antecedentes Patológicos", expanded=True):
+        with st.expander("2. Seguridad, Alergias y Antecedentes Patológicos", expanded=True):
         
         # --- 1. SECCIÓN DE ALERGIAS ---
         st.markdown("#### 🚨 Alergias y Sensibilidades")
