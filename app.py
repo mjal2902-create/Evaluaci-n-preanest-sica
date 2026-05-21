@@ -61,39 +61,48 @@ selected_medicaciones = st.multiselect(
 # 3. Espacio para notas adicionales de medicación
 nota_med = st.text_input("Otras medicaciones / Dosis específicas", key="notas_med")
 
-    # 2. Seguridad, Alergias y Medicamentos
-    with st.expander("2. Seguridad, Alergias y Medicamentos", expanded=True):
+   with st.expander("2. Seguridad, Alergias y Medicamentos", expanded=True):
         st.markdown("**🚨 Alergias**")
-        options_med = [
-            "Penicilina / Betalactámicos", "AINEs (Aspirina, Ibuprofeno, etc.)", 
-            "Sulfa / Sulfonamidas", "Medios de Contraste Yodados", 
-            "Látex", "Relajantes Musculares (Succinilcolina, Rocuronio)", 
-            "Opioides (Morfina, Fentanilo)", "Dipirona / Metamizol"
-        ]
-        alergias_med = st.multiselect("Medicamentosas / Sustancias:", options=options_med)
         
-        options_com = [
-            "Camarones / Mariscos", "Chocolate", "Soja", 
-            "Maní / Frutos Secos", "Huevo", "Leche de Vaca (Lactosa/Caseína)", 
-            "Trigo / Gluten", "Pescado"
-        ]
-        alergias_com = st.multiselect("Alimentarias:", options=options_com)
-        otras_alergias = st.text_input("Otras alergias (Especificar):", value="")
+        # Módulo de Antecedentes y Medicación
+        st.subheader("📋 Antecedentes y Medicación")
         
-        st.markdown("---")
-        st.markdown("**💊 Medicamentos Críticos en Uso**")
-        options_farmacos = [
-            "Betabloqueantes (Metoprolol, Carvedilol)", 
-            "IECA / ARA II (Enalapril, Losartán)", 
-            "Antiagregantes (Aspirina, Clopidogrel)", 
-            "Anticoagulantes Orales (Warfarina, Rivaroxabán)", 
-            "Insulina", 
-            "Antidiabéticos Orales (Metformina, Empagliflozina)", 
-            "Corticoides Crónicos (Prednisona)", 
-            "Anticonvulsivantes / Moduladores (Gabapentina, Fenitoína)"
+        antecedentes_comunes = [
+            "Hipertensión Arterial (HTA)",
+            "Diabetes Mellitus Tipo 2",
+            "Hipotiroidismo",
+            "Asma / EPOC",
+            "Cardiopatía Isquémica",
+            "Reflujo Gastroesofágico (ERGE)",
+            "Apnea Obstructiva del Sueño (SAHOS)"
         ]
-        farmacos_criticos = st.multiselect("Seleccione los fármacos activos:", options=options_farmacos)
-        otros_farmacos = st.text_input("Otros medicamentos (Especificar):", value="")
+        
+        selected_antecedentes = st.multiselect(
+            "Antecedentes Patológicos",
+            options=antecedentes_comunes,
+            key="antecedentes_select"
+        )
+        
+        medicaciones_comunes = [
+            "Antihipertensivos (IECA/ARA II)",
+            "Beta-bloqueadores",
+            "Metformina",
+            "Insulina",
+            "Anticoagulantes (Aspirina/Clopidogrel/DOACs)",
+            "Estatinas",
+            "Inhaladores (Beta-agonistas/Corticoides)"
+        ]
+        
+        selected_medicaciones = st.multiselect(
+            "Medicación Habitual",
+            options=medicaciones_comunes,
+            key="medicaciones_select"
+        )
+        
+        # Tus campos originales de alergias
+        # (Asegúrate de que estos también tengan 8 espacios de sangría)
+        str_alergias_med = st.text_input("Alergias Medicamentosas", key="alergias_med")
+        str_alergias_com = st.text_input("Alergias Alimentarias", key="alergias_com")
         
         st.markdown("---")
         st.markdown("**Antecedentes Clínicos (Marque los presentes):**")
