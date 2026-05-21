@@ -61,11 +61,6 @@ with col_izq:
             key="medicaciones_select"
         )
         
-        # Tus campos originales de alergias
-        # (Asegúrate de que estos también tengan 8 espacios de sangría)
-        str_alergias_med = st.text_input("Alergias Medicamentosas", key="alergias_med")
-        str_alergias_com = st.text_input("Alergias Alimentarias", key="alergias_com")
-        
         st.markdown("---")
         st.markdown("**Antecedentes Clínicos (Marque los presentes):**")
         c_ant1, c_ant2 = st.columns(2)
@@ -216,46 +211,6 @@ with col_izq:
         inmovilizacion = st.checkbox("Inmovilización en cama > 72 horas reciente")
         trombofilia = st.checkbox("Trombofilia conocida")
         acceso_central = st.checkbox("Uso de acceso venoso central")
-# --- MÓDULO 8: ANTECEDENTES Y MEDICACIONES ---
-    with st.expander("8. Antecedentes y Medicación", expanded=True):
-        st.subheader("📋 Antecedentes y Medicación")
-
-        # 1. Antecedentes Patológicos Comunes (Multiselect)
-        antecedentes_comunes = [
-            "Hipertensión Arterial (HTA)",
-            "Diabetes Mellitus Tipo 2",
-            "Hipotiroidismo",
-            "Asma / EPOC",
-            "Cardiopatía Isquémica",
-            "Reflujo Gastroesofágico (ERGE)",
-            "Apnea Obstructiva del Sueño (SAHOS)"
-        ]
-
-        selected_antecedentes = st.multiselect(
-            "Antecedentes Patológicos",
-            options=antecedentes_comunes,
-            key="antecedentes_select"
-        )
-
-        # 2. Medicaciones Comunes (Multiselect)
-        medicaciones_comunes = [
-            "Antihipertensivos (IECA/ARA II)",
-            "Beta-bloqueadores",
-            "Metformina",
-            "Insulina",
-            "Anticoagulantes (Aspirina/Clopidogrel/DOACs)",
-            "Estatinas",
-            "Inhaladores (Beta-agonistas/Corticoides)"
-        ]
-
-        selected_medicaciones = st.multiselect(
-            "Medicación Habitual",
-            options=medicaciones_comunes,
-            key="medicaciones_select"
-        )
-
-        # 3. Espacio para notas adicionales
-        nota_med = st.text_input("Otras medicaciones / Dosis específicas", key="notas_med")
 # --- LÓGICA DE CÁLCULO GENERAL ---
 talla_m = talla_cm / 100.0
 imc = peso_real / (talla_m ** 2)
