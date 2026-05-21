@@ -25,7 +25,7 @@ with col_izq:
         st.subheader("📋 Antecedentes y Medicación")
 
 # 1. Antecedentes Patológicos Comunes (Multiselect)
-     antecedentes_comunes = [
+ antecedentes_comunes = [
     "Hipertensión Arterial (HTA)",
     "Diabetes Mellitus Tipo 2",
     "Hipotiroidismo",
