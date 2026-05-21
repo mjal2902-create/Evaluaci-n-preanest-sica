@@ -22,10 +22,10 @@ with col_izq:
         peso_real = c3.number_input("Peso Real (kg)", min_value=30.0, max_value=250.0, value=70.0)
         talla_cm = st.number_input("Talla (cm)", min_value=100, max_value=220, value=165)
 # --- MÓDULO DE ANTECEDENTES Y MEDICACIONES ---
-st.subheader("📋 Antecedentes y Medicación")
+        st.subheader("📋 Antecedentes y Medicación")
 
 # 1. Antecedentes Patológicos Comunes (Multiselect)
-antecedentes_comunes = [
+     antecedentes_comunes = [
     "Hipertensión Arterial (HTA)",
     "Diabetes Mellitus Tipo 2",
     "Hipotiroidismo",
@@ -62,7 +62,7 @@ selected_medicaciones = st.multiselect(
 nota_med = st.text_input("Otras medicaciones / Dosis específicas", key="notas_med")
 
     # 2. Seguridad, Alergias y Medicamentos
-    with st.expander("2. Seguridad, Alergias y Medicamentos", expanded=True):
+     with st.expander("2. Seguridad, Alergias y Medicamentos", expanded=True):
         st.markdown("**🚨 Alergias**")
         options_med = [
             "Penicilina / Betalactámicos", "AINEs (Aspirina, Ibuprofeno, etc.)", 
