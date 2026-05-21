@@ -225,9 +225,21 @@ peep_ideal = 5 if imc < 30 else 8 if imc < 40 else 10
 fluido_mantenimiento = peso_real + 40 
 
 # 3. Volemia y Sangrado Permisible
-volemia_est = peso_real * (70 if sexo == "Masculino" else 65)
-hto_meta = 30.0 if (tiene_ic or tiene_infarto) else 25.0
-sangrado_permisible = volemia_est * (hto - hto_meta) / hto if hto > hto_meta else 0
+        
+        # --- PARCHE DE SEGURIDAD PARA ANTECEDENTES ---
+        # Conectamos las variables antiguas con el nuevo multiselect de antecedentes
+        try:
+            tiene_ic = any(enf in str(selected_antecedentes) for enf in ["Insuficiencia", "Cardiopatía"])
+            tiene_infarto = "Infarto" in str(selected_antecedentes)
+        except NameError:
+            # Si el multiselect falla o no se ha cargado, asumimos falso por defecto
+            tiene_ic = False
+            tiene_infarto = False
+        # ---------------------------------------------
+
+        volemia_est = peso_real * (70 if sexo == "Masculino" else 65)
+        hto_meta = 30.0 if (tiene_ic or tiene_infarto) else 25.0
+        sangrado_permisible = volemia_est * (hto - hto_meta) / hto if hto > hto_meta else 0
 
 # --- PUNTUACIÓN DE ESCALAS ---
 p_arne = 0
