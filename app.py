@@ -80,8 +80,7 @@ with st.expander("3. Seguridad, Alergias y Medicamentos", expanded=True):
 
     
     # 4. Exploración de Vía Aérea y Ventilación
-
-    with st.expander("4. Valoración Estructural de la Vía Aérea"):
+with st.expander("4. Valoración Estructural de la Vía Aérea"):
         c_va1, c_va2 = st.columns(2)
         mallampati = c_va1.selectbox("Clasificación Mallampati", ["Clase I", "Clase II", "Clase III", "Clase IV"])
         dtm = c_va1.number_input("Distancia Tiromentoniana (cm)", min_value=2.0, max_value=20.0, value=7.0)
