@@ -20,20 +20,16 @@ with col_izq:
     
     tipo_institucion = st.selectbox(
         "Clasificación Institucional",
-        ["👈 Seleccione el Sector...", "No especificado", "Red Pública (MSP / IESS / JBG)", "Sector Privado", "Otro Centro / Práctica Privada"],
+        ["👈 Seleccione el Sector...", "Red Pública (MSP / IESS / JBG)", "Sector Privado", "Otro Centro / Práctica Privada"],
         key="mod_inst_tipo"
     )
     
     hospital_final = ""
     hospital_valido = False
     
-    if tipo_institucion == "No especificado":
-        hospital_final = "No especificado"
-        hospital_valido = True
-        
-    elif tipo_institucion == "Red Pública (MSP / IESS / JBG)":
+    if tipo_institucion == "Red Pública (MSP / IESS / JBG)":
         lista_publicos = [
-            "👈 Seleccione un hospital público...", # Obliga a cambiar la opción
+            "👈 Seleccione un hospital público...", 
             "Hospital de Especialidades Abel Gilbert Pontón (MSP)",
             "Hospital General del Norte de Guayaquil Los Ceibos (IESS)",
             "Hospital de Especialidades Teodoro Maldonado Carbo (IESS)",
@@ -57,7 +53,7 @@ with col_izq:
             
     elif tipo_institucion == "Sector Privado":
         lista_privados = [
-            "👈 Seleccione un centro privado...", # Obliga a cambiar la opción
+            "👈 Seleccione un centro privado...", 
             "Omni Hospital",
             "Hospital Clínica Kennedy (Policentro / Alborada / Samborondón)",
             "Hospital Alcívar",
@@ -197,7 +193,7 @@ with col_izq:
             ], key="mod1_tecnica")
 
         # ---------------------------------------------------------
-        # MÓDULO 2: SEGURIDAD, ALERGIAS Y ANTECEDENTES (Actualizado)
+        # MÓDULO 2: SEGURIDAD, ALERGIAS Y ANTECEDENTES
         # ---------------------------------------------------------
         with st.expander("2. Seguridad, Alergias y Antecedentes Patológicos", expanded=True):
             
@@ -219,7 +215,7 @@ with col_izq:
 
             st.divider()
 
-            # --- 2. SECCIÓN DE ANTECEDENTES PATOLÓGICOS (Motor Epidemiológico) ---
+            # --- 2. SECCIÓN DE ANTECEDENTES PATOLÓGICOS ---
             st.markdown("#### 📋 Antecedentes Patológicos Personales (APP)")
             
             if es_obstetrico:
@@ -252,7 +248,7 @@ with col_izq:
 
             st.divider()
 
-            # --- 4. SECCIÓN DE HÁBITOS (Nueva) ---
+            # --- 4. SECCIÓN DE HÁBITOS ---
             st.markdown("#### 🚬 Hábitos y Estilo de Vida")
             st.caption("Nota: `+` Bajo | `++` Moderado | `+++` Severo/Grave")
             
