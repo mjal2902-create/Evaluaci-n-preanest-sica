@@ -23,7 +23,7 @@ with col_izq:
         talla_cm = st.number_input("Talla (cm)", min_value=100, max_value=220, value=165)
 # --- MÓDULO DE ANTECEDENTES Y MEDICACIONES ---
     
-with st.expander("3. Seguridad, Alergias y Medicamentos", expanded=True):
+    with st.expander("3. Seguridad, Alergias y Medicamentos", expanded=True):
         st.markdown("**🚨 Alergias**")
         
         # Módulo de Antecedentes y Medicación
@@ -80,7 +80,7 @@ with st.expander("3. Seguridad, Alergias y Medicamentos", expanded=True):
 
     
     # 4. Exploración de Vía Aérea y Ventilación
-with st.expander("4. Valoración Estructural de la Vía Aérea"):
+    with st.expander("4. Valoración Estructural de la Vía Aérea"):
         c_va1, c_va2 = st.columns(2)
         mallampati = c_va1.selectbox("Clasificación Mallampati", ["Clase I", "Clase II", "Clase III", "Clase IV"])
         dtm = c_va1.number_input("Distancia Tiromentoniana (cm)", min_value=2.0, max_value=20.0, value=7.0)
@@ -104,7 +104,7 @@ with st.expander("4. Valoración Estructural de la Vía Aérea"):
         tiene_ronquido = st.checkbox("Historia de Ronquido severo / SAHOS")
 
     # 5. Laboratorios y Exámenes
-with st.expander("5. Laboratorios (Módulo Transquirúrgico)", expanded=True):
+    with st.expander("5. Laboratorios (Módulo Transquirúrgico)", expanded=True):
         st.markdown("**🧪 Perfil de Laboratorio Analítico**")
         st.caption("Desmarque la casilla si el paciente no dispone del examen.")
         
@@ -148,7 +148,7 @@ with st.expander("5. Laboratorios (Módulo Transquirúrgico)", expanded=True):
         alteraciones_lab = st.text_area("Otras alteraciones de laboratorio (opcional)", "Sin alteraciones")
 
     # 5. Hallazgos y Patologías del EKG
-with st.expander("5. Hallazgos y Patologías del EKG", expanded=True):
+    with st.expander("5. Hallazgos y Patologías del EKG", expanded=True):
         st.markdown("**🫀 Selección de Hallazgos Electrocardiográficos**")
         st.caption("Marque las casillas correspondientes a las alteraciones observadas:")
         
