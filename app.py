@@ -1,5 +1,5 @@
 import streamlit as st
-import math # Asegúrate de tener math importado para las fórmulas
+import math
 
 # --- TÍTULO PRINCIPAL ---
 st.title("🩺 Asistente de Evaluación Anestésica")
@@ -14,21 +14,26 @@ with col_izq:
     st.header("📋 Datos de Entrada")
     
     # ---------------------------------------------------------
-    # GATEKEEPER: REGISTRO INSTITUCIONAL (Obligatorio)
+    # GATEKEEPER: REGISTRO INSTITUCIONAL (Bloqueo Estricto)
     # ---------------------------------------------------------
     st.markdown("### 🏥 Registro Institucional")
     
     tipo_institucion = st.selectbox(
         "Clasificación Institucional",
-        ["👈 Seleccione el Sector...", "Red Pública (MSP / IESS / JBG)", "Sector Privado", "Otro Centro / Práctica Privada"],
+        ["👈 Seleccione el Sector...", "No especificado", "Red Pública (MSP / IESS / JBG)", "Sector Privado", "Otro Centro / Práctica Privada"],
         key="mod_inst_tipo"
     )
     
     hospital_final = ""
-    hospital_valido = False # <-- Esta es la llave que bloquea/desbloquea la app
+    hospital_valido = False
     
-    if tipo_institucion == "Red Pública (MSP / IESS / JBG)":
+    if tipo_institucion == "No especificado":
+        hospital_final = "No especificado"
+        hospital_valido = True
+        
+    elif tipo_institucion == "Red Pública (MSP / IESS / JBG)":
         lista_publicos = [
+            "👈 Seleccione un hospital público...", # Obliga a cambiar la opción
             "Hospital de Especialidades Abel Gilbert Pontón (MSP)",
             "Hospital General del Norte de Guayaquil Los Ceibos (IESS)",
             "Hospital de Especialidades Teodoro Maldonado Carbo (IESS)",
@@ -39,7 +44,11 @@ with col_izq:
             "Otro Hospital Público (Especificar)"
         ]
         hosp_sel = st.selectbox("📍 Seleccione el Hospital Público", lista_publicos, key="mod_inst_pub")
-        if hosp_sel == "Otro Hospital Público (Especificar)":
+        
+        # Lógica estricta de validación
+        if hosp_sel == "👈 Seleccione un hospital público...":
+            hospital_valido = False
+        elif hosp_sel == "Otro Hospital Público (Especificar)":
             hospital_final = st.text_input("Escriba el nombre del hospital público:", key="mod_inst_pub_txt")
             if hospital_final.strip() != "": hospital_valido = True
         else:
@@ -48,6 +57,7 @@ with col_izq:
             
     elif tipo_institucion == "Sector Privado":
         lista_privados = [
+            "👈 Seleccione un centro privado...", # Obliga a cambiar la opción
             "Omni Hospital",
             "Hospital Clínica Kennedy (Policentro / Alborada / Samborondón)",
             "Hospital Alcívar",
@@ -56,7 +66,11 @@ with col_izq:
             "Otro Centro Privado (Especificar)"
         ]
         hosp_sel = st.selectbox("📍 Seleccione el Centro Privado", lista_privados, key="mod_inst_priv")
-        if hosp_sel == "Otro Centro Privado (Especificar)":
+        
+        # Lógica estricta de validación
+        if hosp_sel == "👈 Seleccione un centro privado...":
+            hospital_valido = False
+        elif hosp_sel == "Otro Centro Privado (Especificar)":
             hospital_final = st.text_input("Escriba el nombre del centro privado:", key="mod_inst_priv_txt")
             if hospital_final.strip() != "": hospital_valido = True
         else:
@@ -66,18 +80,6 @@ with col_izq:
     elif tipo_institucion == "Otro Centro / Práctica Privada":
         hospital_final = st.text_input("Escriba el nombre de la Clínica o Centro Médico:", key="mod_inst_otro_txt")
         if hospital_final.strip() != "": hospital_valido = True
-
-    # =========================================================
-    # LÓGICA DE BLOQUEO (CANCELA LOS DEMÁS MÓDULOS)
-    # =========================================================
-    if not hospital_valido:
-        # Si no hay hospital, mostramos un candado y NO renderizamos nada más abajo
-        st.info("🔒 Por favor, seleccione una institución hospitalaria para desbloquear los módulos clínicos.")
-        
-    else:
-        # Si ya hay un hospital, mostramos el éxito y dibujamos los módulos 1 y 2 que creamos antes
-        st.success(f"✅ Centro registrado: **{hospital_final}**")
-        st.divider()
 
     
     # ---------------------------------------------------------
