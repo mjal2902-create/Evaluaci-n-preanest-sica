@@ -104,7 +104,7 @@ with st.expander("4. Valoración Estructural de la Vía Aérea"):
         tiene_ronquido = st.checkbox("Historia de Ronquido severo / SAHOS")
 
     # 5. Laboratorios y Exámenes
-    with st.expander("5. Laboratorios (Módulo Transquirúrgico)", expanded=True):
+with st.expander("5. Laboratorios (Módulo Transquirúrgico)", expanded=True):
         st.markdown("**🧪 Perfil de Laboratorio Analítico**")
         st.caption("Desmarque la casilla si el paciente no dispone del examen.")
         
