@@ -21,6 +21,45 @@ with col_izq:
         edad = c2.number_input("Edad (años)", min_value=1, max_value=120, value=50)
         peso_real = c3.number_input("Peso Real (kg)", min_value=30.0, max_value=250.0, value=70.0)
         talla_cm = st.number_input("Talla (cm)", min_value=100, max_value=220, value=165)
+# --- MÓDULO DE ANTECEDENTES Y MEDICACIONES ---
+st.subheader("📋 Antecedentes y Medicación")
+
+# 1. Antecedentes Patológicos Comunes (Multiselect)
+antecedentes_comunes = [
+    "Hipertensión Arterial (HTA)",
+    "Diabetes Mellitus Tipo 2",
+    "Hipotiroidismo",
+    "Asma / EPOC",
+    "Cardiopatía Isquémica",
+    "Reflujo Gastroesofágico (ERGE)",
+    "Apnea Obstructiva del Sueño (SAHOS)"
+]
+
+selected_antecedentes = st.multiselect(
+    "Antecedentes Patológicos",
+    options=antecedentes_comunes,
+    key="antecedentes_select"
+)
+
+# 2. Medicaciones Comunes (Multiselect)
+medicaciones_comunes = [
+    "Antihipertensivos (IECA/ARA II)",
+    "Beta-bloqueadores",
+    "Metformina",
+    "Insulina",
+    "Anticoagulantes (Aspirina/Clopidogrel/DOACs)",
+    "Estatinas",
+    "Inhaladores (Beta-agonistas/Corticoides)"
+]
+
+selected_medicaciones = st.multiselect(
+    "Medicación Habitual",
+    options=medicaciones_comunes,
+    key="medicaciones_select"
+)
+
+# 3. Espacio para notas adicionales de medicación
+nota_med = st.text_input("Otras medicaciones / Dosis específicas", key="notas_med")
 
     # 2. Seguridad, Alergias y Medicamentos
     with st.expander("2. Seguridad, Alergias y Medicamentos", expanded=True):
