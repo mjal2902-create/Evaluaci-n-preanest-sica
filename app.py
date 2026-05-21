@@ -259,21 +259,7 @@ except NameError:
             volemia_est = peso_real * (70 if sexo == "Masculino" else 65)
             hto_meta = 30.0 if (tiene_ic or tiene_infarto) else 25.0
             sangrado_permisible = volemia_est * (hto - hto_meta) / hto if hto > hto_meta else 0
-# --- MAPEO AUTOMÁTICO DE RIESGO CLÍNICO ---
-        # Convertimos la selección del usuario en un texto para buscar palabras clave
-            str_ant = str(selected_antecedentes)
-        
-        # Variables para Índice de Riesgo Cardíaco Revisado (Lee)
-            tiene_infarto = "Isquémica" in str_ant or "Infarto" in str_ant
-            tiene_ic = "Insuficiencia Cardíaca" in str_ant
-            tiene_acv = "Cerebrovascular" in str_ant or "ACV" in str_ant
-            diabetes_insul = "Insulina" in str_ant
-            creatinina_alta = "Renal" in str_ant or "Cr > 2.0" in str_ant
-        
-        # Variables para Riesgo de TVP (Caprini)
-            antecedente_tvp = "TVP" in str_ant or "TEP" in str_ant
-            cancer_activo = "Cáncer" in str_ant
-            inmovilizacion = "postrado" in str_ant or "Inmovilización" in str_ant
+
 # --- PUNTUACIÓN DE ESCALAS ---
 p_arne = 0
 if historia_vad: p_arne += 5
