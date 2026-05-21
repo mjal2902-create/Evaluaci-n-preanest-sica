@@ -1,6 +1,7 @@
 import streamlit as st
 import math
 
+st.set_page_config(layout="wide", page_title="Asistente Anestésico", page_icon="🩺")
 # --- TÍTULO PRINCIPAL ---
 st.title("🩺 Asistente de Evaluación Anestésica")
 st.caption("Desarrollado para optimización clínica intraoperatoria y seguridad del paciente.")
