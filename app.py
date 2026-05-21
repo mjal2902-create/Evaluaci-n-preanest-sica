@@ -237,9 +237,9 @@ except NameError:
             tiene_infarto = False
         # ---------------------------------------------
 
-        volemia_est = peso_real * (70 if sexo == "Masculino" else 65)
-        hto_meta = 30.0 if (tiene_ic or tiene_infarto) else 25.0
-        sangrado_permisible = volemia_est * (hto - hto_meta) / hto if hto > hto_meta else 0
+            volemia_est = peso_real * (70 if sexo == "Masculino" else 65)
+            hto_meta = 30.0 if (tiene_ic or tiene_infarto) else 25.0
+            sangrado_permisible = volemia_est * (hto - hto_meta) / hto if hto > hto_meta else 0
 
 # --- PUNTUACIÓN DE ESCALAS ---
 p_arne = 0
