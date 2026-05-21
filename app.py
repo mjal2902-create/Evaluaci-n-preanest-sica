@@ -62,7 +62,7 @@ selected_medicaciones = st.multiselect(
 # 3. Espacio para notas adicionales de medicación
 nota_med = st.text_input("Otras medicaciones / Dosis específicas", key="notas_med")
      
-    with st.expander("2. Seguridad, Alergias y Medicamentos", expanded=True):
+    with st.expander("3. Seguridad, Alergias y Medicamentos", expanded=True):
         st.markdown("**🚨 Alergias**")
         
         # Módulo de Antecedentes y Medicación
