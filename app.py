@@ -231,7 +231,7 @@ fluido_mantenimiento = peso_real + 40
 try:
             tiene_ic = any(enf in str(selected_antecedentes) for enf in ["Insuficiencia", "Cardiopatía"])
             tiene_infarto = "Infarto" in str(selected_antecedentes)
-        except NameError:
+except NameError:
             # Si el multiselect falla o no se ha cargado, asumimos falso por defecto
             tiene_ic = False
             tiene_infarto = False
