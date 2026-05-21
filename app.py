@@ -62,7 +62,7 @@ selected_medicaciones = st.multiselect(
 nota_med = st.text_input("Otras medicaciones / Dosis específicas", key="notas_med")
 
     # 2. Seguridad, Alergias y Medicamentos
-    with st.expander("2. Seguridad, Alergias y Medicamentos", expanded=True):
+     with st.expander("2. Seguridad, Alergias y Medicamentos", expanded=True):
         st.markdown("**🚨 Alergias**")
         options_med = [
             "Penicilina / Betalactámicos", "AINEs (Aspirina, Ibuprofeno, etc.)", 
