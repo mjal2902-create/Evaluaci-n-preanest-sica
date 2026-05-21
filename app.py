@@ -1,4 +1,5 @@
 import streamlit as st
+import math # Asegúrate de tener math importado para las fórmulas
 
 # --- TÍTULO PRINCIPAL ---
 st.title("🩺 Asistente de Evaluación Anestésica")
@@ -11,6 +12,73 @@ col_izq, col_der = st.columns([1, 1.2])
 
 with col_izq:
     st.header("📋 Datos de Entrada")
+    
+    # ---------------------------------------------------------
+    # GATEKEEPER: REGISTRO INSTITUCIONAL (Obligatorio)
+    # ---------------------------------------------------------
+    st.markdown("### 🏥 Registro Institucional")
+    
+    tipo_institucion = st.selectbox(
+        "Clasificación Institucional",
+        ["👈 Seleccione el Sector...", "Red Pública (MSP / IESS / JBG)", "Sector Privado", "Otro Centro / Práctica Privada"],
+        key="mod_inst_tipo"
+    )
+    
+    hospital_final = ""
+    hospital_valido = False # <-- Esta es la llave que bloquea/desbloquea la app
+    
+    if tipo_institucion == "Red Pública (MSP / IESS / JBG)":
+        lista_publicos = [
+            "Hospital de Especialidades Abel Gilbert Pontón (MSP)",
+            "Hospital General del Norte de Guayaquil Los Ceibos (IESS)",
+            "Hospital de Especialidades Teodoro Maldonado Carbo (IESS)",
+            "Hospital General Monte Sinaí (MSP)",
+            "Hospital Universitario de Guayaquil (MSP)",
+            "Hospital de Niños Dr. Roberto Gilbert Elizalde (JBG)",
+            "Hospital Gineco-Obstétrico Alfredo G. Paulson (JBG)",
+            "Otro Hospital Público (Especificar)"
+        ]
+        hosp_sel = st.selectbox("📍 Seleccione el Hospital Público", lista_publicos, key="mod_inst_pub")
+        if hosp_sel == "Otro Hospital Público (Especificar)":
+            hospital_final = st.text_input("Escriba el nombre del hospital público:", key="mod_inst_pub_txt")
+            if hospital_final.strip() != "": hospital_valido = True
+        else:
+            hospital_final = hosp_sel
+            hospital_valido = True
+            
+    elif tipo_institucion == "Sector Privado":
+        lista_privados = [
+            "Omni Hospital",
+            "Hospital Clínica Kennedy (Policentro / Alborada / Samborondón)",
+            "Hospital Alcívar",
+            "Interhospital",
+            "Hospital Clínica Panamericana",
+            "Otro Centro Privado (Especificar)"
+        ]
+        hosp_sel = st.selectbox("📍 Seleccione el Centro Privado", lista_privados, key="mod_inst_priv")
+        if hosp_sel == "Otro Centro Privado (Especificar)":
+            hospital_final = st.text_input("Escriba el nombre del centro privado:", key="mod_inst_priv_txt")
+            if hospital_final.strip() != "": hospital_valido = True
+        else:
+            hospital_final = hosp_sel
+            hospital_valido = True
+            
+    elif tipo_institucion == "Otro Centro / Práctica Privada":
+        hospital_final = st.text_input("Escriba el nombre de la Clínica o Centro Médico:", key="mod_inst_otro_txt")
+        if hospital_final.strip() != "": hospital_valido = True
+
+    # =========================================================
+    # LÓGICA DE BLOQUEO (CANCELA LOS DEMÁS MÓDULOS)
+    # =========================================================
+    if not hospital_valido:
+        # Si no hay hospital, mostramos un candado y NO renderizamos nada más abajo
+        st.info("🔒 Por favor, seleccione una institución hospitalaria para desbloquear los módulos clínicos.")
+        
+    else:
+        # Si ya hay un hospital, mostramos el éxito y dibujamos los módulos 1 y 2 que creamos antes
+        st.success(f"✅ Centro registrado: **{hospital_final}**")
+        st.divider()
+
     
     # ---------------------------------------------------------
     # MÓDULO 1: DATOS DEMOGRÁFICOS Y QUIRÚRGICOS
