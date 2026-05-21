@@ -23,46 +23,61 @@ with col_izq:
         talla_cm = st.number_input("Talla (cm)", min_value=100, max_value=220, value=165)
 # --- MÓDULO DE ANTECEDENTES Y MEDICACIONES ---
     
-    with st.expander("2. Antecedentes y medicaciones", expanded=True):
-        st.header("📋 Antecedentes y Medicación")
+with st.expander("3. Seguridad, Alergias y Medicamentos", expanded=True):
+        st.markdown("**🚨 Alergias**")
+        
+        # Módulo de Antecedentes y Medicación
+        st.subheader("📋 Antecedentes y Medicación")
+        
+        antecedentes_comunes = [
+            "Hipertensión Arterial (HTA)",
+            "Diabetes Mellitus Tipo 2",
+            "Hipotiroidismo",
+            "Asma / EPOC",
+            "Cardiopatía Isquémica",
+            "Reflujo Gastroesofágico (ERGE)",
+            "Apnea Obstructiva del Sueño (SAHOS)"
+        ]
+        
+        selected_antecedentes = st.multiselect(
+            "Antecedentes Patológicos",
+            options=antecedentes_comunes,
+            key="antecedentes_select"
+        )
+        
+        medicaciones_comunes = [
+            "Antihipertensivos (IECA/ARA II)",
+            "Beta-bloqueadores",
+            "Metformina",
+            "Insulina",
+            "Anticoagulantes (Aspirina/Clopidogrel/DOACs)",
+            "Estatinas",
+            "Inhaladores (Beta-agonistas/Corticoides)"
+        ]
+        
+        selected_medicaciones = st.multiselect(
+            "Medicación Habitual",
+            options=medicaciones_comunes,
+            key="medicaciones_select"
+        )
+        
+        # Tus campos originales de alergias
+        # (Asegúrate de que estos también tengan 8 espacios de sangría)
+        str_alergias_med = st.text_input("Alergias Medicamentosas", key="alergias_med")
+        str_alergias_com = st.text_input("Alergias Alimentarias", key="alergias_com")
+        
+        st.markdown("---")
+        st.markdown("**Antecedentes Clínicos (Marque los presentes):**")
+        c_ant1, c_ant2 = st.columns(2)
+        tiene_infarto = c_ant1.checkbox("Infarto de Miocardio (< 6 meses)")
+        tiene_ic = c_ant1.checkbox("Insuficiencia Cardíaca Congestiva")
+        tiene_acv = c_ant1.checkbox("Historia de ACV o AIT")
+        tiene_insulina = c_ant2.checkbox("Diabetes bajo tratamiento con Insulina")
+        tiene_ev = c_ant2.checkbox("> 5 Extrasístoles Ventriculares/min")
+        tiene_ritmo_no_s = c_ant2.checkbox("Ritmo no sinusal / EAs en EKG")
+        tiene_cancer = c_ant1.checkbox("Cáncer Activo o previo")
+        tiene_epoc = c_ant2.checkbox("EPOC o Enfermedad Pulmonar Crónica")
 
-# 1. Antecedentes Patológicos Comunes (Multiselect)
-    antecedentes_comunes = [
-    "Hipertensión Arterial (HTA)",
-    "Diabetes Mellitus Tipo 2",
-    "Hipotiroidismo",
-    "Asma / EPOC",
-    "Cardiopatía Isquémica",
-    "Reflujo Gastroesofágico (ERGE)",
-    "Apnea Obstructiva del Sueño (SAHOS)"
-]
-
-    selected_antecedentes = st.multiselect(
-    "Antecedentes Patológicos",
-    options=antecedentes_comunes,
-    key="antecedentes_select"
-)
-
-# 2. Medicaciones Comunes (Multiselect)
-medicaciones_comunes = [
-    "Antihipertensivos (IECA/ARA II)",
-    "Beta-bloqueadores",
-    "Metformina",
-    "Insulina",
-    "Anticoagulantes (Aspirina/Clopidogrel/DOACs)",
-    "Estatinas",
-    "Inhaladores (Beta-agonistas/Corticoides)"
-]
-
-selected_medicaciones = st.multiselect(
-    "Medicación Habitual",
-    options=medicaciones_comunes,
-    key="medicaciones_select"
-)
-
-# 3. Espacio para notas adicionales de medicación
-nota_med = st.text_input("Otras medicaciones / Dosis específicas", key="notas_med")
-     
     
     # 4. Exploración de Vía Aérea y Ventilación
 
