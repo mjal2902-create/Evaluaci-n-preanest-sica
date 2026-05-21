@@ -148,7 +148,7 @@ with st.expander("5. Laboratorios (Módulo Transquirúrgico)", expanded=True):
         alteraciones_lab = st.text_area("Otras alteraciones de laboratorio (opcional)", "Sin alteraciones")
 
     # 5. Hallazgos y Patologías del EKG
-    with st.expander("5. Hallazgos y Patologías del EKG", expanded=True):
+with st.expander("5. Hallazgos y Patologías del EKG", expanded=True):
         st.markdown("**🫀 Selección de Hallazgos Electrocardiográficos**")
         st.caption("Marque las casillas correspondientes a las alteraciones observadas:")
         
