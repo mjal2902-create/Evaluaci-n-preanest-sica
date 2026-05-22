@@ -758,89 +758,108 @@ with col_izq:
                 if alteracion_gases or alteracion_electrolitos or alteracion_renal_goldman:
                     criterio_metabolico_goldman = 1
 # ---------------------------------------------------------
-        # MÓDULO 6: ESTRATIFICACIÓN DE RIESGO ADICIONAL (CAPRINI & APFEL)
+        # MÓDULO 6: RIESGO TROMBOEMBÓLICO Y EMETOGÉNICO (CÓDIGO DEPURADO)
         # ---------------------------------------------------------
         with st.expander("6. Riesgo Tromboembólico (Caprini) y Emetogénico (Apfel)", expanded=True):
             
-            # --- 1. ESCALA DE APFEL (RIESGO DE NVPO) ---
+            # --- 1. ESCALA DE APFEL (SÓLO VARIABLES NO CONCATENADAS) ---
             st.markdown("#### 🤢 Riesgo de Náuseas y Vómitos Postoperatorios (Escala de Apfel)")
-            st.caption("Marque los factores de riesgo independientes presentes en el paciente:")
+            st.caption("Marque los factores clínicos específicos del entorno quirúrgico:")
             
-            apfel_genero = st.checkbox("🔸 Género fenotípico femenino", key="mod6_apfel_f")
-            apfel_historia = st.checkbox("🔸 Antecedente de NVPO o cinetosis (mareo por movimiento)", key="mod6_apfel_hist")
-            apfel_no_fumador = st.checkbox("🔸 Paciente no fumador habitual", key="mod6_apfel_fuma")
-            apfel_opioides = st.checkbox("🔸 Previsión de uso de opioides postoperatorios", key="mod6_apfel_op")
-            
-            # Cálculo silencioso de Apfel
-            puntos_apfel = sum([apfel_genero, apfel_historia, apfel_no_fumador, apfel_opioides])
+            apfel_historia = st.checkbox("🔸 Antecedente personal de NVPO o cinetosis (mareo por movimiento)", key="mod6_apfel_hist")
+            apfel_opioides = st.checkbox("🔸 Previsión de uso de opioides potentes en el postoperatorio", key="mod6_apfel_op")
 
+            # --- 2. ESCALA DE CAPRINI (SÓLO VARIABLES NO CONCATENADAS) ---
             st.divider()
-
-            # --- 2. ESCALA DE CAPRINI (RIESGO DE TVP/TEP) ---
             st.markdown("#### 🧦 Prevención Cardiovascular: Riesgo Tromboembólico (Caprini)")
-            st.caption("Seleccione todos los factores de riesgo aplicables de las siguientes categorías:")
+            st.caption("Seleccione únicamente las condiciones particulares que no han sido registradas previamente:")
 
-            # Categoría A: Factores Clínicos y Médicos Generales
+            # Categoría A: Médicos Generales Restantes
             caprini_clinicos = st.multiselect(
-                "Factores Clínicos y Médicos Generales",
+                "Factores Médicos Particulares",
                 options=[
-                    "Edad entre 41 y 60 años (+1)",
-                    "Edad entre 61 y 74 años (+2)",
-                    "Edad mayor o igual a 75 años (+3)",
-                    "Sobrepeso u Obesidad (IMC > 25 kg/m²) (+1)",
-                    "Edema de miembros inferiores o venas varicosas (+1)",
-                    "Embarazo o Postparto (< 1 mes) (+1)",
-                    "Uso de anticonceptivos orales o terapia de reemplazo hormonal (+1)",
-                    "Sepsis o Enfermedad médica aguda (< 1 mes) (+1)",
-                    "Cáncer activo o antecedente de malignidad (+2)"
+                    "Venas varicosas superficiales sintomáticas (+1)",
+                    "Uso actual de anticonceptivos orales o terapia de reemplazo hormonal (+1)",
+                    "Sepsis o Infección médica aguda activa (< 1 mes) (+1)",
+                    "Cáncer activo o antecedente de malignidad sólida/hematológica (+2)"
                 ],
                 key="mod6_cap_clin"
             )
 
-            # Categoría B: Factores Quirúrgicos y de Inmovilidad
+            # Categoría B: Quirúrgicos y de Inmovilidad Restantes
             caprini_quirurgicos = st.multiselect(
-                "Factores Quirúrgicos y de Inmovilización",
+                "Factores de Inmovilización y Procedimientos Especiales",
                 options=[
-                    "Cirugía menor quirúrgica (+1)",
-                    "Cirugía mayor (> 45 minutos) (+2)",
                     "Cirugía artroscópica (+2)",
-                    "Inmovilización con yeso o férula (+2)",
-                    "Acceso venoso central permanente (+2)",
-                    "Paciente encamado en reposo absoluto > 72 horas (+2)"
+                    "Inmovilización actual con yeso, férula o tracción (+2)",
+                    "Acceso venoso central permanente o catéter de diálisis (+2)",
+                    "Paciente encamado en reposo absoluto prolongado (> 72 horas) (+2)"
                 ],
                 key="mod6_cap_cx"
             )
 
             # Categoría C: Trombosis de Alto Riesgo y Trombofilias
             caprini_altoriesgo = st.multiselect(
-                "Antecedentes de Trombosis, Fracturas y Trombofilias",
+                "Antecedentes de Trombofilias y Eventos Graves",
                 options=[
-                    "Antecedente personal de TVP o Tromboembolismo Pulmonar (+3)",
-                    "Historia familiar de trombosis u oclusión vascular (+3)",
-                    "Trombofilia confirmada (Factor V Leiden, Antifosfolípido, etc.) (+3)",
+                    "Antecedente personal de TVP o Tromboembolismo Pulmonar (TEP) (+3)",
+                    "Historia familiar directa de trombosis u oclusión vascular (+3)",
+                    "Trombofilia congénita o adquirida confirmada por laboratorio (+3)",
                     "ACV / Ictus isquémico reciente (< 1 mes) (+5)",
                     "Fractura de cadera, pelvis o extremidad inferior (< 1 mes) (+5)",
-                    "Artroplastia electiva de cadera o rodilla (+5)",
+                    "Artroplastia electiva programada de cadera o rodilla (+5)",
                     "Lesión medular aguda con paraplejía o cuadriplejía (< 1 mes) (+5)"
                 ],
                 key="mod6_cap_alto"
             )
 
-            # --- PARSER MATEMÁTICO SILENCIOSO DE CAPRINI ---
+            # =========================================================
+            # PROCESAMIENTO AUTOMÁTICO SINCRO-TOTAL EN SEGUNDO PLANO
+            # =========================================================
+            
+            # --- MOTOR DE APFEL AUTOMATIZADO ---
+            pts_apfel = sum([apfel_historia, apfel_opioides])
+            if 'sexo' in locals() and sexo == "Femenino": 
+                pts_apfel += 1
+            if 'sin_habitos' in locals() and (sin_habitos or not hab_cigarrillo): 
+                pts_apfel += 1
+
+            # --- MOTOR DE CAPRINI AUTOMATIZADO ---
             score_caprini = 0
             
-            # Procesamiento de la selección de factores clínicos
+            # 1. Inferencia automática por Edad (Módulo 1)
+            if 'edad' in locals():
+                if 41 <= edad <= 60: score_caprini += 1
+                elif 61 <= edad <= 74: score_caprini += 2
+                elif edad >= 75: score_caprini += 3
+                
+            # 2. Inferencia automática por IMC (Módulo 1)
+            if 'imc' in locals() and imc > 25.0:
+                score_caprini += 1
+                
+            # 3. Inferencia automática por Embarazo (Módulo 1)
+            if 'es_obstetrico' in locals() and es_obstetrico:
+                score_caprini += 1
+                
+            # 4. Inferencia automática por Complejidad Quirúrgica (Módulo 1)
+            if 'riesgo_cx' in locals():
+                if "Alto" in riesgo_cx or "Moderado" in riesgo_cx:
+                    score_caprini += 2  # Cirugía mayor (> 45 min)
+                else:
+                    score_caprini += 1  # Cirugía menor
+                    
+            # 5. Inferencia automática por Edema Clínico (Módulo 4)
+            if 'cardio_edema' in locals() and cardio_edema:
+                score_caprini += 1
+
+            # 6. Sumatoria de los multiselects manuales depurados
             for f in caprini_clinicos:
                 if "(+1)" in f: score_caprini += 1
                 elif "(+2)" in f: score_caprini += 2
-                elif "(+3)" in f: score_caprini += 3
                     
-            # Procesamiento de la selección de factores quirúrgicos
             for f in caprini_quirurgicos:
-                if "(+1)" in f: score_caprini += 1
-                elif "(+2)" in f: score_caprini += 2
+                if "(+2)" in f: score_caprini += 2
                     
-            # Procesamiento de la selección de factores de alto riesgo
             for f in caprini_altoriesgo:
                 if "(+3)" in f: score_caprini += 3
                 elif "(+5)" in f: score_caprini += 5
