@@ -290,31 +290,49 @@ with col_izq:
             st.divider()
 
             # --- 4. SECCIÓN DE HÁBITOS ---
+            # --- 4. SECCIÓN DE HÁBITOS (Dinamizada) ---
             st.markdown("#### 🚬 Hábitos y Estilo de Vida")
-            st.caption("Nota: `+` Bajo | `++` Moderado | `+++` Severo/Grave")
             
-            # Fila 1: Alcohol
-            c_alc1, c_alc2 = st.columns([3, 1])
-            hab_alcohol = c_alc1.checkbox("Consumo de Alcohol", key="mod2_hab_alc")
-            int_alcohol = c_alc2.selectbox("Intensidad Alcohol", ["+", "++", "+++"], key="mod2_int_alc", disabled=not hab_alcohol, label_visibility="collapsed")
-            
-            # Fila 2: Cigarrillos
-            c_cig1, c_cig2 = st.columns([3, 1])
-            hab_cigarrillo = c_cig1.checkbox("Tabaquismo (Cigarrillos)", key="mod2_hab_cig")
-            int_cigarrillo = c_cig2.selectbox("Intensidad Cigarrillo", ["+", "++", "+++"], key="mod2_int_cig", disabled=not hab_cigarrillo, label_visibility="collapsed")
-            
-            # Fila 3: Café
-            c_caf1, c_caf2 = st.columns([3, 1])
-            hab_cafe = c_caf1.checkbox("Consumo de Café", key="mod2_hab_caf")
-            int_cafe = c_caf2.selectbox("Intensidad Café", ["+", "++", "+++"], key="mod2_int_caf", disabled=not hab_cafe, label_visibility="collapsed")
-            
-            # Fila 4: Drogas
-            c_dro1, c_dro2 = st.columns([3, 1])
-            hab_drogas = c_dro1.checkbox("Sustancias / Drogas de Abuso", key="mod2_hab_dro")
-            int_drogas = c_dro2.selectbox("Intensidad Drogas", ["+", "++", "+++"], key="mod2_int_dro", disabled=not hab_drogas, label_visibility="collapsed")
-            
-            if hab_drogas:
-                txt_drogas = st.text_input("Especifique la sustancia (Ej. Cannabis, Cocaína):", key="mod2_txt_dro")
+            # Casilla activa por defecto (value=True) para optimizar espacio
+            sin_habitos = st.checkbox("✅ No refiere hábitos dañinos", value=True, key="mod2_sin_habitos")
+
+            # Inicialización de seguridad (Evita colapsos en el reporte cuando está oculto)
+            hab_alcohol = False
+            int_alcohol = "+"
+            hab_cigarrillo = False
+            int_cigarrillo = "+"
+            hab_cafe = False
+            int_cafe = "+"
+            hab_drogas = False
+            int_drogas = "+"
+            txt_drogas = ""
+
+            # Lógica Condicional: Solo se despliega si se DESMARCA la casilla principal
+            if not sin_habitos:
+                st.caption("Nota: `+` Bajo | `++` Moderado | `+++` Severo/Grave")
+                
+                # Fila 1: Alcohol
+                c_alc1, c_alc2 = st.columns([3, 1])
+                hab_alcohol = c_alc1.checkbox("Consumo de Alcohol", key="mod2_hab_alc")
+                int_alcohol = c_alc2.selectbox("Intensidad Alcohol", ["+", "++", "+++"], key="mod2_int_alc", disabled=not hab_alcohol, label_visibility="collapsed")
+                
+                # Fila 2: Cigarrillos
+                c_cig1, c_cig2 = st.columns([3, 1])
+                hab_cigarrillo = c_cig1.checkbox("Tabaquismo (Cigarrillos)", key="mod2_hab_cig")
+                int_cigarrillo = c_cig2.selectbox("Intensidad Cigarrillo", ["+", "++", "+++"], key="mod2_int_cig", disabled=not hab_cigarrillo, label_visibility="collapsed")
+                
+                # Fila 3: Café
+                c_caf1, c_caf2 = st.columns([3, 1])
+                hab_cafe = c_caf1.checkbox("Consumo de Café", key="mod2_hab_caf")
+                int_cafe = c_caf2.selectbox("Intensidad Café", ["+", "++", "+++"], key="mod2_int_caf", disabled=not hab_cafe, label_visibility="collapsed")
+                
+                # Fila 4: Drogas
+                c_dro1, c_dro2 = st.columns([3, 1])
+                hab_drogas = c_dro1.checkbox("Sustancias / Drogas de Abuso", key="mod2_hab_dro")
+                int_drogas = c_dro2.selectbox("Intensidad Drogas", ["+", "++", "+++"], key="mod2_int_dro", disabled=not hab_drogas, label_visibility="collapsed")
+                
+                if hab_drogas:
+                    txt_drogas = st.text_input("Especifique la sustancia (Ej. Cannabis, Cocaína):", key="mod2_txt_dro")
 
 # ---------------------------------------------------------
         # MÓDULO 3: VÍA AÉREA Y PREDICTORES (SOLO CAPTURA DE DATOS)
