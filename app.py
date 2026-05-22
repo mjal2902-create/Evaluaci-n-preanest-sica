@@ -393,7 +393,7 @@ with col_izq:
                 key="mod3_cuello_categoria"
             )
 
-st.markdown("**Hallazgos Anatómicos Particulares:**")
+            st.markdown("**Hallazgos Anatómicos Particulares:**")
             
             # Al eliminar st.columns, el texto respira y las casillas se alinean perfectamente
             vad_incisivos = st.checkbox("🔹 Incisivos largos y prominentes", key="mod3_incisivos")
