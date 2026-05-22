@@ -191,7 +191,23 @@ with col_izq:
                 diagnostico_final = c_cx3.text_input("Especifique el diagnóstico", key="mod1_diag_txt")
             else:
                 diagnostico_final = diag_base
-
+# --- APARTADO DINÁMICO DE FRACTURAS (MÓDULO 1) ---
+            tipo_fractura_cx = "No aplica"
+            if "Fractura" in diagnostico_final:
+                st.caption("⚠️ Detalle de Traumatología Quirúrgica detectado:")
+                tipo_fractura_cx = st.selectbox(
+                    "🦴 Tipo / Localización de la Fractura a intervenir",
+                    [
+                        "Fractura de Cadera (Fémur Proximal) [Riesgo Caprini Extremo]",
+                        "Fractura de Pelvis o Acetábulo [Riesgo Caprini Extremo]",
+                        "Fractura de Miembro Inferior (Diáfisis de Fémur, Tibia, Peroné) [Riesgo Caprini Extremo]",
+                        "Fractura de Miembro Superior (Húmero, Radio, Cúbito, Clavícula)",
+                        "Fractura Vertebral / Columna (Compromiso medular / Estabilización)",
+                        "Fractura Conminuta de Tobillo / Retropié",
+                        "Fractura Maxilofacial / Mandibular Compleja"
+                    ],
+                    key="mod1_tipo_fractura"
+                )
             proc_base = c_cx4.selectbox("Procedimiento Propuesto", lista_procedimientos, key="mod1_proc_base")
             if proc_base == "Otro (Especificar)":
                 procedimiento_final = c_cx4.text_input("Especifique el procedimiento", key="mod1_proc_txt")
