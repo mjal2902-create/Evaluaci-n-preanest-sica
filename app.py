@@ -317,26 +317,11 @@ with col_izq:
                 txt_drogas = st.text_input("Especifique la sustancia (Ej. Cannabis, Cocaína):", key="mod2_txt_dro")
 
 # ---------------------------------------------------------
-        # MÓDULO 3: VÍA AÉREA Y PARÁMETROS RESPIRATORIOS (SINCRO TOTAL)
+        # MÓDULO 3: VÍA AÉREA Y PREDICTORES (DIRECCIÓN ANATÓMICA)
         # ---------------------------------------------------------
-        with st.expander("3. Vía Aérea y Parámetros Respiratorios", expanded=True):
+        with st.expander("3. Vía Aérea y Predictores de Dificultad", expanded=True):
             
-            # --- 1. ESTADO RESPIRATORIO BASAL ---
-            st.markdown("#### 🫁 Estado Respiratorio Basal")
-            c_resp1, c_resp2 = st.columns(2)
-            
-            spo2_basal = c_resp1.number_input("SpO2 Basal (%)", min_value=10, max_value=100, value=98, key="mod3_spo2")
-            fr_basal = c_resp2.number_input("FR Basal (rpm)", min_value=0, max_value=60, value=16, key="mod3_fr")
-            
-            auscultacion = st.selectbox(
-                "Auscultación Pulmonar",
-                ["Murmullo Vesicular Conservado", "Sibilancias Bilaterales", "Estertores / Crepitantes", "Disminución de MV unilateral", "Roncus"],
-                key="mod3_ausc"
-            )
-            
-            st.divider()
-
-            # --- 2. PREDICTORES DE INTUBACIÓN DIFÍCIL (ASA TASKFORCE ACTUALIZADO) ---
+            # --- 1. PREDICTORES DE INTUBACIÓN DIFÍCIL (ASA TASKFORCE) ---
             st.markdown("#### 👅 Predictores de Vía Aérea de Difícil Manejo (ASA Taskforce)")
             
             c_vad1, c_vad2 = st.columns(2)
@@ -374,7 +359,6 @@ with col_izq:
                 key="mod3_ab"
             )
             
-            # NUEVO: Distancia Esternomentoniana (Escala de Savva)
             dem = c_vad4.selectbox(
                 "Distancia Esternomentoniana (Savva)",
                 [
@@ -385,63 +369,60 @@ with col_izq:
                 key="mod3_dem"
             )
 
-            c_vad5 = st.columns(1)[0]
-            # NUEVO: Circunferencia de cuello movida aquí con los rangos solicitados
+            c_vad5, c_vad6 = st.columns(2)
+            
             cuello_cat = c_vad5.selectbox(
                 "Circunferencia de Cuello",
                 ["Menor a 35 cm (< 35 cm)", "Mayor a 35 cm (> 35 cm)"],
                 key="mod3_cuello_categoria"
             )
-
-            st.markdown("**Hallazgos Anatómicos Particulares:**")
             
-            # Al eliminar st.columns, el texto respira y las casillas se alinean perfectamente
+            ulbt = c_vad6.selectbox(
+                "Test de Mordida de Labio Superior (ULBT / Subluxación)",
+                [
+                    "Clase I: Incisivos inferiores cubren la línea bermellón del labio superior",
+                    "Clase II: Incisivos muerden el labio pero no cubren la línea bermellón",
+                    "Clase III: Incisivos inferiores no pueden morder el labio superior"
+                ],
+                key="mod3_ulbt"
+            )
+
+            st.markdown("**Hallazgos Anatómicos y Dinámicos Particulares (Checklist Vertical):**")
+            
             vad_incisivos = st.checkbox("🔹 Incisivos largos y prominentes", key="mod3_incisivos")
             vad_paladar = st.checkbox("🔹 Paladar alto / Ojival", key="mod3_paladar")
             vad_lengua = st.checkbox("🔹 Gran tamaño de lengua (Macroglosia)", key="mod3_lengua")
-            vad_cuello_ancho = st.checkbox("🔹 Cuello corto y ancho", value=(cuello_cat == "Mayor a 35 cm (> 35 cm)"), key="mod3_cuello_ancho")
-            vad_movilidad = st.checkbox("🔹 Paciente incapaz de tocar la mandíbula con el pecho o extender la cabeza", key="mod3_mov_cervical")
+            vad_retrognatia = st.checkbox("🔹 Retrognatia / Micrognatia (Mentón retraído)", key="mod3_retrognatia")
+            vad_movilidad = st.checkbox("🔹 Limitación de Movilidad Cervical (Incapaz de extender la cabeza o flexionar)", key="mod3_mov_cervical")
 
             # Conteo analítico actualizado con los nuevos parámetros de intubación difícil
             criterios_asa_positivos = sum([
-                vad_incisivos, vad_paladar, vad_lengua, vad_cuello_ancho, vad_movilidad,
+                vad_incisivos, vad_paladar, vad_lengua, vad_retrognatia, vad_movilidad,
                 "Mallampati >2" in mallampati,
                 "Clase III" in dtm,
                 "Clase III" in apertura_bucal,
                 "Clase III" in dem,
-                cuello_cat == "Mayor a 35 cm (> 35 cm)"
-            ])
-
-            # Conteo analítico actualizado con los nuevos parámetros de intubación difícil
-            criterios_asa_positivos = sum([
-                vad_incisivos, vad_paladar, vad_lengua, vad_cuello_ancho, vad_movilidad,
-                "Mallampati >2" in mallampati,
-                "Clase III" in dtm,
-                "Clase III" in apertura_bucal,
-                "Clase III" in dem,
-                cuello_cat == "Mayor a 35 cm (> 35 cm)"
+                cuello_cat == "Mayor a 35 cm (> 35 cm)",
+                "Clase III" in ulbt
             ])
 
             if criterios_asa_positivos >= 3:
-                st.error(f"⚠️ Alerta: El paciente presenta {criterios_asa_positivos} factores de predicción de VAD (Criterios ASA Taskforce).")
+                st.error(f"⚠️ Alerta: El paciente presenta {criterios_asa_positivos} factores de predicción de VAD. Planificar estrategia.")
 
             st.divider()
 
-            # --- 3. PREDICTORES DE VENTILACIÓN DIFÍCIL CON MÁSCARA (OBESE CON SINCRO FORZADA) ---
+            # --- 2. PREDICTORES DE VENTILACIÓN DIFÍCIL CON MÁSCARA (Criterios OBESE) ---
             st.markdown("#### 😷 Predictores de Ventilación Difícil (Criterios OBESE)")
             st.caption("Nota: Las casillas de Edad y Obesidad están estrictamente concatenadas con los datos del Módulo 1.")
             
-            # Lógica matemática de evaluación
             check_edad_obese = edad > 55
             check_imc_obese = imc >= 30.0 if 'imc' in locals() else False
             
-            # SOLUCIÓN AL BUG DE STREAMLIT: Forzar la memoria de los widgets antes de renderizarlos
             st.session_state["mod3_vmd_edad"] = check_edad_obese
             st.session_state["mod3_vmd_ob"] = check_imc_obese
             
             c_vmd1, c_vmd2 = st.columns(2)
             
-            # Renderizado reactivo absoluto
             vmd_edad = c_vmd1.checkbox("O - Edad > 55 años", key="mod3_vmd_edad")
             vmd_obesidad = c_vmd2.checkbox("O - Obesidad (IMC ≥ 30 kg/m²)", key="mod3_vmd_ob")
             
@@ -449,7 +430,6 @@ with col_izq:
             vmd_barba = c_vmd3.checkbox("B - Presencia de Barba tupida", key="mod3_barba")
             vmd_edentulo = c_vmd4.checkbox("E - Paciente Edéntulo (Total o Parcial)", key="mod3_edentulo")
             
-            # Sincronización automática de SAHOS con el Módulo 2
             check_sahos = any("SAHOS" in p or "Apnea" in p for p in antecedentes_seleccionados) if 'antecedentes_seleccionados' in locals() else False
             st.session_state["mod3_sahos"] = check_sahos
             
