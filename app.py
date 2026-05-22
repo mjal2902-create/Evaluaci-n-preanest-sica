@@ -393,16 +393,24 @@ with col_izq:
                 key="mod3_cuello_categoria"
             )
 
-            st.markdown("**Hallazgos Anatómicos Particulares (Marque los presentes):**")
-            c_chk1, c_chk2, c_chk3 = st.columns(3)
+st.markdown("**Hallazgos Anatómicos Particulares:**")
             
-            vad_incisivos = c_chk1.checkbox("Incisivos largos y prominentes", key="mod3_incisivos")
-            vad_paladar = c_chk2.checkbox("Paladar alto / Ojival", key="mod3_paladar")
-            vad_lengua = c_chk3.checkbox("Gran tamaño de lengua (Macroglosia)", key="mod3_lengua")
-            
-            c_chk4, c_chk5 = st.columns(2)
-            vad_cuello_ancho = c_chk4.checkbox("Cuello corto y ancho", value=(cuello_cat == "Mayor a 35 cm (> 35 cm)"), key="mod3_cuello_ancho")
-            vad_movilidad = c_chk5.checkbox("Paciente incapaz de tocar la mandíbula con el pecho o extender la cabeza", key="mod3_mov_cervical")
+            # Al eliminar st.columns, el texto respira y las casillas se alinean perfectamente
+            vad_incisivos = st.checkbox("🔹 Incisivos largos y prominentes", key="mod3_incisivos")
+            vad_paladar = st.checkbox("🔹 Paladar alto / Ojival", key="mod3_paladar")
+            vad_lengua = st.checkbox("🔹 Gran tamaño de lengua (Macroglosia)", key="mod3_lengua")
+            vad_cuello_ancho = st.checkbox("🔹 Cuello corto y ancho", value=(cuello_cat == "Mayor a 35 cm (> 35 cm)"), key="mod3_cuello_ancho")
+            vad_movilidad = st.checkbox("🔹 Paciente incapaz de tocar la mandíbula con el pecho o extender la cabeza", key="mod3_mov_cervical")
+
+            # Conteo analítico actualizado con los nuevos parámetros de intubación difícil
+            criterios_asa_positivos = sum([
+                vad_incisivos, vad_paladar, vad_lengua, vad_cuello_ancho, vad_movilidad,
+                "Mallampati >2" in mallampati,
+                "Clase III" in dtm,
+                "Clase III" in apertura_bucal,
+                "Clase III" in dem,
+                cuello_cat == "Mayor a 35 cm (> 35 cm)"
+            ])
 
             # Conteo analítico actualizado con los nuevos parámetros de intubación difícil
             criterios_asa_positivos = sum([
