@@ -463,94 +463,154 @@ with col_izq:
             puntos_vmd = sum([vmd_barba, vmd_edentulo])
             puntos_stop_bang = sum([sb_s, sb_t, sb_o])
 # ---------------------------------------------------------
-        # MÓDULO 4: EVALUACIÓN CARDIOVASCULAR Y CAPACIDAD FUNCIONAL
+        # MÓDULO 4: EVALUACIÓN CARDIOVASCULAR (INTERACTIVO PEDIÁTRICO)
         # ---------------------------------------------------------
         with st.expander("4. Evaluación Cardiovascular y Capacidad Funcional", expanded=True):
             
-            # --- 1. CAPACIDAD METABÓLICA Y CLASE FUNCIONAL ---
-            st.markdown("#### 🏃 Capacidad Metabólica y Clase Funcional")
-            c_card1, c_card2 = st.columns(2)
-            
-            capacidad_funcional = c_card1.selectbox(
-                "Capacidad Funcional (Mets)",
-                [
-                    "Excelente (≥ 10 METs) - Ej: Deportes de alta intensidad",
-                    "Buena (4 - 10 METs) - Ej: Sube dos pisos de escaleras sin detenerse",
-                    "Limitada (< 4 METs) - Ej: Camina 1 o 2 cuadras / Trabajo doméstico ligero",
-                    "Severamente Limitada (< 1 MET) - Ej: Disnea en reposo o actividades de autocuidado"
-                ],
-                key="mod4_mets"
-            )
-            
-            clase_nyha = c_card2.selectbox(
-                "Clasificación Funcional NYHA",
-                [
-                    "Clase I: Sin limitación de la actividad física ordinaria",
-                    "Clase II: Limitación ligera. Confortable en reposo",
-                    "Clase III: Limitación marcada. Actividad menor a la ordinaria causa síntomas",
-                    "Clase IV: Incapacidad de realizar cualquier actividad sin malestar / Síntomas en reposo"
-                ],
-                key="mod4_nyha"
-            )
-            
-            st.divider()
-            
-            # --- 2. SINTOMATOLOGÍA CARDIOVASCULAR ACTUAL (Lista Vertical Limpia) ---
-            st.markdown("#### 🫀 Sintomatología y Signos Clínicos Activos")
-            st.caption("Marque los hallazgos de riesgo identificados en la evaluación actual:")
-            
-            cardio_angina = st.checkbox("🔹 Angina inestable o de reciente comienzo", key="mod4_angina")
-            cardio_disnea = st.checkbox("🔹 Disnea de causa cardíaca no filiada / Ortopnea", key="mod4_disnea")
-            cardio_palpitaciones = st.checkbox("🔹 Palpitaciones clínicas, síncope o arritmia sintomática", key="mod4_palpitaciones")
-            cardio_edema = st.checkbox("🔹 Edema maleolar bilateral reciente o signos de congestión", key="mod4_edema")
-            cardio_soplo = st.checkbox("🔹 Soplo cardíaco patológico relevante (Ej: Sugestivo de Estenosis Aórtica)", key="mod4_soplo")
-            
-            st.divider()
-            
-            # --- 3. PARÁMETROS ELECTRO Y ECOCARDIOGRÁFICOS ---
-            st.markdown("#### 📊 Hallazgos en Exámenes Complementarios")
-            c_card3, c_card4 = st.columns(2)
-            
-            ecg_hallazgo = c_card3.selectbox(
-                "Hallazgo en Electrocardiograma (ECG)",
-                [
-                    "Ritmo Sinusal Normal",
-                    "Fibrilación Auricular / Flutter / Extrasistolia frecuente",
-                    "Bloqueo de Rama (Izquierda / Derecha / Bifascicular)",
-                    "Bloqueo AV (Primer, Segundo o Tercer grado)",
-                    "Trastornos de la Repolarización / Isquemia subendocárdica",
-                    "Hipertrofia Ventricular / Signos de sobrecarga",
-                    "No disponible / No solicitado"
-                ],
-                key="mod4_ecg"
-            )
-            
-            # Dinamismo de la FEVI: El casillero numérico aparece solo si se activa el check
-            fevi_disponible = c_card4.checkbox("¿Cuenta con reporte de Ecocardiograma?", key="mod4_check_fevi")
-            fevi_valor = 60.0  # Valor predeterminado por defecto
-            
-            if fevi_disponible:
-                fevi_valor = c_card4.number_input(
-                    "Fracción de Eyección (FEVI %)",
-                    min_value=10.0, max_value=85.0, value=60.0, step=1.0,
-                    key="mod4_fevi_val"
-                )
-            
-            st.divider()
-            
-            # --- 4. CONDICIÓN RENAL / COMPLEMENTO DE RIESGO ---
-            st.markdown("#### 🧪 Parámetro Metabólico Adicional")
-            # Factor de Lee independiente (Creatinina > 2 mg/dl), no duplicado en el módulo 2
-            creatinina_alta = st.checkbox("🔹 Creatinina sérica preoperatoria > 2.0 mg/dL (177 µmol/L)", key="mod4_creat")
+            # Inicialización basal de seguridad (Evita NameError si el módulo se oculta)
+            capacidad_funcional = "No aplica (Pediátrico)"
+            clase_nyha = "No aplica (Pediátrico)"
+            cardio_angina = False
+            cardio_disnea = False
+            cardio_palpitaciones = False
+            cardio_edema = False
+            cardio_soplo = False
+            ecg_hallazgo = "No disponible / No solicitado"
+            fevi_valor = 60.0
+            creatinina_alta = False
+            score_lee = 0
 
-            # --- PROCESAMIENTO SILENCIOSO DE RIESGO DE LEE (Para tu matriz de tesis) ---
-            # Extracción limpia de factores de riesgo del Índice de Lee Modificado (RCRI)
-            factor_cirugia_riesgo = 1 if (riesgo_cx and "Alto" in riesgo_cx) else 0
-            factor_cardiopatia_isq = 1 if (not sin_antecedentes and any("Isquémica" in p or "IAM" in p for p in antecedentes_seleccionados)) or cardio_angina else 0
-            factor_insuf_cardiaca = 1 if (not sin_antecedentes and "Insuficiencia Cardíaca" in lista_patologias) or cardio_edema or cardio_disnea else 0
-            factor_acv = 1 if (not sin_antecedentes and any("ACV" in p or "Isquemia" in p for p in antecedentes_seleccionados)) else 0
-            factor_insulina = 1 if (not sin_antecedentes and "Insulina" in medicacion_actual) else 0
-            factor_creatinina = 1 if creatinina_alta else 0
-            
-            # Sumatoria interna almacenada en variable
-            score_lee = factor_cirugia_riesgo + factor_cardiopatia_isq + factor_insuf_cardiaca + factor_acv + factor_insulina + factor_creatinina
+            # Evaluación interactiva de edad hacedera desde el Módulo 1
+            es_pediatrico = edad < 18 if 'edad' in locals() else False
+            mostrar_cardio_completo = True
+
+            # Condicional dinámico para etapas infantiles
+# Condicional dinámico para etapas infantiles
+            if es_pediatrico:
+                sin_cardiopatia_ped = st.checkbox(
+                    "✅ Paciente pediátrico sin patologías cardíacas conocidas", 
+                    value=True, 
+                    key="mod4_ped_sano"
+                )
+                
+                if sin_cardiopatia_ped:
+                    mostrar_cardio_completo = False
+                    st.info("👶 Evaluación cardiológica avanzada omitida por criterio de edad (Infante sano).")
+                else:
+                    # SI EL NIÑO TIENE CARDIOPATÍA, SE DESPLIEGAN LAS ESCALAS PEDIÁTRICAS:
+                    mostrar_cardio_completo = False # Oculta la de adultos
+                    
+                    st.markdown("#### 👶 Evaluación Cardiovascular Pediátrica Especializada")
+                    c_ped1, c_ped2 = st.columns(2)
+                    
+                    # 1. ESCALA DE ROSS (Sustituye a NYHA)
+                    clase_ross = c_ped1.selectbox(
+                        "Clase Funcional Pediátrica (Escala de Ross)",
+                        [
+                            "Clase I: Asintomático",
+                            "Clase II: Taquipnea o diaforesis leve durante la alimentación en lactantes. Disnea de esfuerzo en niños mayores. Crecimiento normal.",
+                            "Clase III: Marcada taquipnea o diaforesis al alimentarse. Prolongación del tiempo de toma con llanto. Retraso evidente en el crecimiento (Fallo de medro).",
+                            "Clase IV: Síntomas de insuficiencia cardíaca congestiva en reposo (Taquipnea, retracciones, quejido, diaforesis profusa)."
+                        ],
+                        key="mod4_ross"
+                    )
+                    
+                    # 2. COMPLEJIDAD ESTRUCTURAL (AHA/ACC / Faraoni)
+                    complejidad_cc = c_ped2.selectbox(
+                        "Complejidad de la Cardiopatía Congénita (CC)",
+                        [
+                            "Leve (Bajo Riesgo): CC corregida sin shunts residuales (CIV, CIA, DAP cerrados) o Estenosis Pulmonar leve.",
+                            "Moderada (Riesgo Intermedio): CC no corregida acianógena (CIV o CIA pequeñas), Tetralogía de Fallot corregida, Coartación de Aorta corregida o Estenosis Aórtica moderada.",
+                            "Severa (Alto Riesgo): Hipertensión Pulmonar (Fisiología de Eisenmenger), Cardiopatías cianógenas no corregidas o paliativas, Ventrículo único (Fontan/Glenn), Miocardiopatías o Estenosis Aórtica severa."
+                        ],
+                        key="mod4_cc_complejidad"
+                    )
+                    
+                    # Variables de respaldo silenciosas para el reporte en niños con cardiopatía
+                    capacidad_funcional = f"Complejidad CC: {complejidad_cc.split('(')[0].strip()}"
+                    clase_nyha = f"Ross: {clase_ross.split(':')[0].strip()}"
+
+            # Si el paciente es adulto o es un infante con cardiopatía, se despliega todo
+            if mostrar_cardio_completo:
+                # --- 1. CAPACIDAD METABÓLICA Y CLASE FUNCIONAL ---
+                st.markdown("#### 🏃 Capacidad Metabólica y Clase Funcional")
+                c_card1, c_card2 = st.columns(2)
+                
+                capacidad_funcional = c_card1.selectbox(
+                    "Capacidad Funcional (Mets)",
+                    [
+                        "Excelente (≥ 10 METs) - Ej: Deportes de alta intensidad",
+                        "Buena (4 - 10 METs) - Ej: Sube dos pisos de escaleras sin detenerse",
+                        "Limitada (< 4 METs) - Ej: Camina 1 o 2 cuadras / Trabajo doméstico ligero",
+                        "Severamente Limitada (< 1 MET) - Ej: Disnea en reposo o actividades de autocuidado"
+                    ],
+                    key="mod4_mets"
+                )
+                
+                clase_nyha = c_card2.selectbox(
+                    "Clasificación Funcional NYHA",
+                    [
+                        "Clase I: Sin limitación de la actividad física ordinaria",
+                        "Clase II: Limitación ligera. Confortable en reposo",
+                        "Clase III: Limitación marcada. Actividad menor a la ordinaria causa síntomas",
+                        "Clase IV: Incapacidad de realizar cualquier actividad sin malestar / Síntomas en reposo"
+                    ],
+                    key="mod4_nyha"
+                )
+                
+                st.divider()
+                
+                # --- 2. SINTOMATOLOGÍA CARDIOVASCULAR ACTUAL ---
+                st.markdown("#### 🫀 Sintomatología y Signos Clínicos Activos")
+                st.caption("Marque los hallazgos de riesgo identificados en la evaluación actual:")
+                
+                cardio_angina = st.checkbox("🔹 Angina inestable o de reciente comienzo", key="mod4_angina")
+                cardio_disnea = st.checkbox("🔹 Disnea de causa cardíaca no filiada / Ortopnea", key="mod4_disnea")
+                cardio_palpitaciones = st.checkbox("🔹 Palpitaciones clínicas, síncope o arritmia sintomática", key="mod4_palpitaciones")
+                cardio_edema = st.checkbox("🔹 Edema maleolar bilateral reciente o signos de congestión", key="mod4_edema")
+                cardio_soplo = st.checkbox("🔹 Soplo cardíaco patológico relevante (Ej: Sugestivo de Estenosis Aórtica)", key="mod4_soplo")
+                
+                st.divider()
+                
+                # --- 3. PARÁMETROS ELECTRO Y ECOCARDIOGRÁFICOS ---
+                st.markdown("#### 📊 Hallazgos en Exámenes Complementarios")
+                c_card3, c_card4 = st.columns(2)
+                
+                ecg_hallazgo = c_card3.selectbox(
+                    "Hallazgo en Electrocardiograma (ECG)",
+                    [
+                        "Ritmo Sinusal Normal",
+                        "Fibrilación Auricular / Flutter / Extrasistolia frecuente",
+                        "Bloqueo de Rama (Izquierda / Derecha / Bifascicular)",
+                        "Bloqueo AV (Primer, Segundo o Tercer grado)",
+                        "Trastornos de la Repolarización / Isquemia subendocárdica",
+                        "Hipertrofia Ventricular / Signos de sobrecarga",
+                        "No disponible / No solicitado"
+                    ],
+                    key="mod4_ecg"
+                )
+                
+                fevi_disponible = c_card4.checkbox("¿Cuenta con reporte de Ecocardiograma?", key="mod4_check_fevi")
+                
+                if fevi_disponible:
+                    fevi_valor = c_card4.number_input(
+                        "Fracción de Eyección (FEVI %)",
+                        min_value=10.0, max_value=85.0, value=60.0, step=1.0,
+                        key="mod4_fevi_val"
+                    )
+                
+                st.divider()
+                
+                # --- 4. CONDICIÓN RENAL / COMPLEMENTO DE RIESGO ---
+                st.markdown("#### 🧪 Parámetro派 Metabólico Adicional")
+                creatinina_alta = st.checkbox("🔹 Creatinina sérica preoperatoria > 2.0 mg/dL (177 µmol/L)", key="mod4_creat")
+
+                # --- PROCESAMIENTO SILENCIOSO DE RIESGO DE LEE ---
+                factor_cirugia_riesgo = 1 if (riesgo_cx and "Alto" in riesgo_cx) else 0
+                factor_cardiopatia_isq = 1 if (not sin_antecedentes and any("Isquémica" in p or "IAM" in p for p in antecedentes_seleccionados)) or cardio_angina else 0
+                factor_insuf_cardiaca = 1 if (not sin_antecedentes and "Insuficiencia Cardíaca" in lista_patologias) or cardio_edema or cardio_disnea else 0
+                factor_acv = 1 if (not sin_antecedentes and any("ACV" in p or "Isquemia" in p for p in antecedentes_seleccionados)) else 0
+                factor_insulina = 1 if (not sin_antecedentes and "Insulina" in medicacion_actual) else 0
+                factor_creatinina = 1 if creatinina_alta else 0
+                
+                score_lee = factor_cirugia_riesgo + factor_cardiopatia_isq + factor_insuf_cardiaca + factor_acv + factor_insulina + factor_creatinina
