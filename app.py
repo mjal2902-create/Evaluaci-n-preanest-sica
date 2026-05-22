@@ -455,3 +455,50 @@ with col_izq:
 
             # Conteo interno guardado en variable (silencioso)
             puntos_vmd = sum([vmd_edad, vmd_obesidad, vmd_barba, vmd_edentulo, vmd_sahos])
+# --- 5. EXTENSIÓN: ESCALA DE STOP-BANG (SINCRO AUTOMÁTICA SILENCIOSA) ---
+            st.divider()
+            st.markdown("#### 💤 Tamizaje de Apnea del Sueño (Índice STOP-BANG)")
+            st.caption("Nota: Los parámetros clínicos y antropométricos se calculan automáticamente a partir de los módulos anteriores.")
+
+            # Lógica analítica interactiva para STOP-BANG
+            check_hta_sb = any("Hipertensión" in p or "HTA" in p for p in antecedentes_seleccionados) if 'antecedentes_seleccionados' in locals() else False
+            check_imc_sb = imc > 35.0 if 'imc' in locals() else False
+            check_edad_sb = edad > 50 if 'edad' in locals() else False
+            check_sexo_sb = sexo == "Masculino" if 'sexo' in locals() else False
+            
+            # Sincronización forzada con el estado de memoria de Streamlit (Evita bugs de reactividad)
+            st.session_state["mod3_sb_p"] = check_hta_sb
+            st.session_state["mod3_sb_b"] = check_imc_sb
+            st.session_state["mod3_sb_a"] = check_edad_sb
+            st.session_state["mod3_sb_g"] = check_sexo_sb
+
+            # Bloque STOP (Síntomas Clínicos)
+            c_sb1, c_sb2 = st.columns(2)
+            sb_s = c_sb1.checkbox("S - Ronquido fuerte (¿Es más fuerte que su voz o se escucha a través de puertas cerradas?)", key="mod3_sb_s")
+            sb_t = c_sb2.checkbox("T - Cansancio (¿Se siente fatigado o somnoliento durante el día frecuentemente?)", key="mod3_sb_t")
+            
+            c_sb3, c_sb4 = st.columns(2)
+            sb_o = c_sb3.checkbox("O - Apnea observada (¿Alguien ha visto que deja de respirar mientras duerme?)", key="mod3_sb_o")
+            sb_p = c_sb4.checkbox("P - Presión Arterial (Historial de hipertensión diagnosticada u oculta)", key="mod3_sb_p")
+
+            # Bloque BANG (Datos Antropométricos y Demográficos Automatizados)
+            c_sb5, c_sb6 = st.columns(2)
+            sb_b = c_sb5.checkbox("B - IMC elevado (IMC > 35 kg/m²)", key="mod3_sb_b")
+            sb_a = c_sb6.checkbox("A - Edad avanzada (Edad > 50 años)", key="mod3_sb_a")
+            
+            c_sb7, c_sb8 = st.columns(2)
+            # Como STOP-BANG requiere > 40 cm para el cuello, dejamos la casilla libre pero sugerida si el cuello general se marcó alto
+            sugerir_cuello_sb = (cuello_cat == "Mayor a 35 cm (> 35 cm)" and peso_real > 90.0) if 'cuello_cat' in locals() else False
+            sb_n = c_sb7.checkbox("N - Circunferencia de cuello aumentada (Cuello > 40 cm / 16 pulgadas)", value=sugerir_cuello_sb, key="mod3_sb_n")
+            sb_g = c_sb8.checkbox("G - Género fenotípico (Sexo Masculino)", key="mod3_sb_g")
+
+            # --- PROCESAMIENTO TOTALMENTE SILENCIOSO (Para base de datos y reporte final) ---
+            puntos_stop_bang = sum([sb_s, sb_t, sb_o, sb_p, sb_b, sb_a, sb_n, sb_g])
+            
+            # Clasificación epidemiológica en variable (para mapeo posterior en la tesis)
+            if puntos_stop_bang <= 2:
+                riesgo_sahos_txt = "Riesgo Bajo"
+            elif puntos_stop_bang <= 4:
+                riesgo_sahos_txt = "Riesgo Intermedio"
+            else:
+                riesgo_sahos_txt = "Riesgo Alto"
