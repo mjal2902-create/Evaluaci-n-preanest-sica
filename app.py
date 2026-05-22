@@ -678,3 +678,82 @@ with col_izq:
                 
                 # Nota: El factor_creatinina se sumará en el módulo de laboratorios posteriormente
                 score_lee = factor_cirugia_riesgo + factor_cardiopatia_isq + factor_insuf_cardiaca + factor_acv + factor_insulina
+# ---------------------------------------------------------
+        # MÓDULO 5: PRUEBAS DE LABORATORIO Y COAGULACIÓN (SINCRO ESCALAS)
+        # ---------------------------------------------------------
+        with st.expander("5. Pruebas de Laboratorio y Coagulación", expanded=True):
+            
+            # Casilla de control maestro para optimizar clics en pacientes sanos
+            sin_laboratorios = st.checkbox("✅ No dispone o no requiere exámenes de laboratorio (Paciente sano)", value=True, key="mod5_sin_labs")
+
+            # Inicialización de seguridad basal (Valores fisiológicos normales por defecto)
+            hb_val = 14.0
+            plaquetas_val = 250000
+            creatinina_val = 0.8
+            bun_val = 15.0
+            potasio_val = 4.0
+            tp_val = 12.0
+            ttpa_val = 30.0
+            inr_val = 1.0
+            pao2_val = 95.0
+            paco2_val = 38.0
+            hco3_val = 24.0
+            
+            # Variables analíticas para las escalas
+            factor_creatinina_lee = 0
+            criterio_metabolico_goldman = 0
+
+            if not sin_laboratorios:
+                
+                # --- 1. HEMATOLOGÍA ---
+                st.markdown("#### 🩸 Hemograma")
+                c_lab1, c_lab2 = st.columns(2)
+                hb_val = c_lab1.number_input("Hemoglobina (g/dL)", min_value=3.0, max_value=25.0, value=14.0, step=0.1, key="mod5_hb")
+                plaquetas_val = c_lab2.number_input("Plaquetas (u/µL)", min_value=10000, max_value=1000000, value=250000, step=5000, key="mod5_plaq")
+                
+                st.divider()
+
+                # --- 2. FUNCIÓN RENAL Y ELECTRÓLITOS (REQUERIMIENTO LEE & GOLDMAN) ---
+                st.markdown("#### 🧪 Función Renal y Electrólitos")
+                c_lab3, c_lab4, c_lab5 = st.columns(3)
+                
+                creatinina_val = c_lab3.number_input("Creatinina (mg/dL)", min_value=0.1, max_value=15.0, value=0.8, step=0.1, key="mod5_creat")
+                bun_val = c_lab4.number_input("BUN (mg/dL)", min_value=1.0, max_value=150.0, value=15.0, step=1.0, key="mod5_bun")
+                potasio_val = c_lab5.number_input("Potasio K+ (mEq/L)", min_value=1.5, max_value=8.0, value=4.0, step=0.1, key="mod5_potasio")
+                
+                st.divider()
+
+                # --- 3. TIEMPOS DE COAGULACIÓN (CRÍTICO PARA ANESTESIA REGIONAL) ---
+                st.markdown("#### ⏱️ Coagulación")
+                c_lab6, c_lab7, c_lab8 = st.columns(3)
+                
+                tp_val = c_lab6.number_input("Tiempo de Protrombina TP (seg)", min_value=5.0, max_value=60.0, value=12.0, step=0.1, key="mod5_tp")
+                ttpa_val = c_lab7.number_input("TTPa (seg)", min_value=10.0, max_value=120.0, value=30.0, step=0.1, key="mod5_ttpa")
+                inr_val = c_lab8.number_input("INR", min_value=0.5, max_value=10.0, value=1.0, step=0.1, key="mod5_inr")
+                
+                st.divider()
+
+                # --- 4. GASOMETRÍA ARTERIAL (CONDICIONAL OPTIONAL) ---
+                tiene_gasometria = st.checkbox("🫁 ¿Cuenta con reporte de Gasometría Arterial?", value=False, key="mod5_check_gases")
+                
+                if tiene_gasometria:
+                    c_gas1, c_gas2, c_gas3 = st.columns(3)
+                    pao2_val = c_gas1.number_input("PaO2 (mmHg)", min_value=30.0, max_value=500.0, value=90.0, step=1.0, key="mod5_pao2")
+                    paco2_val = c_gas2.number_input("PaCO2 (mmHg)", min_value=10.0, max_value=100.0, value=38.0, step=1.0, key="mod5_paco2")
+                    hco3_val = c_gas3.number_input("HCO3- (mEq/L)", min_value=5.0, max_value=50.0, value=24.0, step=0.1, key="mod5_hco3")
+
+                # --- PROCESAMIENTO SILENCIOSO COUPLING CON ESCALAS ---
+                # 1. Ajuste final del Índice de Lee (Suma el punto si Creatinina > 2.0 mg/dL)
+                if creatinina_val > 2.0:
+                    factor_creatinina_lee = 1
+                    if 'score_lee' in locals():
+                        score_lee += factor_creatinina_lee
+
+                # 2. Evaluación de criterios metabólicos/gases de Goldman
+                # Suma si BUN > 50 mg/dL, K < 3.0 o > 5.2 mEq/L, PaO2 < 60 mmHg, PaCO2 > 50 mmHg o HCO3 < 20 mEq/L
+                alteracion_gases = tiene_gasometria and (pao2_val < 60.0 or paco2_val > 50.0)
+                alteracion_electrolitos = potasio_val < 3.0 or potasio_val > 5.2
+                alteracion_renal_goldman = bun_val > 50.0 or hco3_val < 20.0
+                
+                if alteracion_gases or alteracion_electrolitos or alteracion_renal_goldman:
+                    criterio_metabolico_goldman = 1
