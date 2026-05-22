@@ -400,7 +400,7 @@ with col_izq:
                 
                 # --- DEFINICIÓN DINÁMICA DE OPCIONES SEGÚN EL GRUPO ETARIO ---
                 if es_pediatrico_va:
-                    # Rangos calibrados para pediatría (Basados en proporcionalidad y desarrollo)
+                    # Eliminamos centímetros fijos para evitar sesgos por diferencias de edad (2 vs 16 años)
                     opciones_mallampati = [
                         "Clase I: Visibilidad de paladar blando, úvula y pilares",
                         "Clase II: Visibilidad de paladar blando y úvula",
@@ -408,24 +408,23 @@ with col_izq:
                         "Clase IV: Solo es visible el paladar duro"
                     ]
                     opciones_dtm = [
-                        "Clase I (Normal para la edad): > 3 dedos del paciente (o > 5.0 cm)",
-                        "Clase II (Dificultad moderada): ~ 2-3 dedos del paciente (4.0 - 5.0 cm)",
-                        "Clase III (VAD predictiva): < 2 dedos del paciente (< 4.0 cm)"
+                        "Clase I (Normal): > 3 dedos del propio paciente (Distancia conservada)",
+                        "Clase II (Moderada): 2 - 3 dedos del propio paciente (Acortamiento leve)",
+                        "Clase III (VAD Predictiva): < 2 dedos del propio paciente (Acortamiento severo)"
                     ]
                     opciones_ab = [
-                        "Clase I (Normal para la edad): > 2 dedos del paciente (o > 2.5 cm)",
-                        "Clase II (Limitación leve): ~ 1.5 - 2 dedos del paciente (2.0 - 2.5 cm)",
-                        "Clase III (Limitación severa): < 1.5 dedos del paciente (< 2.0 cm)"
+                        "Clase I (Normal): > 2 dedos del propio paciente (Apertura conservada)",
+                        "Clase II (Moderada): 1.5 - 2 dedos del propio paciente (Limitación leve)",
+                        "Clase III (Severa): < 1.5 dedos del propio paciente (Limitación crítica)"
                     ]
                     opciones_dem = [
-                        "Clase I (Normal para la edad): > 9.0 cm",
-                        "Clase II (Limitación moderada): 7.5 - 9.0 cm",
-                        "Clase III (Gran dificultad / VAD): < 7.5 cm"
+                        "Clase I (Normal): Extensión esternomentoniana conservada para la edad",
+                        "Clase II (Moderada): Restricción parcial de la extensión cefálica",
+                        "Clase III (Severa): Extensión críticamente limitada / VAD predictiva"
                     ]
                     opciones_cuello = [
-                        "Menor a 25 cm (< 25 cm)", 
-                        "Entre 25 y 30 cm (25 - 30 cm)", 
-                        "Mayor a 30 cm (> 30 cm)"
+                        "Normal y proporcional para la edad cronológica", 
+                        "Aumentado / Cuello grueso u obeso para la edad (Riesgo obstructivo)"
                     ]
                 else:
                     # Rangos estándar internacionales para pacientes adultos
