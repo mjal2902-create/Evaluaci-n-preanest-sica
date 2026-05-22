@@ -331,177 +331,7 @@ with col_izq:
                 if hab_drogas:
                     txt_drogas = st.text_input("Especifique la sustancia (Ej. Cannabis, Cocaína):", key="mod2_txt_dro")
 
-# ---------------------------------------------------------
-        # MÓDULO 3: VÍA AÉREA Y PREDICTORES (ANTROPOMETRÍA ADAPTATIVA)
-        # ---------------------------------------------------------
-        with st.expander("3. Vía Aérea y Predictores de Dificultad", expanded=True):
-            
-            # Inicialización global de variables de seguridad
-            arne_historia = False
-            arne_patologia = False
-            mallampati = "No aplica (Pediátrico)"
-            dtm = "No aplica (Pediátrico)"
-            apertura_bucal = "No aplica (Pediátrico)"
-            dem = "No aplica (Pediátrico)"
-            cuello_cat = "No aplica (Pediátrico)"
-            ulbt = "No aplica (Pediátrico)"
-            mov_cervical_arne = "Normal: Extensión completa (> 90°)"
-            
-            vad_incisivos = False
-            vad_paladar = False
-            vad_lengua = False
-            vad_retrognatia = False
-            
-            vmd_barba = False
-            vmd_edentulo = False
-            sb_s = False
-            sb_t = False
-            sb_o = False
-            
-            score_arne = 0
-            puntos_vmd = 0
-            puntos_stop_bang = 0
-
-            es_pediatrico_va = edad < 18 if 'edad' in locals() else False
-            mostrar_va_adultos = True
-
-            if es_pediatrico_va:
-                colabora_ped = st.checkbox(
-                    "👦 Paciente pediátrico colaborador (Permite examen físico con rangos indexados)", 
-                    value=False, 
-                    key="mod3_ped_colabora"
-                )
-                
-                if not colabora_ped:
-                    mostrar_va_adultos = False
-                    st.markdown("#### 👶 Evaluación de Vía Aérea Pediátrica (Lactantes / Infantes)")
-                    st.caption("Escalas anatómicas estándar no valorables por falta de cooperación o desarrollo estructural:")
-                    
-                    ped_estridor = st.checkbox("🔹 Historia de estridor laríngeo, crup recurrente o laringomalacia", key="mod3_ped_estridor")
-                    ped_ivra = st.checkbox("🔹 Infección de Vías Respiratorias Altas (IVRA) activa o reciente (< 2 semanas)", key="mod3_ped_ivra")
-                    ped_vad_previo = st.checkbox("🔹 Antecedente documentado de laringoscopia difícil o intubación fallida", key="mod3_ped_vad_prev")
-                    ped_ronquido = st.checkbox("🔹 Ronquido nocturno severo o Apnea obstructiva pediátrica conocida", key="mod3_ped_ronq")
-
-                    st.divider()
-                    
-                    st.markdown("**Malformaciones Anatómicas y Complejidad Sindrómica:**")
-                    ped_retrognatia = st.checkbox("🔹 Micrognatia / Retrognatia severa (Ej: Pierre Robin, Treacher Collins)", key="mod3_ped_retro")
-                    ped_macroglosia = st.checkbox("🔹 Macroglosia evidente o sospecha (Ej: Síndrome de Down)", key="mod3_ped_macro")
-                    ped_cuello_corto = st.checkbox("🔹 Limitación de la movilidad cervical o cuello corto (Ej: Klippel-Feil)", key="mod3_ped_ccorto")
-                    ped_masas = st.checkbox("🔹 Presencia de masas cervicales o maxilofaciales compresivas", key="mod3_ped_masas")
-
-                    score_arne = 12 if ped_vad_previo else 0
-                    if ped_retrognatia or ped_macroglosia or ped_cuello_corto: score_arne += 6
-                    puntos_vmd = sum([ped_ronquido, ped_macroglosia])
-                    puntos_stop_bang = sum([ped_ronquido, ped_estridor, ped_ivra])
-
-            # Si el paciente es Adulto O es un Niño Colaborador, adaptamos los rangos métricos
-            if mostrar_va_adultos:
-                
-                # --- DEFINICIÓN DINÁMICA DE OPCIONES SEGÚN EL GRUPO ETARIO ---
-                if es_pediatrico_va:
-                    # Rangos calibrados para pediatría (Basados en proporcionalidad y desarrollo)
-                    opciones_mallampati = [
-                        "Clase I: Visibilidad de paladar blando, úvula y pilares",
-                        "Clase II: Visibilidad de paladar blando y úvula",
-                        "Clase III: Visibilidad de paladar blando y base de la úvula",
-                        "Clase IV: Solo es visible el paladar duro"
-                    ]
-                    opciones_dtm = [
-                        "Clase I (Normal para la edad): > 3 dedos del paciente (o > 5.0 cm)",
-                        "Clase II (Dificultad moderada): ~ 2-3 dedos del paciente (4.0 - 5.0 cm)",
-                        "Clase III (VAD predictiva): < 2 dedos del paciente (< 4.0 cm)"
-                    ]
-                    opciones_ab = [
-                        "Clase I (Normal para la edad): > 2 dedos del paciente (o > 2.5 cm)",
-                        "Clase II (Limitación leve): ~ 1.5 - 2 dedos del paciente (2.0 - 2.5 cm)",
-                        "Clase III (Limitación severa): < 1.5 dedos del paciente (< 2.0 cm)"
-                    ]
-                    opciones_dem = [
-                        "Clase I (Normal para la edad): > 9.0 cm",
-                        "Clase II (Limitación moderada): 7.5 - 9.0 cm",
-                        "Clase III (Gran dificultad / VAD): < 7.5 cm"
-                    ]
-                    opciones_cuello = [
-                        "Menor a 25 cm (< 25 cm)", 
-                        "Entre 25 y 30 cm (25 - 30 cm)", 
-                        "Mayor a 30 cm (> 30 cm)"
-                    ]
-                else:
-                    # Rangos estándar internacionales para pacientes adultos
-                    opciones_mallampati = [
-                        "Clase I: Visibilidad de paladar blando, úvula, fauces y pilares",
-                        "Clase II: Visibilidad de paladar blando, úvula y fauces",
-                        "Clase III: Visibilidad de paladar blando y base de la úvula",
-                        "Clase IV: Solo es visible el paladar duro"
-                    ]
-                    opciones_dtm = [
-                        "Clase I (> 6.5 cm): Sin dificultad predictiva",
-                        "Clase II (6.0 - 6.5 cm): Dificultad moderada",
-                        "Clase III (< 6.0 cm): VAD predictiva"
-                    ]
-                    opciones_ab = [
-                        "Clase I (> 3.5 cm): Normal",
-                        "Clase II (3.0 - 3.5 cm): Limitación leve",
-                        "Clase III (< 3.0 cm): Limitación severa"
-                    ]
-                    opciones_dem = [
-                        "Clase I (> 12.5 cm): Sin dificultad predictiva",
-                        "Clase II (11.5 - 12.5 cm): Dificultad moderada",
-                        "Clase III (< 11.5 cm): Gran dificultad / VAD predictiva"
-                    ]
-                    opciones_cuello = [
-                        "Menor a 35 cm (< 35 cm)", 
-                        "Entre 35 y 40 cm (35 - 40 cm)", 
-                        "Mayor a 40 cm (> 40 cm)"
-                    ]
-
-                # --- RENDERIZADO DE CONTROLES ADAPTATIVOS ---
-                st.markdown("#### 📜 Historia Clínica de Vía Aérea")
-                c_arne1, c_arne2 = st.columns(2)
-                arne_historia = c_arne1.checkbox("🚨 Antecedente personal de Intubación Difícil", key="mod3_arne_hist")
-                arne_patologia = c_arne2.checkbox("🏥 Patología clínica asociada a VAD (Ej: Tumores, Angioedema)", key="mod3_arne_pat")
-                
-                st.divider()
-                st.markdown("#### 👅 Evaluación Anatómica y Movilidad")
-                
-                c_vad1, c_vad2 = st.columns(2)
-                mallampati = c_vad1.selectbox("Clasificación de Mallampati", opciones_mallampati, key="mod3_mallampati")
-                dtm = c_vad2.selectbox("Distancia Tiromentoniana (Patil-Aldreti)", opciones_dtm, key="mod3_dtm")
-                
-                c_vad3, c_vad4 = st.columns(2)
-                apertura_bucal = c_vad3.selectbox("Apertura Bucal (Distancia Interincisivos)", opciones_ab, key="mod3_ab")
-                dem = c_vad4.selectbox("Distancia Esternomentoniana (Savva)", opciones_dem, key="mod3_dem")
-
-                c_vad5, c_vad6 = st.columns(2)
-                cuello_cat = c_vad5.selectbox("Circunferencia de Cuello", opciones_cuello, key="mod3_cuello_categoria")
-                ulbt = c_vad6.selectbox(
-                    "Test de Mordida de Labio Superior (ULBT / Subluxación)",
-                    [
-                        "Clase I: Incisivos inferiores cubren la línea bermellón",
-                        "Clase II: Incisivos muerden el labio pero no cubren la línea",
-                        "Clase III: Incisivos no pueden morder el labio superior"
-                    ],
-                    key="mod3_ulbt"
-                )
-
-                mov_cervical_arne = st.selectbox(
-                    "Movilidad de Cabeza y Cuello (Extensión cervical)",
-                    [
-                        "Normal: Extensión completa (> 90°)",
-                        "Limitación Moderada: Extensión parcialmente reducida (80° - 90°)",
-                        "Limitación Severa: Rigidez extrema o fijación estructural (< 80°)"
-                    ],
-                    key="mod3_mov_arne"
-                )
-
-                st.markdown("**Hallazgos Anatómicos Particulares adicionales:**")
-                vad_incisivos = st.checkbox("🔹 Incisivos largos y prominentes", key="mod3_incisivos")
-                vad_paladar = st.checkbox("🔹 Paladar alto / Ojival", key="mod3_paladar")
-                vad_lengua = st.checkbox("🔹 Gran tamaño de lengua (Macroglosia)", key="mod3_lengua")
-                vad_retrognatia = st.checkbox("🔹 Retrognatia / Micrognatia (Mentón retraído)", key="mod3_retrognatia")
-
-                # --- PROCESAMIENTO SILENCIOSO DE ARNÉ ---
+# --- PROCESAMIENTO SILENCIOSO DE ARNÉ ---
                 pts_historia = 10 if arne_historia else 0
                 pts_patologia = 5 if arne_patologia else 0
                 pts_mallampati = 0 if "Clase I" in mallampati else (1 if "Clase II" in mallampati else (2 if "Clase III" in mallampati else 5))
@@ -510,20 +340,26 @@ with col_izq:
                 pts_mov = 0 if "Normal" in mov_cervical_arne else (2 if "Moderada" in mov_cervical_arne else 5)
                 score_arne = pts_historia + pts_patologia + pts_mallampati + pts_dtm + pts_ab + pts_mov
 
-                st.divider()
+                # ---------------------------------------------------------
+                # CONTROL PEDIÁTRICO ABSOLUTO PARA OBESE / STOP-BANG
+                # ---------------------------------------------------------
+                if not es_pediatrico_va:
+                    st.divider()
+                    # --- 3. SECCIÓN UNIFICADA SÓLO PARA ADULTOS ---
+                    st.markdown("#### 😷 Factores Físicos y Sintomatología (OBESE / STOP)")
+                    st.caption("Marque las características particulares identificadas en la evaluación:")
 
-                # --- 3. PREDICTORES DE VENTILACIÓN DIFÍCIL (OBESE / STOP REDUCIDO) ---
-                st.markdown("#### 😷 Factores Físicos y Sintomatología (OBESE / STOP)")
-                st.caption("Marque las características particulares identificadas en la evaluación:")
+                    vmd_barba = st.checkbox("🔸 Presencia de barba tupida (Dificulta el sello de la máscara)", key="mod3_barba")
+                    vmd_edentulo = st.checkbox("🔸 Paciente edéntulo total o parcial", key="mod3_edentulo")
+                    sb_s = st.checkbox("🔸 Historial de ronquido fuerte (Audible a través de puertas cerradas)", key="mod3_sb_s")
+                    sb_t = st.checkbox("🔸 Cansancio, fatiga o somnolencia diurna frecuente", key="mod3_sb_t")
+                    sb_o = st.checkbox("🔸 Apnea nocturna observada por terceros (Pausas al respirar)", key="mod3_sb_o")
 
-                vmd_barba = st.checkbox("🔸 Presencia de barba tupida (Dificulta el sello de la máscara)", key="mod3_barba")
-                vmd_edentulo = st.checkbox("🔸 Paciente edéntulo total o parcial", key="mod3_edentulo")
-                sb_s = st.checkbox("🔸 Historial de ronquido fuerte (Audible a través de puertas cerradas)", key="mod3_sb_s")
-                sb_t = st.checkbox("🔸 Cansancio, fatiga o somnolencia diurna frecuente", key="mod3_sb_t")
-                sb_o = st.checkbox("🔸 Apnea nocturna observada por terceros (Pausas al respirar)", key="mod3_sb_o")
-
-                puntos_vmd = sum([vmd_barba, vmd_edentulo])
-                puntos_stop_bang = sum([sb_s, sb_t, sb_o])
+                    puntos_vmd = sum([vmd_barba, vmd_edentulo])
+                    puntos_stop_bang = sum([sb_s, sb_t, sb_o])
+                else:
+                    st.divider()
+                    st.info("🫁 **Nota metodológica:** Las herramientas OBESE y STOP-BANG están validadas exclusivamente para la población adulta, por lo que han sido omitidas de la evaluación de este paciente.")
 # ---------------------------------------------------------
         # MÓDULO 4: EVALUACIÓN CARDIOVASCULAR (INTERACTIVO PEDIÁTRICO)
         # ---------------------------------------------------------
