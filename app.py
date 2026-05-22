@@ -315,3 +315,112 @@ with col_izq:
             
             if hab_drogas:
                 txt_drogas = st.text_input("Especifique la sustancia (Ej. Cannabis, Cocaína):", key="mod2_txt_dro")
+
+# ---------------------------------------------------------
+        # MÓDULO 3: VÍA AÉREA Y EVALUACIÓN RESPIRATORIA
+        # ---------------------------------------------------------
+        with st.expander("3. Vía Aérea y Parámetros Respiratorios", expanded=True):
+            
+            # --- 1. PARÁMETROS RESPIRATORIOS BASALES ---
+            st.markdown("#### 🫁 Estado Respiratorio Basal")
+            c_resp1, c_resp2, c_resp3 = st.columns(3)
+            
+            spo2_basal = c_resp1.number_input("SpO2 Basal (%)", min_value=10, max_value=100, value=98, key="mod3_spo2")
+            fr_basal = c_resp2.number_input("FR Basal (rpm)", min_value=0, max_value=60, value=16, key="mod3_fr")
+            auscultacion = c_resp3.selectbox(
+                "Auscultación Pulmonar",
+                ["Murmullo Vesicular Conservado", "Sibilancias Bilaterales", "Estertores / Crepitantes", "Disminución de MV unilateral", "Roncus"],
+                key="mod3_ausc"
+            )
+            
+            st.divider()
+
+            # --- 2. PREDICTORES DE INTUBACIÓN DIFÍCIL (VAD) ---
+            st.markdown("#### 👅 Predictores de Intubación Difícil")
+            c_vad1, c_vad2 = st.columns(2)
+            
+            mallampati = c_vad1.selectbox(
+                "Clasificación de Mallampati",
+                [
+                    "Clase I: Visibilidad de paladar blando, úvula, fauces y pilares",
+                    "Clase II: Visibilidad de paladar blando, úvula y fauces",
+                    "Clase III: Visibilidad de paladar blando y base de la úvula",
+                    "Clase IV: Solo es visible el paladar duro"
+                ],
+                key="mod3_mallampati"
+            )
+            
+            dtm = c_vad2.selectbox(
+                "Distancia Tiromentoniana (Patil-Aldreti)",
+                [
+                    "Clase I (> 6.5 cm): Sin dificultad predictiva",
+                    "Clase II (6.0 - 6.5 cm): Dificultad moderada",
+                    "Clase III (< 6.0 cm): Gran dificultad / VAD predictiva"
+                ],
+                key="mod3_dtm"
+            )
+            
+            c_vad3, c_vad4 = st.columns(2)
+            
+            apertura_bucal = c_vad3.selectbox(
+                "Apertura Bucal (Distancia Interincisivos)",
+                [
+                    "Clase I (> 4 cm): Normal",
+                    "Clase II (3 - 4 cm): Limitación leve",
+                    "Clase III (< 3 cm): Limitación severa / VAD"
+                ],
+                key="mod3_ab"
+            )
+            
+            mov_cervical = c_vad4.selectbox(
+                "Movilidad Cervical (Extensión > 35°)",
+                ["Normal (Sin limitación)", "Limitada / Rigidez (Anquilosis/Trauma)"],
+                key="mod3_cervical"
+            )
+
+            # Alerta visual inteligente de Vía Aérea Difícil
+            es_vad_predicho = (
+                "Clase III" in mallampati or "Clase IV" in mallampati or 
+                "Clase III" in dtm or "Clase III" in apertura_bucal or 
+                "Limitada" in mov_cervical
+            )
+            if es_vad_predicho:
+                st.error("⚠️ Alerta: El paciente presenta criterios clínicos de Vía Aérea Difícil Predictiva.")
+
+            st.divider()
+
+            # --- 3. PREDICTORES DE VENTILACIÓN DIFÍCIL CON MÁSCARA (VMD) ---
+            st.markdown("#### 😷 Predictores de Ventilación Difícil (Criterios OBESE)")
+            st.caption("Nota: El sistema autocompleta los criterios basados en los datos demográficos y APP del paciente.")
+            
+            c_vmd1, c_vmd2 = st.columns(2)
+            
+            # Autocompletado inteligente por edad (>55 años)
+            check_edad = edad > 55
+            vmd_edad = c_vmd1.checkbox("Edad > 55 años", value=check_edad, key="mod3_vmd_edad")
+            
+            # Autocompletado inteligente por obesidad (IMC > 30)
+            check_obesidad = imc >= 30 if 'imc' in locals() else False
+            vmd_obesidad = c_vmd2.checkbox("Obesidad (IMC ≥ 30 kg/m²)", value=check_obesidad, key="mod3_vmd_ob")
+            
+            c_vmd3, c_vmd4 = st.columns(2)
+            vmd_barba = c_vmd3.checkbox("Presencia de Barba tupida", value=False, key="mod3_barba")
+            vmd_edentulo = c_vmd4.checkbox("Paciente Edéntulo (Total o Parcial)", value=False, key="mod3_edentulo")
+            
+            # Autocompletado inteligente de SAHOS basado en antecedentes seleccionados del Módulo 2
+            check_sahos = any("SAHOS" in p or "Apnea" in p for p in antecedentes_seleccionados) if 'antecedentes_seleccionados' in locals() else False
+            vmd_sahos = st.checkbox("Historia de Ronquido Severo / Apnea del Sueño (SAHOS)", value=check_sahos, key="mod3_sahos")
+
+            # Cálculo del riesgo de ventilación difícil
+            puntos_vmd = sum([vmd_edad, vmd_obesidad, vmd_barba, vmd_edentulo, vmd_sahos])
+            if puntos_vmd >= 2:
+                st.warning(f"⚠️ Riesgo de Ventilación Difícil con Máscara Facial: Moderado-Alto ({puntos_vmd}/5 criterios OBESE).")
+
+            st.divider()
+
+            # --- 4. HALLAZGOS ADICIONALES (Opcional - Dinámico) ---
+            check_hallazgos = st.checkbox("¿Presenta otros hallazgos en vía aérea? (Macroglosia, micrognatia, masas, etc.)", key="mod3_check_otros")
+            if check_hallazgos:
+                notas_via_aerea = st.text_input("Especifique los hallazgos anatómicos particulares:", key="mod3_notas_txt")
+            else:
+                notas_via_aerea = ""
