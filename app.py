@@ -208,95 +208,97 @@ with col_izq:
             ], key="mod1_tecnica")
 
         # ---------------------------------------------------------
-        # MÓDULO 2: SEGURIDAD, ALERGIAS Y ANTECEDENTES (Interactivos)
+        # MÓDULO 2: SEGURIDAD, ALERGIAS Y ANTECEDENTES (DINAMIZADO Y UNIFICADO)
         # ---------------------------------------------------------
         with st.expander("2. Seguridad, Alergias y Antecedentes Patológicos", expanded=True):
             
-            # --- 1. SECCIÓN DE ALERGIAS ---
+            # --- 1. SECCIÓN DE ALERGIAS (Dinamizada) ---
             st.markdown("#### 🚨 Alergias y Sensibilidades")
-            c_al1, c_al2 = st.columns(2)
             
-            alergias_med = c_al1.multiselect(
-                "Farmacológicas / Sustancias",
-                options=["Penicilinas / Betalactámicos", "AINEs", "Látex", "Opioides", "Relajantes Musculares", "Anestésicos Locales", "Medios de Contraste", "Otros (Especificar)"],
-                key="mod2_al_med"
-            )
-            # Cuadro dinámico para alergias medicamentosas
-            if "Otros (Especificar)" in alergias_med:
-                otras_alergias_med_txt = st.text_input("💊 Especifique otras alergias farmacológicas:", key="mod2_al_med_txt")
-            else:
-                otras_alergias_med_txt = ""
+            sin_alergias = st.checkbox("✅ No refiere alergias", value=True, key="mod2_sin_alergias")
+            
+            # Inicialización de seguridad (Evita colapsos cuando la sección está oculta)
+            alergias_med = []
+            otras_alergias_med_txt = ""
+            alergias_alim = []
+            otras_alergias_ali_txt = ""
+            
+            if not sin_alergias:
+                c_al1, c_al2 = st.columns(2)
+                
+                alergias_med = c_al1.multiselect(
+                    "Farmacológicas / Sustancias",
+                    options=["Penicilinas / Betalactámicos", "AINEs", "Látex", "Opioides", "Relajantes Musculares", "Anestésicos Locales", "Medios de Contraste", "Otros (Especificar)"],
+                    key="mod2_al_med"
+                )
+                if "Otros (Especificar)" in alergias_med:
+                    otras_alergias_med_txt = c_al1.text_input("💊 Especifique otras alergias farmacológicas:", key="mod2_al_med_txt")
 
-            alergias_alim = c_al2.multiselect(
-                "Alimentarias",
-                options=["Huevo", "Soya", "Mariscos / Yodo", "Frutos secos", "Lácteos", "Gluten", "Otros (Especificar)"],
-                key="mod2_al_ali"
-            )
-            # Cuadro dinámico para alergias alimentarias
-            if "Otros (Especificar)" in alergias_alim:
-                otras_alergias_ali_txt = st.text_input("🥚 Especifique otras alergias alimentarias:", key="mod2_al_ali_txt")
-            else:
-                otras_alergias_ali_txt = ""
+                alergias_alim = c_al2.multiselect(
+                    "Alimentarias",
+                    options=["Huevo", "Soya", "Mariscos / Yodo", "Frutos secos", "Lácteos", "Gluten", "Otros (Especificar)"],
+                    key="mod2_al_ali"
+                )
+                if "Otros (Especificar)" in alergias_alim:
+                    otras_alergias_ali_txt = c_al2.text_input("🥚 Especifique otras alergias alimentarias:", key="mod2_al_ali_txt")
 
             st.divider()
 
-            # --- 2. SECCIÓN DE ANTECEDENTES PATOLÓGICOS ---
-            st.markdown("#### 📋 Antecedentes Patológicos Personales (APP)")
+            # --- 2. SECCIÓN UNIFICADA: ANTECEDENTES Y MEDICACIÓN (Dinamizada) ---
+            st.markdown("#### 📋 Antecedentes Patológicos y Medicación Habitual")
             
-            if es_obstetrico:
-                lista_patologias = ["Ninguno", "Trastornos Hipertensivos (Preeclampsia/HTA)", "Diabetes Gestacional", "Anemia", "Hipotiroidismo", "Asma", "Cardiopatía", "Obesidad", "Otros (Especificar)"]
-            elif edad < 18:
-                lista_patologias = ["Ninguno", "Asma / Hiperreactividad Bronquial", "Cardiopatía Congénita", "Epilepsia / Convulsiones", "Prematuridad / Ingreso a UCIN", "Trastorno Hematológico (Hemofilia/Drepanocitosis)", "Atopia / Rinitis", "Otros (Especificar)"]
-            elif edad >= 60:
-                if sexo == "Masculino":
-                    lista_patologias = ["Ninguno", "Hipertensión Arterial (HTA)", "Diabetes Mellitus Tipo 2", "Cardiopatía Isquémica (IAM/Angina)", "EPOC / Fumador", "Hipertrofia Prostática Benigna", "Arritmia (Fibrilación Auricular)", "Enfermedad Renal Crónica (ERC)", "ACV / Isquemia Transitoria", "Otros (Especificar)"]
+            sin_antecedentes = st.checkbox("✅ No refiere antecedentes patológicos ni medicación de uso continuo", value=True, key="mod2_sin_antecedentes")
+            
+            # Inicialización de seguridad (Esencial para que el Módulo 3 de Vía Aérea no falle)
+            antecedentes_seleccionados = ["Ninguno"]
+            otros_antecedentes_txt = ""
+            medicacion_actual = ["Ninguno"]
+            notas_medicacion_txt = ""
+            
+            if not sin_antecedentes:
+                # Motor epidemiológico dinámico (Heredado del Módulo 1)
+                if es_obstetrico:
+                    lista_patologias = ["Ninguno", "Trastornos Hipertensivos (Preeclampsia/HTA)", "Diabetes Gestacional", "Anemia", "Hipotiroidismo", "Asma", "Cardiopatía", "Obesidad", "Otros (Especificar)"]
+                elif edad < 18:
+                    lista_patologias = ["Ninguno", "Asma / Hiperreactividad Bronquial", "Cardiopatía Congénita", "Epilepsia / Convulsiones", "Prematuridad / Ingreso a UCIN", "Trastorno Hematológico (Hemofilia/Drepanocitosis)", "Atopia / Rinitis", "Otros (Especificar)"]
+                elif edad >= 60:
+                    if sexo == "Masculino":
+                        lista_patologias = ["Ninguno", "Hipertensión Arterial (HTA)", "Diabetes Mellitus Tipo 2", "Cardiopatía Isquémica (IAM/Angina)", "EPOC / Fumador", "Hipertrofia Prostática Benigna", "Arritmia (Fibrilación Auricular)", "Enfermedad Renal Crónica (ERC)", "ACV / Isquemia Transitoria", "Otros (Especificar)"]
+                    else:
+                        lista_patologias = ["Ninguno", "Hipertensión Arterial (HTA)", "Diabetes Mellitus Tipo 2", "Hipotiroidismo", "Osteoporosis / Osteoartritis", "Insuficiencia Cardíaca", "Arritmia (Fibrilación Auricular)", "Enfermedad Renal Crónica (ERC)", "ACV", "Otros (Especificar)"]
                 else:
-                    lista_patologias = ["Ninguno", "Hipertensión Arterial (HTA)", "Diabetes Mellitus Tipo 2", "Hipotiroidismo", "Osteoporosis / Osteoartritis", "Insuficiencia Cardíaca", "Arritmia (Fibrilación Auricular)", "Enfermedad Renal Crónica (ERC)", "ACV", "Otros (Especificar)"]
-            else:
-                if sexo == "Masculino":
-                    lista_patologias = ["Ninguno", "Hipertensión Arterial (HTA)", "Diabetes Mellitus Tipo 2", "Dislipidemia", "Asma / EPOC", "Reflujo Gastroesofágico (ERGE)", "Esteatosis Hepática / Hepatopatía", "Trastorno Psiquiátrico", "Otros (Especificar)"]
-                else:
-                    lista_patologias = ["Ninguno", "Hipotiroidismo", "Hipertensión Arterial (HTA)", "Diabetes Mellitus Tipo 2", "Asma", "Enfermedad Autoinmune (LES/AR)", "Migraña / Cefalea Crónica", "Anemia", "Trastorno Psiquiátrico", "Otros (Especificar)"]
+                    if sexo == "Masculino":
+                        lista_patologias = ["Ninguno", "Hipertensión Arterial (HTA)", "Diabetes Mellitus Tipo 2", "Dislipidemia", "Asma / EPOC", "Reflujo Gastroesofágico (ERGE)", "Esteatosis Hepática / Hepatopatía", "Trastorno Psiquiátrico", "Otros (Especificar)"]
+                    else:
+                        lista_patologias = ["Ninguno", "Hipotiroidismo", "Hipertensión Arterial (HTA)", "Diabetes Mellitus Tipo 2", "Asma", "Enfermedad Autoinmune (LES/AR)", "Migraña / Cefalea Crónica", "Anemia", "Trastorno Psiquiátrico", "Otros (Especificar)"]
 
-            antecedentes_seleccionados = st.multiselect(
-                "Seleccione las patologías presentes", 
-                options=lista_patologias, 
-                key="mod2_antecedentes"
-            )
-            # Cuadro dinámico para antecedentes patológicos
-            if "Otros (Especificar)" in antecedentes_seleccionados:
-                otros_antecedentes_txt = st.text_input("🔍 Especifique otros antecedentes clínicos:", key="mod2_ant_otros_txt")
-            else:
-                otros_antecedentes_txt = ""
+                lista_medicamentos = ["Antihipertensivos (IECA/ARA II/BCC)", "Beta-bloqueadores", "Diuréticos", "Metformina / Hipoglucemiantes orales", "Insulina", "Antiagregantes (Aspirina/Clopidogrel)", "Anticoagulantes (Warfarina/DOACs)", "Levotiroxina", "Inhaladores (SABA/Corticoides)", "Anticonvulsivantes", "Ninguno", "Otros (Especificar)"]
+                
+                # Renderizado en paralelo para correlación clínica inmediata
+                c_unif1, c_unif2 = st.columns(2)
+                
+                antecedentes_seleccionados = c_unif1.multiselect(
+                    "Patologías Clínicas (APP)", 
+                    options=lista_patologias, 
+                    key="mod2_antecedentes"
+                )
+                if "Otros (Especificar)" in antecedentes_seleccionados:
+                    otros_antecedentes_txt = c_unif1.text_input("🔍 Especifique otros antecedentes:", key="mod2_ant_otros_txt")
 
-            st.divider()
-
-            # --- 3. MEDICACIÓN HABITUAL ---
-            st.markdown("#### 💊 Medicación de Uso Continuo")
-            
-            lista_medicamentos = ["Antihipertensivos (IECA/ARA II/BCC)", "Beta-bloqueadores", "Diuréticos", "Metformina / Hipoglucemiantes orales", "Insulina", "Antiagregantes (Aspirina/Clopidogrel)", "Anticoagulantes (Warfarina/DOACs)", "Levotiroxina", "Inhaladores (SABA/Corticoides)", "Anticonvulsivantes", "Ninguno", "Otros (Especificar)"]
-            
-            medicacion_actual = st.multiselect(
-                "Fármacos activos", 
-                options=lista_medicamentos, 
-                key="mod2_medicacion"
-            )
-            # Cuadro dinámico para medicación habitual
-            if "Otros (Especificar)" in medicacion_actual:
-                notas_medicacion_txt = st.text_input("📝 Especifique fármacos adicionales, dosis o frecuencias:", key="mod2_med_notas_txt")
-            else:
-                notas_medicacion_txt = ""
+                medicacion_actual = c_unif2.multiselect(
+                    "Fármacos de Uso Continuo", 
+                    options=lista_medicamentos, 
+                    key="mod2_medicacion"
+                )
+                if "Otros (Especificar)" in medicacion_actual:
+                    notas_medicacion_txt = c_unif2.text_input("📝 Especifique dosis o frecuencias:", key="mod2_med_notas_txt")
 
             st.divider()
 
-            # --- 4. SECCIÓN DE HÁBITOS ---
-            # --- 4. SECCIÓN DE HÁBITOS (Dinamizada) ---
+            # --- 3. SECCIÓN DE HÁBITOS (Dinamizada) ---
             st.markdown("#### 🚬 Hábitos y Estilo de Vida")
-            
-            # Casilla activa por defecto (value=True) para optimizar espacio
             sin_habitos = st.checkbox("✅ No refiere hábitos dañinos", value=True, key="mod2_sin_habitos")
 
-            # Inicialización de seguridad (Evita colapsos en el reporte cuando está oculto)
             hab_alcohol = False
             int_alcohol = "+"
             hab_cigarrillo = False
@@ -307,26 +309,21 @@ with col_izq:
             int_drogas = "+"
             txt_drogas = ""
 
-            # Lógica Condicional: Solo se despliega si se DESMARCA la casilla principal
             if not sin_habitos:
                 st.caption("Nota: `+` Bajo | `++` Moderado | `+++` Severo/Grave")
                 
-                # Fila 1: Alcohol
                 c_alc1, c_alc2 = st.columns([3, 1])
                 hab_alcohol = c_alc1.checkbox("Consumo de Alcohol", key="mod2_hab_alc")
                 int_alcohol = c_alc2.selectbox("Intensidad Alcohol", ["+", "++", "+++"], key="mod2_int_alc", disabled=not hab_alcohol, label_visibility="collapsed")
                 
-                # Fila 2: Cigarrillos
                 c_cig1, c_cig2 = st.columns([3, 1])
                 hab_cigarrillo = c_cig1.checkbox("Tabaquismo (Cigarrillos)", key="mod2_hab_cig")
                 int_cigarrillo = c_cig2.selectbox("Intensidad Cigarrillo", ["+", "++", "+++"], key="mod2_int_cig", disabled=not hab_cigarrillo, label_visibility="collapsed")
                 
-                # Fila 3: Café
                 c_caf1, c_caf2 = st.columns([3, 1])
                 hab_cafe = c_caf1.checkbox("Consumo de Café", key="mod2_hab_caf")
                 int_cafe = c_caf2.selectbox("Intensidad Café", ["+", "++", "+++"], key="mod2_int_caf", disabled=not hab_cafe, label_visibility="collapsed")
                 
-                # Fila 4: Drogas
                 c_dro1, c_dro2 = st.columns([3, 1])
                 hab_drogas = c_dro1.checkbox("Sustancias / Drogas de Abuso", key="mod2_hab_dro")
                 int_drogas = c_dro2.selectbox("Intensidad Drogas", ["+", "++", "+++"], key="mod2_int_dro", disabled=not hab_drogas, label_visibility="collapsed")
