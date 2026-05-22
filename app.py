@@ -194,7 +194,7 @@ with col_izq:
             ], key="mod1_tecnica")
 
         # ---------------------------------------------------------
-        # MÓDULO 2: SEGURIDAD, ALERGIAS Y ANTECEDENTES
+        # MÓDULO 2: SEGURIDAD, ALERGIAS Y ANTECEDENTES (Interactivos)
         # ---------------------------------------------------------
         with st.expander("2. Seguridad, Alergias y Antecedentes Patológicos", expanded=True):
             
@@ -204,15 +204,25 @@ with col_izq:
             
             alergias_med = c_al1.multiselect(
                 "Farmacológicas / Sustancias",
-                options=["Penicilinas / Betalactámicos", "AINEs", "Látex", "Opioides", "Relajantes Musculares", "Anestésicos Locales", "Medios de Contraste"],
+                options=["Penicilinas / Betalactámicos", "AINEs", "Látex", "Opioides", "Relajantes Musculares", "Anestésicos Locales", "Medios de Contraste", "Otros (Especificar)"],
                 key="mod2_al_med"
             )
+            # Cuadro dinámico para alergias medicamentosas
+            if "Otros (Especificar)" in alergias_med:
+                otras_alergias_med_txt = st.text_input("💊 Especifique otras alergias farmacológicas:", key="mod2_al_med_txt")
+            else:
+                otras_alergias_med_txt = ""
+
             alergias_alim = c_al2.multiselect(
                 "Alimentarias",
-                options=["Huevo", "Soya", "Mariscos / Yodo", "Frutos secos", "Lácteos", "Gluten"],
+                options=["Huevo", "Soya", "Mariscos / Yodo", "Frutos secos", "Lácteos", "Gluten", "Otros (Especificar)"],
                 key="mod2_al_ali"
             )
-            otras_alergias = st.text_input("Otras alergias o reacciones adversas (Especificar):", key="mod2_al_otras")
+            # Cuadro dinámico para alergias alimentarias
+            if "Otros (Especificar)" in alergias_alim:
+                otras_alergias_ali_txt = st.text_input("🥚 Especifique otras alergias alimentarias:", key="mod2_al_ali_txt")
+            else:
+                otras_alergias_ali_txt = ""
 
             st.divider()
 
@@ -220,32 +230,48 @@ with col_izq:
             st.markdown("#### 📋 Antecedentes Patológicos Personales (APP)")
             
             if es_obstetrico:
-                lista_patologias = ["Ninguno", "Trastornos Hipertensivos (Preeclampsia/HTA)", "Diabetes Gestacional", "Anemia", "Hipotiroidismo", "Asma", "Cardiopatía", "Obesidad"]
+                lista_patologias = ["Ninguno", "Trastornos Hipertensivos (Preeclampsia/HTA)", "Diabetes Gestacional", "Anemia", "Hipotiroidismo", "Asma", "Cardiopatía", "Obesidad", "Otros (Especificar)"]
             elif edad < 18:
-                lista_patologias = ["Ninguno", "Asma / Hiperreactividad Bronquial", "Cardiopatía Congénita", "Epilepsia / Convulsiones", "Prematuridad / Ingreso a UCIN", "Trastorno Hematológico (Hemofilia/Drepanocitosis)", "Atopia / Rinitis"]
+                lista_patologias = ["Ninguno", "Asma / Hiperreactividad Bronquial", "Cardiopatía Congénita", "Epilepsia / Convulsiones", "Prematuridad / Ingreso a UCIN", "Trastorno Hematológico (Hemofilia/Drepanocitosis)", "Atopia / Rinitis", "Otros (Especificar)"]
             elif edad >= 60:
                 if sexo == "Masculino":
-                    lista_patologias = ["Ninguno", "Hipertensión Arterial (HTA)", "Diabetes Mellitus Tipo 2", "Cardiopatía Isquémica (IAM/Angina)", "EPOC / Fumador", "Hipertrofia Prostática Benigna", "Arritmia (Fibrilación Auricular)", "Enfermedad Renal Crónica (ERC)", "ACV / Isquemia Transitoria"]
+                    lista_patologias = ["Ninguno", "Hipertensión Arterial (HTA)", "Diabetes Mellitus Tipo 2", "Cardiopatía Isquémica (IAM/Angina)", "EPOC / Fumador", "Hipertrofia Prostática Benigna", "Arritmia (Fibrilación Auricular)", "Enfermedad Renal Crónica (ERC)", "ACV / Isquemia Transitoria", "Otros (Especificar)"]
                 else:
-                    lista_patologias = ["Ninguno", "Hipertensión Arterial (HTA)", "Diabetes Mellitus Tipo 2", "Hipotiroidismo", "Osteoporosis / Osteoartritis", "Insuficiencia Cardíaca", "Arritmia (Fibrilación Auricular)", "Enfermedad Renal Crónica (ERC)", "ACV"]
+                    lista_patologias = ["Ninguno", "Hipertensión Arterial (HTA)", "Diabetes Mellitus Tipo 2", "Hipotiroidismo", "Osteoporosis / Osteoartritis", "Insuficiencia Cardíaca", "Arritmia (Fibrilación Auricular)", "Enfermedad Renal Crónica (ERC)", "ACV", "Otros (Especificar)"]
             else:
                 if sexo == "Masculino":
-                    lista_patologias = ["Ninguno", "Hipertensión Arterial (HTA)", "Diabetes Mellitus Tipo 2", "Dislipidemia", "Asma / EPOC", "Reflujo Gastroesofágico (ERGE)", "Esteatosis Hepática / Hepatopatía", "Trastorno Psiquiátrico"]
+                    lista_patologias = ["Ninguno", "Hipertensión Arterial (HTA)", "Diabetes Mellitus Tipo 2", "Dislipidemia", "Asma / EPOC", "Reflujo Gastroesofágico (ERGE)", "Esteatosis Hepática / Hepatopatía", "Trastorno Psiquiátrico", "Otros (Especificar)"]
                 else:
-                    lista_patologias = ["Ninguno", "Hipotiroidismo", "Hipertensión Arterial (HTA)", "Diabetes Mellitus Tipo 2", "Asma", "Enfermedad Autoinmune (LES/AR)", "Migraña / Cefalea Crónica", "Anemia", "Trastorno Psiquiátrico"]
+                    lista_patologias = ["Ninguno", "Hipotiroidismo", "Hipertensión Arterial (HTA)", "Diabetes Mellitus Tipo 2", "Asma", "Enfermedad Autoinmune (LES/AR)", "Migraña / Cefalea Crónica", "Anemia", "Trastorno Psiquiátrico", "Otros (Especificar)"]
 
-            c_pat1, c_pat2 = st.columns([2, 1])
-            antecedentes_seleccionados = c_pat1.multiselect("Seleccione las patologías presentes", options=lista_patologias, key="mod2_antecedentes")
-            otros_antecedentes = c_pat2.text_input("Otros antecedentes clínicos:", key="mod2_ant_otros")
+            antecedentes_seleccionados = st.multiselect(
+                "Seleccione las patologías presentes", 
+                options=lista_patologias, 
+                key="mod2_antecedentes"
+            )
+            # Cuadro dinámico para antecedentes patológicos
+            if "Otros (Especificar)" in antecedentes_seleccionados:
+                otros_antecedentes_txt = st.text_input("🔍 Especifique otros antecedentes clínicos:", key="mod2_ant_otros_txt")
+            else:
+                otros_antecedentes_txt = ""
 
             st.divider()
 
             # --- 3. MEDICACIÓN HABITUAL ---
             st.markdown("#### 💊 Medicación de Uso Continuo")
             
-            lista_medicamentos = ["Antihipertensivos (IECA/ARA II/BCC)", "Beta-bloqueadores", "Diuréticos", "Metformina / Hipoglucemiantes orales", "Insulina", "Antiagregantes (Aspirina/Clopidogrel)", "Anticoagulantes (Warfarina/DOACs)", "Levotiroxina", "Inhaladores (SABA/Corticoides)", "Anticonvulsivantes", "Ninguno"]
-            medicacion_actual = st.multiselect("Fármacos activos", options=lista_medicamentos, key="mod2_medicacion")
-            notas_medicacion = st.text_input("Dosis, frecuencias u otros fármacos no listados:", key="mod2_med_notas")
+            lista_medicamentos = ["Antihipertensivos (IECA/ARA II/BCC)", "Beta-bloqueadores", "Diuréticos", "Metformina / Hipoglucemiantes orales", "Insulina", "Antiagregantes (Aspirina/Clopidogrel)", "Anticoagulantes (Warfarina/DOACs)", "Levotiroxina", "Inhaladores (SABA/Corticoides)", "Anticonvulsivantes", "Ninguno", "Otros (Especificar)"]
+            
+            medicacion_actual = st.multiselect(
+                "Fármacos activos", 
+                options=lista_medicamentos, 
+                key="mod2_medicacion"
+            )
+            # Cuadro dinámico para medicación habitual
+            if "Otros (Especificar)" in medicacion_actual:
+                notas_medicacion_txt = st.text_input("📝 Especifique fármacos adicionales, dosis o frecuencias:", key="mod2_med_notas_txt")
+            else:
+                notas_medicacion_txt = ""
 
             st.divider()
 
