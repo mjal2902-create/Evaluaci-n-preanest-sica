@@ -317,7 +317,7 @@ with col_izq:
                 txt_drogas = st.text_input("Especifique la sustancia (Ej. Cannabis, Cocaína):", key="mod2_txt_dro")
 
 # ---------------------------------------------------------
-        # MÓDULO 3: VÍA AÉREA, ASA TASKFORCE E ÍNDICE DE ARNÉ
+        # MÓDULO 3: VÍA AÉREA Y PREDICTORES (SOLO CAPTURA DE DATOS)
         # ---------------------------------------------------------
         with st.expander("3. Vía Aérea y Predictores de Dificultad", expanded=True):
             
@@ -326,7 +326,7 @@ with col_izq:
             c_arne1, c_arne2 = st.columns(2)
             
             arne_historia = c_arne1.checkbox("🚨 Antecedente personal de Intubación Difícil", key="mod3_arne_hist")
-            arne_patologia = c_grid2 = c_arne2.checkbox("🏥 Patología clínica asociada a VAD (Ej: Tumores, Angioedema)", key="mod3_arne_pat")
+            arne_patologia = c_arne2.checkbox("🏥 Patología clínica asociada a VAD (Ej: Tumores, Angioedema)", key="mod3_arne_pat")
             
             st.divider()
 
@@ -396,7 +396,6 @@ with col_izq:
                 key="mod3_ulbt"
             )
 
-            # Movilidad Cervical adaptada a los rangos exactos de puntos de Arné
             mov_cervical_arne = st.selectbox(
                 "Movilidad de Cabeza y Cuello (Extensión cervical)",
                 [
@@ -413,30 +412,20 @@ with col_izq:
             vad_lengua = st.checkbox("🔹 Gran tamaño de lengua (Macroglosia)", key="mod3_lengua")
             vad_retrognatia = st.checkbox("🔹 Retrognatia / Micrognatia (Mentón retraído)", key="mod3_retrognatia")
 
-            # --- 3. MOTOR DE CÁLCULO: ÍNDICE DE ARNÉ ---
+            # --- 3. PROCESAMIENTO SILENCIOSO DE VARIABLES (Para tu Reporte) ---
             pts_historia = 10 if arne_historia else 0
             pts_patologia = 5 if arne_patologia else 0
             
             if "Clase I" in mallampati: pts_mallampati = 0
             elif "Clase II" in mallampati: pts_mallampati = 1
             elif "Clase III" in mallampati: pts_mallampati = 2
-            else: pts_mallampati = 5 # Clase IV
+            else: pts_mallampati = 5
             
             pts_dtm = 0 if "Clase I" in dtm else (2 if "Clase II" in dtm else 4)
             pts_ab = 0 if "Clase I" in apertura_bucal else (2 if "Clase II" in apertura_bucal else 4)
+            pts_mov = 0 if "Normal" in mov_cervical_arne else (2 if "Moderada" in mov_cervical_arne else 5)
             
-            if "Normal" in mov_cervical_arne: pts_mov = 0
-            elif "Moderada" in mov_cervical_arne: pts_mov = 2
-            else: pts_mov = 5 # Severa
-            
-            # Sumatoria del Score Clínico de Arné
             score_arne = pts_historia + pts_patologia + pts_mallampati + pts_dtm + pts_ab + pts_mov
-
-            st.markdown(f"##### 📊 Puntuación de Arné Calibrada: **{score_arne} Puntos**")
-            if score_arne >= 11:
-                st.error(f"🚨 Alerta de Seguridad (Índice de Arné): Riesgo ELEVADO de Intubación Difícil ({score_arne} pts ≥ 11). Prepare videolaringoscopio o asistencia.")
-            else:
-                st.success(f"✅ Índice de Arné: Riesgo Bajo ({score_arne} pts).")
 
             st.divider()
 
@@ -464,6 +453,5 @@ with col_izq:
             
             vmd_sahos = st.checkbox("S - Historia de Ronquido Severo / Apnea del Sueño (SAHOS)", key="mod3_sahos")
 
+            # Conteo interno guardado en variable (silencioso)
             puntos_vmd = sum([vmd_edad, vmd_obesidad, vmd_barba, vmd_edentulo, vmd_sahos])
-            if puntos_vmd >= 2:
-                st.warning(f"⚠️ Riesgo de Ventilación Difícil con Máscara Facial: Elevado ({puntos_vmd}/5 criterios OBESE positivos).")
