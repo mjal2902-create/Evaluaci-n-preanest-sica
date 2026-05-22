@@ -317,12 +317,21 @@ with col_izq:
                 txt_drogas = st.text_input("Especifique la sustancia (Ej. Cannabis, Cocaína):", key="mod2_txt_dro")
 
 # ---------------------------------------------------------
-        # MÓDULO 3: VÍA AÉREA Y PREDICTORES (DIRECCIÓN ANATÓMICA)
+        # MÓDULO 3: VÍA AÉREA, ASA TASKFORCE E ÍNDICE DE ARNÉ
         # ---------------------------------------------------------
         with st.expander("3. Vía Aérea y Predictores de Dificultad", expanded=True):
             
-            # --- 1. PREDICTORES DE INTUBACIÓN DIFÍCIL (ASA TASKFORCE) ---
-            st.markdown("#### 👅 Predictores de Vía Aérea de Difícil Manejo (ASA Taskforce)")
+            # --- 1. CRITERIOS CLÍNICOS PREVIOS (ÍNDICE DE ARNÉ) ---
+            st.markdown("#### 📜 Historia Clínica de Vía Aérea")
+            c_arne1, c_arne2 = st.columns(2)
+            
+            arne_historia = c_arne1.checkbox("🚨 Antecedente personal de Intubación Difícil", key="mod3_arne_hist")
+            arne_patologia = c_grid2 = c_arne2.checkbox("🏥 Patología clínica asociada a VAD (Ej: Tumores, Angioedema)", key="mod3_arne_pat")
+            
+            st.divider()
+
+            # --- 2. PREDICTORES ANATÓMICOS (ASA TASKFORCE & ARNÉ) ---
+            st.markdown("#### 👅 Evaluación Anatómica y Movilidad")
             
             c_vad1, c_vad2 = st.columns(2)
             
@@ -331,8 +340,8 @@ with col_izq:
                 [
                     "Clase I: Visibilidad de paladar blando, úvula, fauces y pilares",
                     "Clase II: Visibilidad de paladar blando, úvula y fauces",
-                    "Clase III: Visibilidad de paladar blando y base de la úvula (Mallampati >2)",
-                    "Clase IV: Solo es visible el paladar duro (Mallampati >2)"
+                    "Clase III: Visibilidad de paladar blando y base de la úvula",
+                    "Clase IV: Solo es visible el paladar duro"
                 ],
                 key="mod3_mallampati"
             )
@@ -354,7 +363,7 @@ with col_izq:
                 [
                     "Clase I (> 3.5 cm): Normal",
                     "Clase II (3.0 - 3.5 cm): Limitación leve",
-                    "Clase III (< 3.0 cm): Limitación severa / Riesgo VAD"
+                    "Clase III (< 3.0 cm): Limitación severa"
                 ],
                 key="mod3_ab"
             )
@@ -380,38 +389,58 @@ with col_izq:
             ulbt = c_vad6.selectbox(
                 "Test de Mordida de Labio Superior (ULBT / Subluxación)",
                 [
-                    "Clase I: Incisivos inferiores cubren la línea bermellón del labio superior",
-                    "Clase II: Incisivos muerden el labio pero no cubren la línea bermellón",
-                    "Clase III: Incisivos inferiores no pueden morder el labio superior"
+                    "Clase I: Incisivos inferiores cubren la línea bermellón",
+                    "Clase II: Incisivos muerden el labio pero no cubren la línea",
+                    "Clase III: Incisivos no pueden morder el labio superior"
                 ],
                 key="mod3_ulbt"
             )
 
-            st.markdown("**Hallazgos Anatómicos y Dinámicos Particulares (Checklist Vertical):**")
-            
+            # Movilidad Cervical adaptada a los rangos exactos de puntos de Arné
+            mov_cervical_arne = st.selectbox(
+                "Movilidad de Cabeza y Cuello (Extensión cervical)",
+                [
+                    "Normal: Extensión completa (> 90°)",
+                    "Limitación Moderada: Extensión parcialmente reducida (80° - 90°)",
+                    "Limitación Severa: Rigidez extrema o fijación estructural (< 80°)"
+                ],
+                key="mod3_mov_arne"
+            )
+
+            st.markdown("**Hallazgos Anatómicos Particulares adicionales:**")
             vad_incisivos = st.checkbox("🔹 Incisivos largos y prominentes", key="mod3_incisivos")
             vad_paladar = st.checkbox("🔹 Paladar alto / Ojival", key="mod3_paladar")
             vad_lengua = st.checkbox("🔹 Gran tamaño de lengua (Macroglosia)", key="mod3_lengua")
             vad_retrognatia = st.checkbox("🔹 Retrognatia / Micrognatia (Mentón retraído)", key="mod3_retrognatia")
-            vad_movilidad = st.checkbox("🔹 Limitación de Movilidad Cervical (Incapaz de extender la cabeza o flexionar)", key="mod3_mov_cervical")
 
-            # Conteo analítico actualizado con los nuevos parámetros de intubación difícil
-            criterios_asa_positivos = sum([
-                vad_incisivos, vad_paladar, vad_lengua, vad_retrognatia, vad_movilidad,
-                "Mallampati >2" in mallampati,
-                "Clase III" in dtm,
-                "Clase III" in apertura_bucal,
-                "Clase III" in dem,
-                cuello_cat == "Mayor a 35 cm (> 35 cm)",
-                "Clase III" in ulbt
-            ])
+            # --- 3. MOTOR DE CÁLCULO: ÍNDICE DE ARNÉ ---
+            pts_historia = 10 if arne_historia else 0
+            pts_patologia = 5 if arne_patologia else 0
+            
+            if "Clase I" in mallampati: pts_mallampati = 0
+            elif "Clase II" in mallampati: pts_mallampati = 1
+            elif "Clase III" in mallampati: pts_mallampati = 2
+            else: pts_mallampati = 5 # Clase IV
+            
+            pts_dtm = 0 if "Clase I" in dtm else (2 if "Clase II" in dtm else 4)
+            pts_ab = 0 if "Clase I" in apertura_bucal else (2 if "Clase II" in apertura_bucal else 4)
+            
+            if "Normal" in mov_cervical_arne: pts_mov = 0
+            elif "Moderada" in mov_cervical_arne: pts_mov = 2
+            else: pts_mov = 5 # Severa
+            
+            # Sumatoria del Score Clínico de Arné
+            score_arne = pts_historia + pts_patologia + pts_mallampati + pts_dtm + pts_ab + pts_mov
 
-            if criterios_asa_positivos >= 3:
-                st.error(f"⚠️ Alerta: El paciente presenta {criterios_asa_positivos} factores de predicción de VAD. Planificar estrategia.")
+            st.markdown(f"##### 📊 Puntuación de Arné Calibrada: **{score_arne} Puntos**")
+            if score_arne >= 11:
+                st.error(f"🚨 Alerta de Seguridad (Índice de Arné): Riesgo ELEVADO de Intubación Difícil ({score_arne} pts ≥ 11). Prepare videolaringoscopio o asistencia.")
+            else:
+                st.success(f"✅ Índice de Arné: Riesgo Bajo ({score_arne} pts).")
 
             st.divider()
 
-            # --- 2. PREDICTORES DE VENTILACIÓN DIFÍCIL CON MÁSCARA (Criterios OBESE) ---
+            # --- 4. PREDICTORES DE VENTILACIÓN DIFÍCIL CON MÁSCARA (Criterios OBESE) ---
             st.markdown("#### 😷 Predictores de Ventilación Difícil (Criterios OBESE)")
             st.caption("Nota: Las casillas de Edad y Obesidad están estrictamente concatenadas con los datos del Módulo 1.")
             
