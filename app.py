@@ -89,22 +89,38 @@ with col_izq:
         st.divider()
         
         # ---------------------------------------------------------
-        # MÓDULO 1: DATOS DEMOGRÁFICOS Y QUIRÚRGICOS
+        # MÓDULO 1: DATOS DEMOGRÁFICOS Y QUIRÚRGICOS (Con IMC)
         # ---------------------------------------------------------
         with st.expander("1. Datos Demográficos y Contexto Quirúrgico", expanded=True):
             st.divider() 
             # Fila 1: Demografía y Sangre
             c_demo1, c_demo2, c_demo3 = st.columns(3)
             sexo = c_demo1.radio("Sexo", ["Masculino", "Femenino"], key="mod1_sexo")
-            # Sugerencia inteligente de edad
             edad_default = 30 if sexo == "Femenino" else 50
             edad = c_demo2.number_input("Edad (años)", min_value=0, max_value=120, value=edad_default, key="mod1_edad")
             grupo_sangre = c_demo3.selectbox("Grupo y Rh", ["O+", "O-", "A+", "A-", "B+", "B-", "AB+", "AB-", "Desconocido"], key="mod1_gs")
             
-            # Fila 2: Antropometría
-            c_ant1, c_ant2 = st.columns(2)
+            # Fila 2: Antropometría e IMC Automatizado
+            c_ant1, c_ant2, c_ant3 = st.columns(3)
             peso_real = c_ant1.number_input("Peso Real (kg)", min_value=1.0, max_value=300.0, value=70.0, step=0.1, key="mod1_peso")
             talla_cm = c_ant2.number_input("Talla (cm)", min_value=30.0, max_value=250.0, value=165.0, step=1.0, key="mod1_talla")
+            
+            # Cálculo matemático e interpretación del IMC
+            imc = 0.0
+            cat_imc = "No calculado"
+            if talla_cm > 0:
+                imc = peso_real / ((talla_cm / 100) ** 2)
+                if imc < 18.5:
+                    cat_imc = "Bajo Peso ⚠️"
+                elif imc < 25.0:
+                    cat_imc = "Normal ✅"
+                elif imc < 30.0:
+                    cat_imc = "Sobrepeso ⚠️"
+                else:
+                    cat_imc = "Obesidad 🚨"
+            
+            # Despliegue visual del IMC como métrica destacada
+            c_ant3.metric(label="IMC Calculado", value=f"{imc:.1f} kg/m²", delta=cat_imc, delta_color="normal")
             
             st.divider() 
             
@@ -169,9 +185,7 @@ with col_izq:
                     lista_diagnosticos = ["Colelitiasis / Colecistitis", "Miomatosis Uterina", "Quiste Ovárico", "Apendicitis Aguda", "Patología Mamaria", "Hernia Umbilical", "Otro (Especificar)"]
                     lista_procedimientos = ["Colecistectomía Laparoscópica", "Histerectomía (Lap/Abierta)", "Quistectomía / Ooforectomía", "Apendicectomía", "Mastectomía / Resección Local", "Hernioplastia", "Otro (Especificar)"]
 
-            # ---------------------------------------------------------
-            # Renderizado de los Selectores
-            # ---------------------------------------------------------
+            # Selectores
             diag_base = c_cx3.selectbox("Diagnóstico Principal", lista_diagnosticos, key="mod1_diag_base")
             if diag_base == "Otro (Especificar)":
                 diagnostico_final = c_cx3.text_input("Especifique el diagnóstico", key="mod1_diag_txt")
