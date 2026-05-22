@@ -835,6 +835,18 @@ with col_izq:
                     "Fractura de cadera, pelvis o extremidad inferior (< 1 mes) (+5)",
                     "Artroplastia electiva programada de cadera o rodilla (+5)",
                     "Lesión medular aguda con paraplejía o cuadriplejía (< 1 mes) (+5)"
+                    # --- MOTOR DE CAPRINI AUTOMATIZADO (MÁS ABAJO DE LOS MULTISELECTS) ---
+            score_caprini = 0
+            
+            # 1. Inferencia automática de Edad, IMC, Embarazo, etc... (lo que ya tienes armado)
+            # ...
+
+            # 2. SINCRO INTELIGENTE DE FRACTURA AGUDA DESDE EL MÓDULO 1
+            if 'tipo_fractura_cx' in locals() and tipo_fractura_cx != "No aplica":
+                if "Riesgo Caprini Extremo" in tipo_fractura_cx:
+                    score_caprini += 5  # Suma 5 puntos si es Cadera, Pelvis o Miembro Inferior (Escala Caprini)
+                else:
+                    score_caprini += 2  # Suma 2 puntos si es Miembro Superior u otra región por trauma quirúrgico mayor
                 ],
                 key="mod6_cap_alto"
             )
