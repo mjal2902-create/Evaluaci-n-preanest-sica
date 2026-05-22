@@ -512,18 +512,35 @@ with col_izq:
 
                 st.divider()
 
-                # --- 3. PREDICTORES DE VENTILACIÓN DIFÍCIL (OBESE / STOP REDUCIDO) ---
-                st.markdown("#### 😷 Factores Físicos y Sintomatología (OBESE / STOP)")
-                st.caption("Marque las características particulares identificadas en la evaluación:")
+                # --- PROCESAMIENTO SILENCIOSO DE ARNÉ ---
+                pts_historia = 10 if arne_historia else 0
+                pts_patologia = 5 if arne_patologia else 0
+                pts_mallampati = 0 if "Clase I" in mallampati else (1 if "Clase II" in mallampati else (2 if "Clase III" in mallampati else 5))
+                pts_dtm = 0 if "Clase I" in dtm else (2 if "Clase II" in dtm else 4)
+                pts_ab = 0 if "Clase I" in apertura_bucal else (2 if "Clase II" in apertura_bucal else 4)
+                pts_mov = 0 if "Normal" in mov_cervical_arne else (2 if "Moderada" in mov_cervical_arne else 5)
+                score_arne = pts_historia + pts_patologia + pts_mallampati + pts_dtm + pts_ab + pts_mov
 
-                vmd_barba = st.checkbox("🔸 Presencia de barba tupida (Dificulta el sello de la máscara)", key="mod3_barba")
-                vmd_edentulo = st.checkbox("🔸 Paciente edéntulo total o parcial", key="mod3_edentulo")
-                sb_s = st.checkbox("🔸 Historial de ronquido fuerte (Audible a través de puertas cerradas)", key="mod3_sb_s")
-                sb_t = st.checkbox("🔸 Cansancio, fatiga o somnolencia diurna frecuente", key="mod3_sb_t")
-                sb_o = st.checkbox("🔸 Apnea nocturna observada por terceros (Pausas al respirar)", key="mod3_sb_o")
+                # ---------------------------------------------------------
+                # CONTROL PEDIÁTRICO ABSOLUTO PARA OBESE / STOP-BANG
+                # ---------------------------------------------------------
+                if not es_pediatrico_va:
+                    st.divider()
+                    # --- 3. SECCIÓN UNIFICADA SÓLO PARA ADULTOS ---
+                    st.markdown("#### 😷 Factores Físicos y Sintomatología (OBESE / STOP)")
+                    st.caption("Marque las características particulares identificadas en la evaluación:")
 
-                puntos_vmd = sum([vmd_barba, vmd_edentulo])
-                puntos_stop_bang = sum([sb_s, sb_t, sb_o])
+                    vmd_barba = st.checkbox("🔸 Presencia de barba tupida (Dificulta el sello de la máscara)", key="mod3_barba")
+                    vmd_edentulo = st.checkbox("🔸 Paciente edéntulo total o parcial", key="mod3_edentulo")
+                    sb_s = st.checkbox("🔸 Historial de ronquido fuerte (Audible a través de puertas cerradas)", key="mod3_sb_s")
+                    sb_t = st.checkbox("🔸 Cansancio, fatiga o somnolencia diurna frecuente", key="mod3_sb_t")
+                    sb_o = st.checkbox("🔸 Apnea nocturna observada por terceros (Pausas al respirar)", key="mod3_sb_o")
+
+                    puntos_vmd = sum([vmd_barba, vmd_edentulo])
+                    puntos_stop_bang = sum([sb_s, sb_t, sb_o])
+                else:
+                    st.divider()
+                    st.info("🫁 **Nota metodológica:** Las herramientas OBESE y STOP-BANG están validadas exclusivamente para la población adulta, por lo que han sido omitidas de la evaluación de este paciente.")
 # ---------------------------------------------------------
         # MÓDULO 4: EVALUACIÓN CARDIOVASCULAR (INTERACTIVO PEDIÁTRICO)
         # ---------------------------------------------------------
