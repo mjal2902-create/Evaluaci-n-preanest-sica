@@ -266,6 +266,8 @@ with col_izq:
             medicacion_actual = ["Ninguno"]
             notas_medicacion_txt = ""
             tipo_fractura_app = "No aplica" # Inicialización de seguridad
+            child_ascitis = "Ausente"
+            child_encefalo = "Ausente"
             
             if not sin_antecedentes:
                 # Motor de listas epidemiológicas por edad/sexo
@@ -285,16 +287,24 @@ with col_izq:
                         lista_patologias = ["Ninguno", "Hipotiroidismo", "Hipertensión Arterial (HTA)", "Diabetes Mellitus Tipo 2", "Asma", "Enfermedad Autoinmune (LES/AR)", "Migraña", "Anemia", "Trastorno Psiquiátrico", "Otros (Especificar)"]
 
                 # Inyección global de la opción de Fractura
+               # Inyección global de opciones específicas
                 if "Otros (Especificar)" in lista_patologias:
                     idx = lista_patologias.index("Otros (Especificar)")
                     lista_patologias.insert(idx, "Fractura / Traumatismo Mayor")
+                    lista_patologias.insert(idx, "Cirrosis Hepática")
 
                 lista_medicamentos = ["Antihipertensivos (IECA/ARA II/BCC)", "Beta-bloqueadores", "Diuréticos", "Metformina / Hipoglucemiantes orales", "Insulina", "Antiagregantes (Aspirina/Clopidogrel)", "Anticoagulantes (Warfarina/DOACs)", "Levotiroxina", "Inhaladores (SABA/Corticoides)", "Anticonvulsivantes", "Ninguno", "Otros (Especificar)"]
                 
                 c_unif1, c_unif2 = st.columns(2)
                 
                 antecedentes_seleccionados = c_unif1.multiselect("Patologías Clínicas (APP)", options=lista_patologias, key="mod2_antecedentes")
-                
+
+                # APARTADO DINÁMICO: CHILD-PUGH (PARÁMETROS CLÍNICOS)
+                if "Cirrosis Hepática" in antecedentes_seleccionados:
+                    st.caption("🟡 Evaluación de Severidad Hepática (Child-Pugh):")
+                    c_hep1, c_hep2 = st.columns(2)
+                    child_ascitis = c_hep1.selectbox("Ascitis", ["Ausente", "Leve / Moderada (Controlada)", "Tensa / Grave (Refractaria)"], key="mod2_ascitis")
+                    child_encefalo = c_hep2.selectbox("Encefalopatía", ["Ausente", "Grado I - II (Leve)", "Grado III - IV (Grave)"], key="mod2_encefalo")
                 # APARTADO DINÁMICO: TIPOS DE FRACTURA MÁS COMUNES
                 if "Fractura / Traumatismo Mayor" in antecedentes_seleccionados:
                     tipo_fractura_app = c_unif1.selectbox(
@@ -745,7 +755,10 @@ with col_izq:
                 inr_val = c_lab8.number_input("INR", min_value=0.5, max_value=10.0, value=1.0, step=0.1, key="mod5_inr")
                 
                 st.divider()
-
+# --- DENTRO DEL MÓDULO 5 (Sección de Química) ---
+                c_lab_hep1, c_lab_hep2 = st.columns(2)
+                bili_total = c_lab_hep1.number_input("Bilirrubina Total (mg/dL)", min_value=0.1, max_value=50.0, value=1.0, step=0.1, key="mod5_bili")
+                albumina_serica = c_lab_hep2.number_input("Albúmina Sérica (g/dL)", min_value=1.0, max_value=6.0, value=3.5, step=0.1, key="mod5_albu")
                 # --- 4. GASOMETRÍA ARTERIAL (CONDICIONAL OPTIONAL) ---
                 tiene_gasometria = st.checkbox("🫁 ¿Cuenta con reporte de Gasometría Arterial?", value=False, key="mod5_check_gases")
                 
