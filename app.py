@@ -541,11 +541,11 @@ with col_izq:
                     st.divider()
                     st.info("🫁 **Nota metodológica:** Las herramientas OBESE y STOP-BANG están validadas exclusivamente para la población adulta, por lo que han sido omitidas de la evaluación de este paciente.")
 # ---------------------------------------------------------
-        # MÓDULO 4: EVALUACIÓN CARDIOVASCULAR (INTERACTIVO PEDIÁTRICO)
+        # MÓDULO 4: EVALUACIÓN CARDIOVASCULAR Y CAPACIDAD FUNCIONAL
         # ---------------------------------------------------------
         with st.expander("4. Evaluación Cardiovascular y Capacidad Funcional", expanded=True):
             
-            # Inicialización basal de seguridad (Evita NameError si el módulo se oculta)
+            # Inicialización basal de seguridad (Evita NameError)
             capacidad_funcional = "No aplica (Pediátrico)"
             clase_nyha = "No aplica (Pediátrico)"
             cardio_angina = False
@@ -555,63 +555,55 @@ with col_izq:
             cardio_soplo = False
             ecg_hallazgo = "No disponible / No solicitado"
             fevi_valor = 60.0
-            creatinina_alta = False
             score_lee = 0
 
-            # Evaluación interactiva de edad hacedera desde el Módulo 1
+            # Evaluación interactiva de edad desde el Módulo 1
             es_pediatrico = edad < 18 if 'edad' in locals() else False
             mostrar_cardio_completo = True
 
             # Condicional dinámico para etapas infantiles
-# Condicional dinámico para etapas infantiles
             if es_pediatrico:
                 sin_cardiopatia_ped = st.checkbox(
                     "✅ Paciente pediátrico sin patologías cardíacas conocidas", 
                     value=True, 
                     key="mod4_ped_sano"
                 )
-                
                 if sin_cardiopatia_ped:
                     mostrar_cardio_completo = False
                     st.info("👶 Evaluación cardiológica avanzada omitida por criterio de edad (Infante sano).")
                 else:
-                    # SI EL NIÑO TIENE CARDIOPATÍA, SE DESPLIEGAN LAS ESCALAS PEDIÁTRICAS:
-                    mostrar_cardio_completo = False # Oculta la de adultos
-                    
+                    mostrar_cardio_completo = False
                     st.markdown("#### 👶 Evaluación Cardiovascular Pediátrica Especializada")
                     c_ped1, c_ped2 = st.columns(2)
                     
-                    # 1. ESCALA DE ROSS (Sustituye a NYHA)
                     clase_ross = c_ped1.selectbox(
                         "Clase Funcional Pediátrica (Escala de Ross)",
                         [
                             "Clase I: Asintomático",
-                            "Clase II: Taquipnea o diaforesis leve durante la alimentación en lactantes. Disnea de esfuerzo en niños mayores. Crecimiento normal.",
-                            "Clase III: Marcada taquipnea o diaforesis al alimentarse. Prolongación del tiempo de toma con llanto. Retraso evidente en el crecimiento (Fallo de medro).",
-                            "Clase IV: Síntomas de insuficiencia cardíaca congestiva en reposo (Taquipnea, retracciones, quejido, diaforesis profusa)."
+                            "Clase II: Taquipnea o diaforesis leve en la alimentación. Disnea de esfuerzo en niños mayores.",
+                            "Clase III: Marcada taquipnea/diaforesis al alimentarse. Tiempo de toma prolongado. Retraso del crecimiento.",
+                            "Clase IV: Síntomas de insuficiencia cardíaca congestiva en reposo (retracciones, quejido)."
                         ],
                         key="mod4_ross"
                     )
                     
-                    # 2. COMPLEJIDAD ESTRUCTURAL (AHA/ACC / Faraoni)
                     complejidad_cc = c_ped2.selectbox(
                         "Complejidad de la Cardiopatía Congénita (CC)",
                         [
-                            "Leve (Bajo Riesgo): CC corregida sin shunts residuales (CIV, CIA, DAP cerrados) o Estenosis Pulmonar leve.",
-                            "Moderada (Riesgo Intermedio): CC no corregida acianógena (CIV o CIA pequeñas), Tetralogía de Fallot corregida, Coartación de Aorta corregida o Estenosis Aórtica moderada.",
-                            "Severa (Alto Riesgo): Hipertensión Pulmonar (Fisiología de Eisenmenger), Cardiopatías cianógenas no corregidas o paliativas, Ventrículo único (Fontan/Glenn), Miocardiopatías o Estenosis Aórtica severa."
+                            "Leve (Bajo Riesgo): CC corregida sin shunts residuales o Estenosis Pulmonar leve.",
+                            "Moderada (Riesgo Intermedio): CC acianógena no corregida (CIV/CIA pequeñas), Fallot corregido, Coartación corregida.",
+                            "Severa (Alto Riesgo): Hipertensión Pulmonar (Eisenmenger), CC cianógenas, Ventrículo único, Miocardiopatías."
                         ],
                         key="mod4_cc_complejidad"
                     )
                     
-                    # Variables de respaldo silenciosas para el reporte en niños con cardiopatía
                     capacidad_funcional = f"Complejidad CC: {complejidad_cc.split('(')[0].strip()}"
                     clase_nyha = f"Ross: {clase_ross.split(':')[0].strip()}"
 
             # Si el paciente es adulto o es un infante con cardiopatía, se despliega todo
             if mostrar_cardio_completo:
                 # --- 1. CAPACIDAD METABÓLICA Y CLASE FUNCIONAL ---
-                st.markdown("#### 🏃 Capacidad Metabólica y Clase Funcional")
+                st.markdown("#### 🏃 Capacidad Metabolicay Clase Funcional")
                 c_card1, c_card2 = st.columns(2)
                 
                 capacidad_funcional = c_card1.selectbox(
@@ -676,19 +668,13 @@ with col_izq:
                         min_value=10.0, max_value=85.0, value=60.0, step=1.0,
                         key="mod4_fevi_val"
                     )
-                
-                st.divider()
-                
-                # --- 4. CONDICIÓN RENAL / COMPLEMENTO DE RIESGO ---
-                st.markdown("#### 🧪 Parámetro派 Metabólico Adicional")
-                creatinina_alta = st.checkbox("🔹 Creatinina sérica preoperatoria > 2.0 mg/dL (177 µmol/L)", key="mod4_creat")
 
-                # --- PROCESAMIENTO SILENCIOSO DE RIESGO DE LEE ---
+                # --- PROCESAMIENTO SILENCIOSO DE RIESGO DE LEE (RCRI) ---
                 factor_cirugia_riesgo = 1 if (riesgo_cx and "Alto" in riesgo_cx) else 0
                 factor_cardiopatia_isq = 1 if (not sin_antecedentes and any("Isquémica" in p or "IAM" in p for p in antecedentes_seleccionados)) or cardio_angina else 0
                 factor_insuf_cardiaca = 1 if (not sin_antecedentes and "Insuficiencia Cardíaca" in lista_patologias) or cardio_edema or cardio_disnea else 0
                 factor_acv = 1 if (not sin_antecedentes and any("ACV" in p or "Isquemia" in p for p in antecedentes_seleccionados)) else 0
                 factor_insulina = 1 if (not sin_antecedentes and "Insulina" in medicacion_actual) else 0
-                factor_creatinina = 1 if creatinina_alta else 0
                 
-                score_lee = factor_cirugia_riesgo + factor_cardiopatia_isq + factor_insuf_cardiaca + factor_acv + factor_insulina + factor_creatinina
+                # Nota: El factor_creatinina se sumará en el módulo de laboratorios posteriormente
+                score_lee = factor_cirugia_riesgo + factor_cardiopatia_isq + factor_insuf_cardiaca + factor_acv + factor_insulina
