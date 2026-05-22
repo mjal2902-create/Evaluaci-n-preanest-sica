@@ -332,7 +332,7 @@ with col_izq:
                     txt_drogas = st.text_input("Especifique la sustancia (Ej. Cannabis, Cocaína):", key="mod2_txt_dro")
 
 # ---------------------------------------------------------
-        # MÓDULO 3: VÍA AÉREA Y PREDICTORES (LLENADO MANUAL PURO)
+        # MÓDULO 3: VÍA AÉREA Y PREDICTORES (DISEÑO DE RECOLECCIÓN PURO)
         # ---------------------------------------------------------
         with st.expander("3. Vía Aérea y Predictores de Dificultad", expanded=True):
             
@@ -395,9 +395,10 @@ with col_izq:
 
             c_vad5, c_vad6 = st.columns(2)
             
+            # Rangos de cuello actualizados incluyendo la opción mayor a 40 cm
             cuello_cat = c_vad5.selectbox(
                 "Circunferencia de Cuello",
-                ["Menor a 35 cm (< 35 cm)", "Mayor a 35 cm (> 35 cm)"],
+                ["Menor a 35 cm (< 35 cm)", "Entre 35 y 40 cm (35 - 40 cm)", "Mayor a 40 cm (> 40 cm)"],
                 key="mod3_cuello_categoria"
             )
             
@@ -427,7 +428,7 @@ with col_izq:
             vad_lengua = st.checkbox("🔹 Gran tamaño de lengua (Macroglosia)", key="mod3_lengua")
             vad_retrognatia = st.checkbox("🔹 Retrognatia / Micrognatia (Mentón retraído)", key="mod3_retrognatia")
 
-            # --- CÓDIGO DE ARNE SILENCIOSO ---
+            # --- PROCESAMIENTO SILENCIOSO DE ARNÉ ---
             pts_historia = 10 if arne_historia else 0
             pts_patologia = 5 if arne_patologia else 0
             pts_mallampati = 0 if "Clase I" in mallampati else (1 if "Clase II" in mallampati else (2 if "Clase III" in mallampati else 5))
@@ -436,48 +437,37 @@ with col_izq:
             pts_mov = 0 if "Normal" in mov_cervical_arne else (2 if "Moderada" in mov_cervical_arne else 5)
             score_arne = pts_historia + pts_patologia + pts_mallampati + pts_dtm + pts_ab + pts_mov
 
+            # Conteo analítico complementario de criterios ASA presentes
+            cuello_aumentado = cuello_cat in ["Entre 35 y 40 cm (35 - 40 cm)", "Mayor a 40 cm (> 40 cm)"]
+            criterios_asa_positivos = sum([
+                vad_incisivos, vad_paladar, vad_lengua, vad_retrognatia,
+                "Clase III" in mallampati or "Clase IV" in mallampati,
+                "Clase III" in dtm, "Clase III" in apertura_bucal, "Clase III" in dem,
+                cuello_aumentado, "Clase III" in ulbt, "Limitación Severa" in mov_cervical_arne
+            ])
+
             st.divider()
 
-            # --- 3. PREDICTORES DE VENTILACIÓN DIFÍCIL CON MÁSCARA (OBESE MANUAL) ---
-            st.markdown("#### 😷 Predictores de Ventilación Difícil (Criterios OBESE)")
+            # --- 3. PREDICTORES DE VENTILACIÓN DIFÍCIL CON MÁSCARA (OBESE REDUCIDO) ---
+            st.markdown("#### 😷 Predictores de Ventilación Difícil (Parámetros Físicos OBESE)")
             
             c_vmd1, c_vmd2 = st.columns(2)
-            # Casillas manuales puras sin valor predeterminado (inicializan vacías)
-            vmd_edad = c_vmd1.checkbox("O - Edad > 55 años", key="mod3_vmd_edad")
-            vmd_obesidad = c_vmd2.checkbox("O - Obesidad (IMC ≥ 30 kg/m²)", key="mod3_vmd_ob")
-            
-            c_vmd3, c_vmd4 = st.columns(2)
-            vmd_barba = c_vmd3.checkbox("B - Presencia de Barba tupida", key="mod3_barba")
-            vmd_edentulo = c_vmd4.checkbox("E - Paciente Edéntulo (Total o Parcial)", key="mod3_edentulo")
-            
-            vmd_sahos = st.checkbox("S - Historia de Ronquido Severo / Apnea del Sueño (SAHOS)", key="mod3_sahos")
+            vmd_barba = c_vmd1.checkbox("B - Presencia de Barba tupida", key="mod3_barba")
+            vmd_edentulo = c_vmd2.checkbox("E - Paciente Edéntulo (Total o Parcial)", key="mod3_edentulo")
 
-            # Conteo interno silencioso
-            puntos_vmd = sum([vmd_edad, vmd_obesidad, vmd_barba, vmd_edentulo, vmd_sahos])
+            # Sumatoria silenciosa reducida a las variables físicas en pantalla
+            puntos_vmd = sum([vmd_barba, vmd_edentulo])
 
             st.divider()
 
-            # --- 4. TAMIZAJE DE APNEA DEL SUEÑO (STOP-BANG MANUAL) ---
-            st.markdown("#### 💤 Tamizaje de Apnea del Sueño (Índice STOP-BANG)")
+            # --- 4. TAMIZAJE DE APNEA DEL SUEÑO (STOP-BANG SÍNTOMAS) ---
+            st.markdown("#### 💤 Tamizaje de Apnea del Sueño (Síntomas Clínicos STOP)")
             
-            # Bloque STOP (Manual Puro)
             c_sb1, c_sb2 = st.columns(2)
             sb_s = c_sb1.checkbox("S - Ronquido fuerte (¿Es más fuerte que su voz o se escucha a través de puertas?)", key="mod3_sb_s")
             sb_t = c_sb2.checkbox("T - Cansancio (¿Se siente fatigado o somnoliento durante el día frecuentemente?)", key="mod3_sb_t")
             
-            c_sb3, c_sb4 = st.columns(2)
-            sb_o = c_sb3.checkbox("O - Apnea observada (¿Alguien ha visto que deja de respirar mientras duerme?)", key="mod3_sb_o")
-            sb_p = c_sb4.checkbox("P - Presión Arterial (Historial de hipertensión diagnosticada)", key="mod3_sb_p")
+            sb_o = st.checkbox("O - Apnea observada (¿Alguien ha visto o escuchado que deja de respirar mientras duerme?)", key="mod3_sb_o")
 
-            # Bloque BANG (Manual Puro)
-            c_sb5, c_sb6 = st.columns(2)
-            sb_b = c_sb5.checkbox("B - IMC elevado (IMC > 35 kg/m²)", key="mod3_sb_b")
-            sb_a = c_sb6.checkbox("A - Edad avanzada (Edad > 50 años)", key="mod3_sb_a")
-            
-            c_sb7, c_sb8 = st.columns(2)
-            sb_n = c_sb7.checkbox("N - Circunferencia de cuello aumentada (Cuello > 40 cm)", key="mod3_sb_n")
-            sb_g = c_sb8.checkbox("G - Género fenotípico (Sexo Masculino)", key="mod3_sb_g")
-
-            # Conteo interno silencioso para mapeo analítico posterior
-            puntos_stop_bang = sum([sb_s, sb_t, sb_o, sb_p, sb_b, sb_a, sb_n, sb_g])
-            riesgo_sahos_txt = "Riesgo Bajo" if puntos_stop_bang <= 2 else ("Riesgo Intermedio" if puntos_stop_bang <= 4 else "Riesgo Alto")
+            # Sumatoria silenciosa reducida a los síntomas clínicos presenciales
+            puntos_stop_bang = sum([sb_s, sb_t, sb_o])
