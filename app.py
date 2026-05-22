@@ -255,63 +255,109 @@ with col_izq:
             medicacion_actual = ["Ninguno"]
             notas_medicacion_txt = ""
             
+            if not sin_antecedentes:# ---------------------------------------------------------
+        # MÓDULO 2: SEGURIDAD, ALERGIAS Y ANTECEDENTES (DINAMIZADO Y UNIFICADO)
+        # ---------------------------------------------------------
+        with st.expander("2. Seguridad, Alergias y Antecedentes Patológicos", expanded=True):
+            
+            # --- 1. SECCIÓN DE ALERGIAS ---
+            st.markdown("#### 🚨 Alergias y Sensibilidades")
+            sin_alergias = st.checkbox("✅ No refiere alergias", value=True, key="mod2_sin_alergias")
+            
+            alergias_med = []
+            otras_alergias_med_txt = ""
+            alergias_alim = []
+            otras_alergias_ali_txt = ""
+            
+            if not sin_alergias:
+                c_al1, c_al2 = st.columns(2)
+                alergias_med = c_al1.multiselect(
+                    "Farmacológicas / Sustancias",
+                    options=["Penicilinas / Betalactámicos", "AINEs", "Látex", "Opioides", "Relajantes Musculares", "Anestésicos Locales", "Medios de Contraste", "Otros (Especificar)"],
+                    key="mod2_al_med"
+                )
+                if "Otros (Especificar)" in alergias_med:
+                    otras_alergias_med_txt = c_al1.text_input("💊 Especifique otras alergias farmacológicas:", key="mod2_al_med_txt")
+
+                alergias_alim = c_al2.multiselect(
+                    "Alimentarias",
+                    options=["Huevo", "Soya", "Mariscos / Yodo", "Frutos secos", "Lácteos", "Gluten", "Otros (Especificar)"],
+                    key="mod2_al_ali"
+                )
+                if "Otros (Especificar)" in alergias_alim:
+                    otras_alergias_ali_txt = c_al2.text_input("🥚 Especifique otras alergias alimentarias:", key="mod2_al_ali_txt")
+
+            st.divider()
+
+            # --- 2. SECCIÓN UNIFICADA: ANTECEDENTES Y MEDICACIÓN ---
+            st.markdown("#### 📋 Antecedentes Patológicos y Medicación Habitual")
+            sin_antecedentes = st.checkbox("✅ No refiere antecedentes patológicos ni medicación de uso continuo", value=True, key="mod2_sin_antecedentes")
+            
+            antecedentes_seleccionados = ["Ninguno"]
+            otros_antecedentes_txt = ""
+            medicacion_actual = ["Ninguno"]
+            notas_medicacion_txt = ""
+            tipo_fractura_app = "No aplica" # Inicialización de seguridad
+            
             if not sin_antecedentes:
-                # Motor epidemiológico dinámico (Heredado del Módulo 1)
+                # Motor de listas epidemiológicas por edad/sexo
                 if es_obstetrico:
                     lista_patologias = ["Ninguno", "Trastornos Hipertensivos (Preeclampsia/HTA)", "Diabetes Gestacional", "Anemia", "Hipotiroidismo", "Asma", "Cardiopatía", "Obesidad", "Otros (Especificar)"]
                 elif edad < 18:
-                    lista_patologias = ["Ninguno", "Asma / Hiperreactividad Bronquial", "Cardiopatía Congénita", "Epilepsia / Convulsiones", "Prematuridad / Ingreso a UCIN", "Trastorno Hematológico (Hemofilia/Drepanocitosis)", "Atopia / Rinitis", "Otros (Especificar)"]
+                    lista_patologias = ["Ninguno", "Asma / Hiperreactividad Bronquial", "Cardiopatía Congénita", "Epilepsia / Convulsiones", "Prematuridad / Ingreso a UCIN", "Trastorno Hematológico", "Atopia / Rinitis", "Otros (Especificar)"]
                 elif edad >= 60:
                     if sexo == "Masculino":
-                        lista_patologias = ["Ninguno", "Hipertensión Arterial (HTA)", "Diabetes Mellitus Tipo 2", "Cardiopatía Isquémica (IAM/Angina)", "EPOC / Fumador", "Hipertrofia Prostática Benigna", "Arritmia (Fibrilación Auricular)", "Enfermedad Renal Crónica (ERC)", "ACV / Isquemia Transitoria", "Otros (Especificar)"]
+                        lista_patologias = ["Ninguno", "Hipertensión Arterial (HTA)", "Diabetes Mellitus Tipo 2", "Cardiopatía Isquémica (IAM/Angina)", "EPOC / Fumador", "Hipertrofia Prostática Benigna", "Arritmia (FA)", "Enfermedad Renal Crónica (ERC)", "ACV / Isquemia Transitoria", "Otros (Especificar)"]
                     else:
-                        lista_patologias = ["Ninguno", "Hipertensión Arterial (HTA)", "Diabetes Mellitus Tipo 2", "Hipotiroidismo", "Osteoporosis / Osteoartritis", "Insuficiencia Cardíaca", "Arritmia (Fibrilación Auricular)", "Enfermedad Renal Crónica (ERC)", "ACV", "Otros (Especificar)"]
+                        lista_patologias = ["Ninguno", "Hipertensión Arterial (HTA)", "Diabetes Mellitus Tipo 2", "Hipotiroidismo", "Osteoporosis / Osteoartritis", "Insuficiencia Cardíaca", "Arritmia (FA)", "Enfermedad Renal Crónica (ERC)", "ACV", "Otros (Especificar)"]
                 else:
                     if sexo == "Masculino":
-                        lista_patologias = ["Ninguno", "Hipertensión Arterial (HTA)", "Diabetes Mellitus Tipo 2", "Dislipidemia", "Asma / EPOC", "Reflujo Gastroesofágico (ERGE)", "Esteatosis Hepática / Hepatopatía", "Trastorno Psiquiátrico", "Otros (Especificar)"]
+                        lista_patologias = ["Ninguno", "Hipertensión Arterial (HTA)", "Diabetes Mellitus Tipo 2", "Dislipidemia", "Asma / EPOC", "Reflujo Gastroesofágico (ERGE)", "Hepatopatía", "Trastorno Psiquiátrico", "Otros (Especificar)"]
                     else:
-                        lista_patologias = ["Ninguno", "Hipotiroidismo", "Hipertensión Arterial (HTA)", "Diabetes Mellitus Tipo 2", "Asma", "Enfermedad Autoinmune (LES/AR)", "Migraña / Cefalea Crónica", "Anemia", "Trastorno Psiquiátrico", "Otros (Especificar)"]
+                        lista_patologias = ["Ninguno", "Hipotiroidismo", "Hipertensión Arterial (HTA)", "Diabetes Mellitus Tipo 2", "Asma", "Enfermedad Autoinmune (LES/AR)", "Migraña", "Anemia", "Trastorno Psiquiátrico", "Otros (Especificar)"]
+
+                # Inyección global de la opción de Fractura
+                if "Otros (Especificar)" in lista_patologias:
+                    idx = lista_patologias.index("Otros (Especificar)")
+                    lista_patologias.insert(idx, "Fractura / Traumatismo Mayor")
 
                 lista_medicamentos = ["Antihipertensivos (IECA/ARA II/BCC)", "Beta-bloqueadores", "Diuréticos", "Metformina / Hipoglucemiantes orales", "Insulina", "Antiagregantes (Aspirina/Clopidogrel)", "Anticoagulantes (Warfarina/DOACs)", "Levotiroxina", "Inhaladores (SABA/Corticoides)", "Anticonvulsivantes", "Ninguno", "Otros (Especificar)"]
                 
-                # Renderizado en paralelo para correlación clínica inmediata
                 c_unif1, c_unif2 = st.columns(2)
                 
-                antecedentes_seleccionados = c_unif1.multiselect(
-                    "Patologías Clínicas (APP)", 
-                    options=lista_patologias, 
-                    key="mod2_antecedentes"
-                )
+                antecedentes_seleccionados = c_unif1.multiselect("Patologías Clínicas (APP)", options=lista_patologias, key="mod2_antecedentes")
+                
+                # APARTADO DINÁMICO: TIPOS DE FRACTURA MÁS COMUNES
+                if "Fractura / Traumatismo Mayor" in antecedentes_seleccionados:
+                    tipo_fractura_app = c_unif1.selectbox(
+                        "🦴 Tipo / Localización de la Fractura",
+                        [
+                            "Fractura de Cadera (Fémur Proximal) [Riesgo Caprini Alto]",
+                            "Fractura de Pelvis o Acetábulo [Riesgo Caprini Alto]",
+                            "Fractura de Miembro Inferior (Diáfisis de Fémur, Tibia, Peroné) [Riesgo Caprini Alto]",
+                            "Fractura de Miembro Superior (Húmero, Radio, Cúbito, Clavícula)",
+                            "Fractura Vertebral / Columna (Torácica / Lumbar)",
+                            "Fractura Craneofacial / Mandibular"
+                        ],
+                        key="mod2_tipo_fractura"
+                    )
+                
                 if "Otros (Especificar)" in antecedentes_seleccionados:
                     otros_antecedentes_txt = c_unif1.text_input("🔍 Especifique otros antecedentes:", key="mod2_ant_otros_txt")
 
-                medicacion_actual = c_unif2.multiselect(
-                    "Fármacos de Uso Continuo", 
-                    options=lista_medicamentos, 
-                    key="mod2_medicacion"
-                )
+                medicacion_actual = c_unif2.multiselect("Fármacos de Uso Continuo", options=lista_medicamentos, key="mod2_medicacion")
                 if "Otros (Especificar)" in medicacion_actual:
                     notas_medicacion_txt = c_unif2.text_input("📝 Especifique dosis o frecuencias:", key="mod2_med_notas_txt")
 
             st.divider()
-
-            # --- 3. SECCIÓN DE HÁBITOS (Dinamizada) ---
+            
+            # --- 3. SECCIÓN DE HÁBITOS ---
             st.markdown("#### 🚬 Hábitos y Estilo de Vida")
             sin_habitos = st.checkbox("✅ No refiere hábitos dañinos", value=True, key="mod2_sin_habitos")
-
-            hab_alcohol = False
-            int_alcohol = "+"
-            hab_cigarrillo = False
-            int_cigarrillo = "+"
-            hab_cafe = False
-            int_cafe = "+"
-            hab_drogas = False
-            int_drogas = "+"
-            txt_drogas = ""
+            hab_alcohol = False; int_alcohol = "+"; hab_cigarrillo = False; int_cigarrillo = "+"; hab_cafe = False; int_cafe = "+"; hab_drogas = False; int_drogas = "+"; txt_drogas = ""
 
             if not sin_habitos:
                 st.caption("Nota: `+` Bajo | `++` Moderado | `+++` Severo/Grave")
-                
                 c_alc1, c_alc2 = st.columns([3, 1])
                 hab_alcohol = c_alc1.checkbox("Consumo de Alcohol", key="mod2_hab_alc")
                 int_alcohol = c_alc2.selectbox("Intensidad Alcohol", ["+", "++", "+++"], key="mod2_int_alc", disabled=not hab_alcohol, label_visibility="collapsed")
@@ -327,10 +373,8 @@ with col_izq:
                 c_dro1, c_dro2 = st.columns([3, 1])
                 hab_drogas = c_dro1.checkbox("Sustancias / Drogas de Abuso", key="mod2_hab_dro")
                 int_drogas = c_dro2.selectbox("Intensidad Drogas", ["+", "++", "+++"], key="mod2_int_dro", disabled=not hab_drogas, label_visibility="collapsed")
-                
                 if hab_drogas:
-                    txt_drogas = st.text_input("Especifique la sustancia (Ej. Cannabis, Cocaína):", key="mod2_txt_dro")
-
+                    txt_drogas = st.text_input("Especifique la sustancia:", key="mod2_txt_dro")
 # ---------------------------------------------------------
         # MÓDULO 3: VÍA AÉREA Y PREDICTORES (ANTROPOMETRÍA ADAPTATIVA)
         # ---------------------------------------------------------
