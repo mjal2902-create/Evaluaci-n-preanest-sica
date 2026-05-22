@@ -448,26 +448,17 @@ with col_izq:
 
             st.divider()
 
-            # --- 3. PREDICTORES DE VENTILACIÓN DIFÍCIL CON MÁSCARA (OBESE REDUCIDO) ---
-            st.markdown("#### 😷 Predictores de Ventilación Difícil (Parámetros Físicos OBESE)")
-            
-            c_vmd1, c_vmd2 = st.columns(2)
-            vmd_barba = c_vmd1.checkbox("B - Presencia de Barba tupida", key="mod3_barba")
-            vmd_edentulo = c_vmd2.checkbox("E - Paciente Edéntulo (Total o Parcial)", key="mod3_edentulo")
+            # --- 3. SECCIÓN UNIFICADA: FACTORES FÍSICOS Y SÍNTOMAS (OBESE / STOP) ---
+            st.markdown("#### 😷 Factores Físicos y Sintomatología (OBESE / STOP)")
+            st.caption("Marque las características particulares identificadas en la evaluación:")
 
-            # Sumatoria silenciosa reducida a las variables físicas en pantalla
+            # Lista vertical pura: sin columnas, el texto no se rompe y se alinea perfectamente
+            vmd_barba = st.checkbox("🔸 Presencia de barba tupida (Dificulta el sello de la máscara)", key="mod3_barba")
+            vmd_edentulo = st.checkbox("🔸 Paciente edéntulo total o parcial", key="mod3_edentulo")
+            sb_s = st.checkbox("🔸 Historial de ronquido fuerte (Audible a través de puertas cerradas)", key="mod3_sb_s")
+            sb_t = st.checkbox("🔸 Cansancio, fatiga o somnolencia diurna frecuente", key="mod3_sb_t")
+            sb_o = st.checkbox("🔸 Apnea nocturna observada por terceros (Pausas al respirar)", key="mod3_sb_o")
+
+            # --- PROCESAMIENTO SILENCIOSO (Mantiene tus bases de datos y reportes intactos) ---
             puntos_vmd = sum([vmd_barba, vmd_edentulo])
-
-            st.divider()
-
-            # --- 4. TAMIZAJE DE APNEA DEL SUEÑO (STOP-BANG SÍNTOMAS) ---
-            st.markdown("#### 💤 Tamizaje de Apnea del Sueño (Síntomas Clínicos STOP)")
-            
-            c_sb1, c_sb2 = st.columns(2)
-            sb_s = c_sb1.checkbox("S - Ronquido fuerte (¿Es más fuerte que su voz o se escucha a través de puertas?)", key="mod3_sb_s")
-            sb_t = c_sb2.checkbox("T - Cansancio (¿Se siente fatigado o somnoliento durante el día frecuentemente?)", key="mod3_sb_t")
-            
-            sb_o = st.checkbox("O - Apnea observada (¿Alguien ha visto o escuchado que deja de respirar mientras duerme?)", key="mod3_sb_o")
-
-            # Sumatoria silenciosa reducida a los síntomas clínicos presenciales
             puntos_stop_bang = sum([sb_s, sb_t, sb_o])
