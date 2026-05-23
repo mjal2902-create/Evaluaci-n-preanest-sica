@@ -654,8 +654,7 @@ with col_derecha:
                 if frac_calc != "No aplica":
                     st.markdown(f"**Detalle de Traumatología:** 🦴 *{frac_calc}*")
                 st.markdown(f"**Procedimiento Quirúrgico:** **{proc_calc}**")
-                
-st.markdown("---")
+                st.markdown("---")
                 st.success(f"💉 **Estrategia Anestésica:** **{anestesia_calc}**")
                 
                 # =====================================================================
