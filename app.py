@@ -701,7 +701,15 @@ with col_izq:
                 
                 # Nota: El factor_creatinina se sumará en el módulo de laboratorios posteriormente
                 score_lee = factor_cirugia_riesgo + factor_cardiopatia_isq + factor_insuf_cardiaca + factor_acv + factor_insulina
-# --- VALORES BASALES DE SEGURIDAD ---
+# ---------------------------------------------------------
+        # MÓDULO 5: PRUEBAS DE LABORATORIO Y COAGULACIÓN (SINCRO ESCALAS)
+        # ---------------------------------------------------------
+        with st.expander("5. Pruebas de Laboratorio y Coagulación", expanded=True):
+            
+            # 1. ESTA LÍNEA DEBE IR PRIMERO SIEMPRE (Crea la variable para el sistema)
+            sin_laboratorios = st.checkbox("✅ No dispone o no requiere exámenes de laboratorio (Paciente sano)", value=True, key="mod5_sin_labs")
+
+            # 2. VALORES BASALES DE SEGURIDAD (Garantizan estabilidad en el backend)
             hb_val = 14.0
             hto_val = 42.0
             plaquetas_val = 250000
@@ -717,9 +725,10 @@ with col_izq:
             inr_val = 1.0
             tiene_gasometria = False
 
+            # Detectamos el antecedente del Módulo 2
             cirrosis_activa = "Cirrosis Hepática" in antecedentes_seleccionados
 
-            # --- CONTROL DE RENDERIZADO INTERACTIVO MÓDULO 5 ---
+            # 3. CONTROL DE RENDERIZADO INTERACTIVO (Ahora sí leerá las variables sin NameError)
             if not sin_laboratorios or cirrosis_activa:
                 
                 # --- 1. HEMATOLOGÍA COMPLETA (Siempre visible si se piden laboratorios) ---
