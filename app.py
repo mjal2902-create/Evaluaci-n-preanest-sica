@@ -736,5 +736,7 @@ with col_derecha:
                     
                     if habitos_activos:
                         st.markdown(f"**🚬 Hábitos y Estilo de Vida:** {' | '.join(habitos_activos)}")
+                else:
+                    st.success("✅ **Hábitos de Riesgo:** Negados / Estilo de vida saludable.")
                         
                 st.divider()
