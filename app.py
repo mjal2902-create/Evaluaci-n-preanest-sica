@@ -744,9 +744,8 @@ with col_izq:
                 bun_val = c_lab4.number_input("BUN (mg/dL)", min_value=1.0, max_value=150.0, value=15.0, step=1.0, key="mod5_bun")
                 potasio_val = c_lab5.number_input("Potasio K+ (mEq/L)", min_value=1.5, max_value=8.0, value=4.0, step=0.1, key="mod5_potasio")
                 
-                st.divider()
-                # --- 3.5. PERFIL HEPÁTICO (CONDICIONAL PARA CHILD-PUGH) ---
-            # Inicialización de seguridad para evitar NameError si el bloque está oculto
+  # --- 3.5. PERFIL HEPÁTICO (CONDICIONAL PARA CHILD-PUGH) ---
+            # Inicialización de seguridad basal para el backend
             bili_total = 1.0
             albumina_serica = 3.5
             
@@ -756,24 +755,25 @@ with col_izq:
                 bili_total = c_hep1.number_input("Bilirrubina Total (mg/dL)", min_value=0.1, max_value=50.0, value=1.0, step=0.1, key="mod5_bili")
                 albumina_serica = c_hep2.number_input("Albúmina Sérica (g/dL)", min_value=1.0, max_value=6.0, value=3.5, step=0.1, key="mod5_albu")
                 st.divider()
-                # --- 3. TIEMPOS DE COAGULACIÓN (CRÍTICO PARA ANESTESIA REGIONAL) ---
-                st.markdown("#### ⏱️ Coagulación")
-                c_lab6, c_lab7, c_lab8 = st.columns(3)
-                
-                tp_val = c_lab6.number_input("Tiempo de Protrombina TP (seg)", min_value=5.0, max_value=60.0, value=12.0, step=0.1, key="mod5_tp")
-                ttpa_val = c_lab7.number_input("TTPa (seg)", min_value=10.0, max_value=120.0, value=30.0, step=0.1, key="mod5_ttpa")
-                inr_val = c_lab8.number_input("INR", min_value=0.5, max_value=10.0, value=1.0, step=0.1, key="mod5_inr")
-                
-                st.divider()
 
-                # --- 4. GASOMETRÍA ARTERIAL (CONDICIONAL OPTIONAL) ---
-                tiene_gasometria = st.checkbox("🫁 ¿Cuenta con reporte de Gasometría Arterial?", value=False, key="mod5_check_gases")
-                
-                if tiene_gasometria:
-                    c_gas1, c_gas2, c_gas3 = st.columns(3)
-                    pao2_val = c_gas1.number_input("PaO2 (mmHg)", min_value=30.0, max_value=500.0, value=90.0, step=1.0, key="mod5_pao2")
-                    paco2_val = c_gas2.number_input("PaCO2 (mmHg)", min_value=10.0, max_value=100.0, value=38.0, step=1.0, key="mod5_paco2")
-                    hco3_val = c_gas3.number_input("HCO3- (mEq/L)", min_value=5.0, max_value=50.0, value=24.0, step=0.1, key="mod5_hco3")
+            # --- 3. TIEMPOS DE COAGULACIÓN (CRÍTICO PARA ANESTESIA REGIONAL) ---
+            st.markdown("#### 🫀 Coagulación")
+            c_lab6, c_lab7, c_lab8 = st.columns(3)
+            
+            tp_val = c_lab6.number_input("Tiempo de Protrombina TP (seg)", min_value=5.0, max_value=60.0, value=12.0, step=0.1, key="mod5_tp")
+            ttpa_val = c_lab7.number_input("TTPa (seg)", min_value=10.0, max_value=120.0, value=30.0, step=0.1, key="mod5_ttpa")
+            inr_val = c_lab8.number_input("INR", min_value=0.5, max_value=10.0, value=1.0, step=0.1, key="mod5_inr")
+            
+            st.divider()
+
+            # --- 4. GASOMETRÍA ARTERIAL (CONDICIONAL OPTIONAL) ---
+            tiene_gasometria = st.checkbox("🫁 ¿Cuenta con reporte de Gasometría Arterial?", value=False, key="mod5_check_gases")
+            
+            if tiene_gasometria:
+                c_gas1, c_gas2, c_gas3 = st.columns(3)
+                pao2_val = c_gas1.number_input("PaO2 (mmHg)", min_value=30.0, max_value=500.0, value=90.0, step=1.0, key="mod5_pao2")
+                paco2_val = c_gas2.number_input("PaCO2 (mmHg)", min_value=10.0, max_value=100.0, value=38.0, step=1.0, key="mod5_paco2")
+                hco3_val = c_gas3.number_input("HCO3- (mEq/L)", min_value=5.0, max_value=50.0, value=24.0, step=0.1, key="mod5_hco3")
 
                 # --- PROCESAMIENTO SILENCIOSO COUPLING CON ESCALAS ---
                 # 1. Ajuste final del Índice de Lee (Suma el punto si Creatinina > 2.0 mg/dL)
