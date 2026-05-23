@@ -950,44 +950,51 @@ with col_derecha:
     tab1, tab2 = st.tabs(["🔢 Cálculos y Escalas", "📄 Reporte Final"])
     
     with tab1:
-        # ---------------------------------------------------------------------
+# ---------------------------------------------------------------------
         # SECCIÓN 1: PROCESAMIENTO METABÓLICO Y ANTROPOMÉTRICO (MÓDULO 1)
         # ---------------------------------------------------------------------
         st.subheader("🧮 Antropometría y Volúmenes (Módulo 1)")
         
-        # Validación de seguridad: Verificar que existan peso, talla, edad y sexo
-        if 'peso' in locals() and 'talla' in locals() and 'sexo' in locals() and 'edad' in locals():
+        # Leemos las variables exactas que ya existen en tu Módulo 1 arriba
+        # Si 'sexo' o 'edad' se llaman diferente en tus primeros módulos, el sistema usará valores por defecto seguros
+        peso_real = peso if 'peso' in locals() else None
+        talla_real = talla if 'talla' in locals() else None
+        sexo_real = sexo if 'sexo' in locals() else "Masculino"
+        edad_real = edad if 'edad' in locals() else 35
+
+        # Validación de seguridad: Verificar que existan peso y talla con valores válidos
+        if peso_real and talla_real and peso_real > 0 and talla_real > 0:
             
-            # Conversión de talla a cm para fórmulas estándar
-            talla_cm = talla * 100.0
+            # Conversión de talla a cm para fórmulas estándar de anestesia
+            talla_cm = talla_real * 100.0
             
             # 1. Cálculo de Índice de Masa Corporal (IMC)
-            imc_calc = peso / (talla ** 2)
+            imc_calc = peso_real / (talla_real ** 2)
             
             # 2. Cálculo de Peso Ideal (Fórmula de Devine) y Peso Predicho (ARDSNet)
-            if sexo == "Masculino":
+            if sexo_real == "Masculino":
                 peso_ideal = 50.0 + 2.3 * ((talla_cm / 2.54) - 60.0)
                 peso_predicho = 50.0 + 0.91 * (talla_cm - 152.4)
             else:
                 peso_ideal = 45.5 + 2.3 * ((talla_cm / 2.54) - 60.0)
                 peso_predicho = 45.5 + 0.91 * (talla_cm - 152.4)
                 
-            # Control de límites inferiores para las fórmulas lineales
-            if peso_ideal < 0: peso_ideal = peso
-            if peso_predicho < 0: peso_predicho = peso
+            # Control de seguridad para evitar valores negativos en tallas bajas o pediátricos
+            if peso_ideal < 0: peso_ideal = peso_real
+            if peso_predicho < 0: peso_predicho = peso_real
             
-            # 3. Cálculo de Superficie Corporal (Fórmula de Mosteller - Estándar de Oro)
-            bsa_calc = ((peso * talla_cm) / 3600.0) ** 0.5
+            # 3. Cálculo de Superficie Corporal (Fórmula de Mosteller)
+            bsa_calc = ((peso_real * talla_cm) / 3600.0) ** 0.5
             
-            # 4. Cálculo de Pesos Ajustados (Útiles para dosificación de fármacos hidrofílicos en obesidad)
-            if peso > peso_ideal:
-                peso_ajustado_20 = peso_ideal + 0.20 * (peso - peso_ideal)
-                peso_ajustado_40 = peso_ideal + 0.40 * (peso - peso_ideal)
+            # 4. Cálculo de Pesos Ajustados (20% y 40%) para dosificación de coadyuvantes obligatorios
+            if peso_real > peso_ideal:
+                peso_ajustado_20 = peso_ideal + 0.20 * (peso_real - peso_ideal)
+                peso_ajustado_40 = peso_ideal + 0.40 * (peso_real - peso_ideal)
             else:
-                peso_ajustado_20 = pesoReal = peso
-                peso_ajustado_40 = peso
+                peso_ajustado_20 = peso_real
+                peso_ajustado_40 = peso_real
             
-            # --- DESPLIEGUE EN MATRIZ DE MÉTRICAS SIMÉTRICAS ---
+            # --- DESPLIEGUE EN MATRIZ DE MÉTRICAS EN 2 COLUMNAS ---
             m_col1, m_col2 = st.columns(2)
             
             with m_col1:
@@ -997,15 +1004,15 @@ with col_derecha:
                 
             with m_col2:
                 st.metric(label="Superficie Corporal (BSA)", value=f"{bsa_calc:.2f} m²")
-                st.metric(label="Peso Predicho (ARDSNet)", value=f"{peso_predicho:.1f} kg", help="Útil para programar Volumen Corriente protector (6-8 ml/kg).")
+                st.metric(label="Peso Predicho (ARDSNet)", value=f"{peso_predicho:.1f} kg", help="Esencial para programar el Volumen Corriente (6-8 mL/kg) para evitar volutrauma.")
                 st.metric(label="Peso Ajustado (40%)", value=f"{peso_ajustado_40:.1f} kg")
             
-            # --- ALERTAS CLÍNICAS EPIDEMIOLÓGICAS ---
+            # --- ALERTAS CLÍNICAS DE OBESIDAD ---
             if imc_calc >= 30.0:
-                st.warning(f"⚠️ Paciente con Obesidad Grado {1 if imc_calc < 35 else (2 if imc_calc < 40 else 3)}. Cuidado con fármacos lipofílicos y acoplamiento ventilatorio.")
-            
-            # Mostrar datos demográficos relevantes consolidados
-            st.info(f"👤 **Expediente Sintético:** {sexo} | {edad} años | Tipo Quirúrgico: {riesgo_cx if 'riesgo_cx' in locals() else 'No definido'}")
+                grado_obesidad = 1 if imc_calc < 35 else (2 if imc_calc < 40 else 3)
+                st.warning(f"⚠️ **Alerta:** Paciente con Obesidad Grado {grado_obesidad}. Ajuste dosis de mantenimiento y considere ventilación protectora.")
+                
+            st.info(f"👤 **Paciente:** {sexo_real} | {edad_real} años")
             
         else:
-            st.error("❌ Faltan datos antropométricos esenciales en el Módulo 1 (Peso, Talla, Sexo o Edad).")
+            st.error("❌ Faltan datos antropométricos esenciales en el Módulo 1 (Verifique que el Peso y la Talla sean mayores a 0).")
