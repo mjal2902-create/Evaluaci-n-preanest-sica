@@ -663,3 +663,69 @@ with col_derecha:
     else:
         st.markdown("### 📊 PANEL DE CONTROL PERIOPERATORIO")
         st.info("🔒 **Falta Validación Inicial:** Por favor, registre la Clasificación Institucional y el Hospital en el Módulo de la izquierda para desplegar de forma estática los cálculos automáticos y las escalas perioperatorias.")
+# =====================================================================
+                # PESTAÑA 1 - SECCIÓN 2: SEGURIDAD, ALERGIAS Y ANTECEDENTES (MÓDULO 2)
+                # =====================================================================
+                st.subheader("🛡️ Seguridad y Antecedentes (Módulo 2)")
+                
+                # --- LECTURA SEGURA DE VARIABLES DEL MÓDULO 2 ---
+                # Alergias
+                alergias_negadas = sin_alergias if 'sin_alergias' in locals() else True
+                al_med_calc = alergias_med if 'alergias_med' in locals() else []
+                al_ali_calc = alergias_alim if 'alergias_alim' in locals() else []
+                
+                # Antecedentes y Medicación
+                app_negados = sin_antecedentes if 'sin_antecedentes' in locals() else True
+                app_calc = antecedentes_seleccionados if 'antecedentes_seleccionados' in locals() else []
+                meds_calc = medicacion_actual if 'medicacion_actual' in locals() else []
+                
+                # Hábitos
+                habitos_negados = sin_habitos if 'sin_habitos' in locals() else True
+                
+                # --- SUBSECCIÓN A: ALERTAS DE ALERGIAS ---
+                if alergias_negadas:
+                    st.success("✅ **Alergias:** Negadas por el paciente.")
+                else:
+                    if al_med_calc:
+                        lista_med = ", ".join(al_med_calc)
+                        st.error(f"🚨 **Alergia Farmacológica:** {lista_med}")
+                    if al_ali_calc:
+                        lista_ali = ", ".join(al_ali_calc)
+                        st.warning(f"⚠️ **Alergia Alimentaria/Ambiental:** {lista_ali}")
+
+                # --- SUBSECCIÓN B: ANTECEDENTES Y MEDICACIÓN ---
+                if app_negados:
+                    st.info("✅ **Historial Clínico:** Sin antecedentes patológicos ni medicación continua.")
+                else:
+                    # Renderizado de Patologías
+                    if app_calc and app_calc != ["Ninguno"]:
+                        st.markdown(f"**🩺 Patologías (APP):** {', '.join(app_calc)}")
+                        
+                        # Alerta específica para Cirrosis (Child-Pugh)
+                        if "Cirrosis Hepática" in app_calc:
+                            asc_calc = child_ascitis if 'child_ascitis' in locals() else "Ausente"
+                            enc_calc = child_encefalo if 'child_encefalo' in locals() else "Ausente"
+                            st.caption(f"🟡 *Parámetros Hepáticos activos: Ascitis {asc_calc} | Encefalopatía {enc_calc}*")
+                    else:
+                        st.markdown("**🩺 Patologías (APP):** Ninguna reportada.")
+
+                    # Renderizado de Medicación
+                    if meds_calc and meds_calc != ["Ninguno"]:
+                        st.markdown(f"**💊 Medicación Habitual:** {', '.join(meds_calc)}")
+                    else:
+                        st.markdown("**💊 Medicación Habitual:** Ninguna reportada.")
+
+                # --- SUBSECCIÓN C: HÁBITOS TÓXICOS ---
+                if not habitos_negados:
+                    habitos_activos = []
+                    if 'hab_cigarrillo' in locals() and hab_cigarrillo: 
+                        habitos_activos.append(f"🚬 Tabaco ({int_cigarrillo if 'int_cigarrillo' in locals() else '+'})")
+                    if 'hab_alcohol' in locals() and hab_alcohol: 
+                        habitos_activos.append(f"🍷 Alcohol ({int_alcohol if 'int_alcohol' in locals() else '+'})")
+                    if 'hab_drogas' in locals() and hab_drogas: 
+                        habitos_activos.append(f"💊 Sustancias ({int_drogas if 'int_drogas' in locals() else '+'})")
+                    
+                    if habitos_activos:
+                        st.markdown(f"**🚬 Hábitos de Riesgo:** {' | '.join(habitos_activos)}")
+                        
+                st.divider()
