@@ -117,7 +117,8 @@ with col_izquierda:
             c_ant3.metric(label="IMC Calculado", value=f"{imc:.1f} kg/m²", delta=cat_imc, delta_color="normal")
             st.divider() 
             
-           st.markdown("**Contexto Quirúrgico y Plan Anestésico**")
+# Fila 3: Contexto Quirúrgico Base
+            st.markdown("**Contexto Quirúrgico y Plan Anestésico**")
             
             # Lógica inteligente: Casilla obstétrica solo en mujeres en edad reproductiva o mayor
             es_obstetrico = False
