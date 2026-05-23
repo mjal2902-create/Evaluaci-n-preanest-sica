@@ -728,39 +728,80 @@ with col_izq:
 
             if not sin_laboratorios:
                 
-                # --- 1. HEMATOLOGÍA ---
-                st.markdown("#### 🩸 Hemograma")
-                c_lab1, c_lab2 = st.columns(2)
-                hb_val = c_lab1.number_input("Hemoglobina (g/dL)", min_value=3.0, max_value=25.0, value=14.0, step=0.1, key="mod5_hb")
-                plaquetas_val = c_lab2.number_input("Plaquetas (u/µL)", min_value=10000, max_value=1000000, value=250000, step=5000, key="mod5_plaq")
-                
-                st.divider()
-
-                # --- 2. FUNCIÓN RENAL Y ELECTRÓLITOS (REQUERIMIENTO LEE & GOLDMAN) ---
-                st.markdown("#### 🧪 Función Renal y Electrólitos")
-                c_lab3, c_lab4, c_lab5 = st.columns(3)
-                
-                creatinina_val = c_lab3.number_input("Creatinina (mg/dL)", min_value=0.1, max_value=15.0, value=0.8, step=0.1, key="mod5_creat")
-                bun_val = c_lab4.number_input("BUN (mg/dL)", min_value=1.0, max_value=150.0, value=15.0, step=1.0, key="mod5_bun")
-                potasio_val = c_lab5.number_input("Potasio K+ (mEq/L)", min_value=1.5, max_value=8.0, value=4.0, step=0.1, key="mod5_potasio")
-                
- # --- 3.5. PERFIL HEPÁTICO (CONDICIONAL PARA CHILD-PUGH) ---
-            # Inicialización de seguridad basal para el backend
-            bili_total = 1.0
-            albumina_serica = 3.5
+   # --- 1. HEMATOLOGÍA COMPLETA (SERIE ROJA Y PLAQUETAS) ---
+            st.markdown("#### 🩸 Hemograma")
+            c_lab1, c_lab2, c_lab3 = st.columns(3)
             
-            # Detectamos si Cirrosis está activa en los antecedentes
-            cirrosis_activa = "Cirrosis Hepática" in antecedentes_seleccionados
+            hb_val = c_lab1.number_input("Hemoglobina (g/dL)", min_value=3.0, max_value=25.0, value=14.0, step=0.1, key="mod5_hb")
+            hto_val = c_lab2.number_input("Hematocrito (%)", min_value=10.0, max_value=75.0, value=42.0, step=1.0, key="mod5_hto")
+            plaquetas_val = c_lab3.number_input("Plaquetas (u/µL)", min_value=10000, max_value=1000000, value=250000, step=5000, key="mod5_plaq")
+            
+            st.divider()
 
+            # --- 2. FUNCIÓN RENAL Y PROTEÍNAS (CON ACTIVADORES INDIVIDUALES) ---
+            st.markdown("#### 🧪 Función Renal y Proteínas")
+            
+            # Inicialización basal de seguridad para el backend
+            urea_val = 30.0
+            creatinina_val = 0.8
+            albumina_serica = 3.5
+            cirrosis_activa = "Cirrosis Hepática" in antecedentes_seleccionados
+            
+            c_ren1, c_ren2, c_ren3 = st.columns(3)
+            
+            with c_ren1:
+                tiene_urea = st.checkbox("Pedir Urea", value=True, key="chk_urea")
+                if tiene_urea:
+                    urea_val = st.number_input("Urea (mg/dL)", min_value=5.0, max_value=300.0, value=30.0, step=1.0, key="mod5_urea")
+            
+            with c_ren2:
+                tiene_creat = st.checkbox("Pedir Creatinina", value=True, key="chk_creat")
+                if tiene_creat:
+                    creatinina_val = st.number_input("Creatinina Sérica (mg/dL)", min_value=0.1, max_value=20.0, value=0.8, step=0.1, key="mod5_creat")
+            
+            with c_ren3:
+                # Forzado automático si el paciente es cirrótico, si no, es opcional
+                tiene_albu = st.checkbox("Pedir Albúmina", value=cirrosis_activa, key="chk_albu") or cirrosis_activa
+                if tiene_albu:
+                    albumina_serica = st.number_input("Albúmina Sérica (g/dL)", min_value=1.0, max_value=6.0, value=3.5, step=0.1, key="mod5_albu")
+
+            st.divider()
+
+            # --- 2.5. APARTADO DE ELECTRÓLITOS INDEPENDIENTES (CON ACTIVADORES) ---
+            st.markdown("#### 🧪 Electrólitos Séricos (Bioquímica)")
+            
+            # Inicialización basal de seguridad
+            sodio_serico = 140.0
+            potasio_serico = 4.0
+            cloro_serico = 102.0
+            
+            c_el1, c_el2, c_el3 = st.columns(3)
+            
+            with c_el1:
+                tiene_na = st.checkbox("Pedir Sodio (Na+)", value=False, key="chk_na_ser")
+                if tiene_na:
+                    sodio_serico = st.number_input("Sodio Sérico (mEq/L)", min_value=100.0, max_value=180.0, value=140.0, step=1.0, key="mod5_na_serico")
+            
+            with c_el2:
+                tiene_k = st.checkbox("Pedir Potasio (K+)", value=False, key="chk_k_ser")
+                if tiene_k:
+                    potasio_serico = st.number_input("Potasio Sérico (mEq/L)", min_value=1.5, max_value=8.0, value=4.0, step=0.1, key="mod5_k_serico")
+            
+            with c_el3:
+                tiene_cl = st.checkbox("Pedir Cloro (Cl-)", value=False, key="chk_cl_ser")
+                if tiene_cl:
+                    cloro_serico = st.number_input("Cloro Sérico (mEq/L)", min_value=70.0, max_value=130.0, value=102.0, step=1.0, key="mod5_cl_serico")
+
+            st.divider()
+
+            # --- 3.5. PERFIL HEPÁTICO DINÁMICO (SÓLO PARA CHILD-PUGH) ---
+            bili_total = 1.0
             if cirrosis_activa:
-                st.markdown("#### 🧪 Perfil Hepático")
-                c_hep1, c_hep2 = st.columns(2)
-                bili_total = c_hep1.number_input("Bilirrubina Total (mg/dL)", min_value=0.1, max_value=50.0, value=1.0, step=0.1, key="mod5_bili")
-                albumina_serica = c_hep2.number_input("Albúmina Sérica (g/dL)", min_value=1.0, max_value=6.0, value=3.5, step=0.1, key="mod5_albu")
+                st.markdown("#### 🧪 Perfil Hepático Específico")
+                bili_total = st.number_input("Bilirrubina Total (mg/dL)", min_value=0.1, max_value=50.0, value=1.0, step=0.1, key="mod5_bili")
                 st.divider()
 
-            # --- 3. TIEMPOS DE COAGULACIÓN (SINCRO CIRROSIS / EXÁMENES) ---
-            # Se activa si NO es paciente sano O si tiene Cirrosis Hepática activa
+            # --- 3.6. TIEMPOS DE COAGULACIÓN (SINCRO CIRROSIS / EXÁMENES) ---
             if not sin_laboratorios or cirrosis_activa:
                 st.markdown("#### 🫀 Coagulación")
                 c_lab6, c_lab7, c_lab8 = st.columns(3)
@@ -771,30 +812,42 @@ with col_izq:
                 
                 st.divider()
 
-            # --- 4. GASOMETRÍA ARTERIAL (CONDICIONAL OPTIONAL) ---
+            # --- 4. GASOMETRÍA ARTERIAL INTEGRAL Y CRÍTICA ---
             tiene_gasometria = st.checkbox("🫁 ¿Cuenta con reporte de Gasometría Arterial?", value=False, key="mod5_check_gases")
             
             if tiene_gasometria:
-                c_gas1, c_gas2, c_gas3 = st.columns(3)
-                pao2_val = c_gas1.number_input("PaO2 (mmHg)", min_value=30.0, max_value=500.0, value=90.0, step=1.0, key="mod5_pao2")
-                paco2_val = c_gas2.number_input("PaCO2 (mmHg)", min_value=10.0, max_value=100.0, value=38.0, step=1.0, key="mod5_paco2")
-                hco3_val = c_gas3.number_input("HCO3- (mEq/L)", min_value=5.0, max_value=50.0, value=24.0, step=0.1, key="mod5_hco3")
-
-                # --- PROCESAMIENTO SILENCIOSO COUPLING CON ESCALAS ---
-                # 1. Ajuste final del Índice de Lee (Suma el punto si Creatinina > 2.0 mg/dL)
-                if creatinina_val > 2.0:
-                    factor_creatinina_lee = 1
-                    if 'score_lee' in locals():
-                        score_lee += factor_creatinina_lee
-
-                # 2. Evaluación de criterios metabólicos/gases de Goldman
-                # Suma si BUN > 50 mg/dL, K < 3.0 o > 5.2 mEq/L, PaO2 < 60 mmHg, PaCO2 > 50 mmHg o HCO3 < 20 mEq/L
-                alteracion_gases = tiene_gasometria and (pao2_val < 60.0 or paco2_val > 50.0)
-                alteracion_electrolitos = potasio_val < 3.0 or potasio_val > 5.2
-                alteracion_renal_goldman = bun_val > 50.0 or hco3_val < 20.0
+                st.markdown("#### 🩺 Gasometría Arterial Ampliada")
                 
-                if alteracion_gases or alteracion_electrolitos or alteracion_renal_goldman:
-                    criterio_metabolico_goldman = 1
+                # Fila A: Equilibrio Ácido-Base Puro
+                c_gas1, c_gas2, c_gas3 = st.columns(3)
+                ph_val = c_gas1.number_input("pH Arterial", min_value=6.5, max_value=8.0, value=7.40, step=0.01, key="mod5_ph")
+                paco2_val = c_gas2.number_input("PaCO2 (mmHg)", min_value=10.0, max_value=150.0, value=40.0, step=1.0, key="mod5_paco2")
+                hco3_val = c_gas3.number_input("HCO3- Actual (mEq/L)", min_value=5.0, max_value=60.0, value=24.0, step=0.1, key="mod5_hco3")
+                
+                # Fila B: Oxigenación Oxigenatoria
+                c_gas4, c_gas5, c_gas6 = st.columns(3)
+                pao2_val = c_gas4.number_input("PaO2 (mmHg)", min_value=30.0, max_value=600.0, value=90.0, step=1.0, key="mod5_pao2")
+                fio2_val = c_gas5.number_input("FiO2 Suministrada (%)", min_value=21.0, max_value=100.0, value=21.0, step=1.0, key="mod5_fio2")
+                be_val = c_gas6.number_input("Exceso de Base (BE)", min_value=-30.0, max_value=30.0, value=0.0, step=0.1, key="mod5_be")
+                
+                # Fila C: Co-oximetría y Electrolitos de la Muestra Gasométrica
+                c_gas7, c_gas8, c_gas9 = st.columns(3)
+                na_gas = c_gas7.number_input("Sodio en Gasometría (Na+)", min_value=100.0, max_value=180.0, value=140.0, step=1.0, key="mod5_na_gas")
+                cl_gas = c_gas8.number_input("Cloro en Gasometría (Cl-)", min_value=70.0, max_value=130.0, value=102.0, step=1.0, key="mod5_cl_gas")
+                lactato_val = c_gas9.number_input("Lactato Sérico (mmol/L)", min_value=0.0, max_value=25.0, value=1.0, step=0.1, key="mod5_lactato")
+                
+                st.caption("📊 Índices Derivados en Tiempo Real:")
+                
+                # Cálculo automático de PAFI / Kirby
+                pafi = pao2_val / (fio2_val / 100.0)
+                # Cálculo automático de Anion Gap
+                anion_gap = na_gas - (cl_gas + hco3_val)
+                
+                gc_col1, gc_col2 = st.columns(2)
+                gc_col1.metric("Índice de Kirby (PaO2/FiO2)", f"{pafi:.1f} mmHg", help="Normal > 300. Valores < 200 sugieren lesión pulmonar aguda.")
+                gc_col2.metric("Anion Gap (Brecha Aniónica)", f"{anion_gap:.1f} mEq/L", help="Normal entre 8 y 12 mEq/L. Útil en acidosis metabólicas.")
+                
+                st.divider()
 # ---------------------------------------------------------
         # MÓDULO 6: RIESGO TROMBOEMBÓLICO Y EMETOGÉNICO (CÓDIGO DEPURADO)
         # ---------------------------------------------------------
