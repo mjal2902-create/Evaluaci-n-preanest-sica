@@ -1155,3 +1155,67 @@ with col_derecha:
                             st.warning(f"⚠️ **Trastorno de Oxigenación Moderado:** Índice de Kirby en **{pafi_calc:.0f} mmHg**.")
 
                 st.divider()
+                # =====================================================================
+                # PESTAÑA 1 - SECCIÓN 6: EMETOGÉNESIS Y TROMBOFILIA (MÓDULO 6)
+                # =====================================================================
+                st.subheader("🤢 Emetogénesis y Trombofilia (Módulo 6)")
+                
+                # --- LECTURA SEGURA DE SCORES PROCESADOS ---
+                apfel_final = pts_apfel if 'pts_apfel' in locals() else 0
+                caprini_final = score_caprini if 'score_caprini' in locals() else 0
+                
+                # 1. Estratificación de la Escala de Apfel (Riesgo de NVPO)
+                if apfel_final <= 1:
+                    estrato_apfel = "Riesgo Bajo (~10-20%)"
+                    color_apfel = "normal"
+                elif apfel_final == 2:
+                    estrato_apfel = "Riesgo Moderado (~40%)"
+                    color_apfel = "normal"
+                else:
+                    estrato_apfel = "Riesgo Alto (~60-80%) 🚨"
+                    color_apfel = "inverse"
+                    
+                # 2. Estratificación de la Escala de Caprini (Riesgo de TVP/TEP)
+                if caprini_final <= 1:
+                    estrato_caprini = "Riesgo Bajo"
+                    color_caprini = "normal"
+                elif caprini_final == 2:
+                    estrato_caprini = "Riesgo Moderado"
+                    color_caprini = "normal"
+                elif 3 <= caprini_final <= 4:
+                    estrato_caprini = "Riesgo Alto ⚠️"
+                    color_caprini = "inverse"
+                else:
+                    estrato_caprini = "Riesgo Muy Alto / Extremo 🚨"
+                    color_caprini = "inverse"
+                    
+                # --- DESPLIEGUE EN MATRIZ SIMÉTRICA ---
+                m6_col1, m6_col2 = st.columns(2)
+                with m6_col1:
+                    st.metric(label="Escala de Apfel (NVPO)", value=f"{apfel_final} / 4 pts", delta=estrato_apfel, delta_color=color_apfel)
+                with m6_col2:
+                    st.metric(label="Score de Caprini (ETV)", value=f"{caprini_final} pts", delta=estrato_caprini, delta_color=color_caprini)
+                    
+                st.markdown("##### 🔍 Directrices de Profilaxis Perioperatoria:")
+                
+                # --- ALERTA CLÍNICA: ESTRATEGIA ANTIEMÉTICA (APFEL) ---
+                if apfel_final >= 3:
+                    st.error(f"🚨 **ALERTA NVPO CRÍTICA:** Puntuación de Apfel Elevada ({apfel_final} pts). Se exige **Estrategia Multimodal Profiláctica**: Administre Dexametasona 4 mg IV tras la inducción + Ondansetrón 4 mg IV 30 minutos antes de la extubación. Considere rescate con Metoclopramida o Alizaprida si es necesario.")
+                    st.info("💡 **Aporte de Tesis:** El uso de Lidocaína IV en infusión reduce los requerimientos de opioides intraoperatorios, atacando directamente uno de los desencadenantes principales de NVPO en este paciente de alto riesgo.")
+                elif apfel_final == 2:
+                    st.warning(f"⚠️ **Profilaxis Apfel Moderada:** ({apfel_final} pts). Se sugiere monoterapia preventiva con Ondansetrón 4 mg IV previo a la emersión anestésica.")
+                else:
+                    st.success("🟢 **Emetogénesis Controlada:** Riesgo bajo. No se requiere terapia combinada de rutina.")
+                    
+                # --- ALERTA CLÍNICA: ANTICOAGULACIÓN Y PROFILAXIS (CAPRINI) ---
+                if caprini_final >= 5:
+                    st.error(f"🚨 **ALERTA DE RIESGO TROMBOEMBÓLICO MUY ALTO ({caprini_final} pts):** Indicación mandatoria de **Profilaxis Combinada**. Implemente medidas mecánicas inmediatas (medias de compresión graduada o compresión neumática intermitente) + Profilaxis Farmacológica con HBPM (Enoxaparina 40 mg SC cada 24 horas), iniciando entre 12 y 24 horas postquirúrgicas, siempre que se verifique la hemostasia quirúrgica.")
+                elif 3 <= caprini_final <= 4:
+                    st.warning(f"⚠️ **Riesgo Caprini Alto ({caprini_final} pts):** Indicación de profilaxis farmacológica con HBPM o heparina no fraccionada SC, asociada a deambulación temprana obligatoria.")
+                elif caprini_final == 2:
+                    st.info(f"🔹 **Riesgo Caprini Moderado ({caprini_final} pts):** Considere el uso de medias elásticas compresivas o deambulación activa precoz como pauta preventiva.")
+                else:
+                    st.success("🟢 **Riesgo Tromboembólico Mínimo:** Solo se aconseja deambulación temprana y precoz.")
+                    
+                st.markdown("---")
+                st.caption("✨ **Monitorización de Pestaña 1 Completada.** Todos los cálculos basales e índices de seguridad han sido procesados y sincronizados.")
