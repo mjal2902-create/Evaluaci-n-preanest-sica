@@ -744,27 +744,32 @@ with col_izq:
                 bun_val = c_lab4.number_input("BUN (mg/dL)", min_value=1.0, max_value=150.0, value=15.0, step=1.0, key="mod5_bun")
                 potasio_val = c_lab5.number_input("Potasio K+ (mEq/L)", min_value=1.5, max_value=8.0, value=4.0, step=0.1, key="mod5_potasio")
                 
-  # --- 3.5. PERFIL HEPÁTICO (CONDICIONAL PARA CHILD-PUGH) ---
+ # --- 3.5. PERFIL HEPÁTICO (CONDICIONAL PARA CHILD-PUGH) ---
             # Inicialización de seguridad basal para el backend
             bili_total = 1.0
             albumina_serica = 3.5
             
-            if "Cirrosis Hepática" in antecedentes_seleccionados:
+            # Detectamos si Cirrosis está activa en los antecedentes
+            cirrosis_activa = "Cirrosis Hepática" in antecedentes_seleccionados
+
+            if cirrosis_activa:
                 st.markdown("#### 🧪 Perfil Hepático")
                 c_hep1, c_hep2 = st.columns(2)
                 bili_total = c_hep1.number_input("Bilirrubina Total (mg/dL)", min_value=0.1, max_value=50.0, value=1.0, step=0.1, key="mod5_bili")
                 albumina_serica = c_hep2.number_input("Albúmina Sérica (g/dL)", min_value=1.0, max_value=6.0, value=3.5, step=0.1, key="mod5_albu")
                 st.divider()
 
-            # --- 3. TIEMPOS DE COAGULACIÓN (CRÍTICO PARA ANESTESIA REGIONAL) ---
-            st.markdown("#### 🫀 Coagulación")
-            c_lab6, c_lab7, c_lab8 = st.columns(3)
-            
-            tp_val = c_lab6.number_input("Tiempo de Protrombina TP (seg)", min_value=5.0, max_value=60.0, value=12.0, step=0.1, key="mod5_tp")
-            ttpa_val = c_lab7.number_input("TTPa (seg)", min_value=10.0, max_value=120.0, value=30.0, step=0.1, key="mod5_ttpa")
-            inr_val = c_lab8.number_input("INR", min_value=0.5, max_value=10.0, value=1.0, step=0.1, key="mod5_inr")
-            
-            st.divider()
+            # --- 3. TIEMPOS DE COAGULACIÓN (SINCRO CIRROSIS / EXÁMENES) ---
+            # Se activa si NO es paciente sano O si tiene Cirrosis Hepática activa
+            if not sin_laboratorios or cirrosis_activa:
+                st.markdown("#### 🫀 Coagulación")
+                c_lab6, c_lab7, c_lab8 = st.columns(3)
+                
+                tp_val = c_lab6.number_input("Tiempo de Protrombina TP (seg)", min_value=5.0, max_value=60.0, value=12.0, step=0.1, key="mod5_tp")
+                ttpa_val = c_lab7.number_input("TTPa (seg)", min_value=10.0, max_value=120.0, value=30.0, step=0.1, key="mod5_ttpa")
+                inr_val = c_lab8.number_input("INR", min_value=0.5, max_value=10.0, value=1.0, step=0.1, key="mod5_inr")
+                
+                st.divider()
 
             # --- 4. GASOMETRÍA ARTERIAL (CONDICIONAL OPTIONAL) ---
             tiene_gasometria = st.checkbox("🫁 ¿Cuenta con reporte de Gasometría Arterial?", value=False, key="mod5_check_gases")
