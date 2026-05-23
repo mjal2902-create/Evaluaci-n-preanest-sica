@@ -558,7 +558,7 @@ with col_izq:
                     sb_t = st.checkbox("🔸 Cansancio, fatiga o somnolencia diurna frecuente", key="mod3_sb_t")
                     sb_o = st.checkbox("🔸 Apnea nocturna observada por terceros (Pausas al respirar)", key="mod3_sb_o")
 
-puntos_vmd = sum([vmd_barba, vmd_edentulo])
+        puntos_vmd = sum([vmd_barba, vmd_edentulo])
             puntos_stop_bang = sum([sb_s, sb_t, sb_o])
         else:
             st.info("⚠️ **Nota metodológica:** Las herramientas OBESE y STOP-BANG están validadas exclusivamente para la población adulta, por lo que han sido omitidas de la evaluación de este paciente.")
