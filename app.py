@@ -558,21 +558,21 @@ with col_izq:
                     sb_t = st.checkbox("🔸 Cansancio, fatiga o somnolencia diurna frecuente", key="mod3_sb_t")
                     sb_o = st.checkbox("🔸 Apnea nocturna observada por terceros (Pausas al respirar)", key="mod3_sb_o")
 
-puntos_vmd = sum([vmd_barba, vmd_edentulo])
-            puntos_stop_bang = sum([sb_s, sb_t, sb_o])
-        else:
-            st.info("⚠️ **Nota metodológica:** Las herramientas OBESE y STOP-BANG están validadas exclusivamente para la población adulta, por lo que han sido omitidas de la evaluación de este paciente.")
+                    puntos_vmd = sum([vmd_barba, vmd_edentulo])
+                    puntos_stop_bang = sum([sb_s, sb_t, sb_o])
+                else:
+                    st.info("⚠️ **Nota metodológica:** Las herramientas OBESE y STOP-BANG están validadas exclusivamente para la población adulta, por lo que han sido omitidas de la evaluación de este paciente.")
 
         # --- SUBSECCIÓN GENERAL: RIESGO PULMONAR (MÓDULO 3) ---
-        st.divider()
-        st.markdown("#### 🫁 Evaluación Respiratoria Avanzada (ARISCAT)")
-        st.caption("Complete los hallazgos clínicos para la predicción de complicaciones pulmonares postoperatorias:")
+                st.divider()
+                st.markdown("#### 🫁 Evaluación Respiratoria Avanzada (ARISCAT)")
+                st.caption("Complete los hallazgos clínicos para la predicción de complicaciones pulmonares postoperatorias:")
         
-        c_aris1, c_aris2 = st.columns(2)
-        with c_aris1:
-            ariscat_enfermedad_pulmonar = st.checkbox("🔸 Patología respiratoria crónica activa (EPOC, Asma sintomática, Fibrosis)", key="mod3_ariscat_epoc")
-        with c_aris2:
-            ariscat_infeccion_reciente = st.checkbox("🔸 Infección de vías respiratorias (altas o bajas) en el último mes", key="mod3_ariscat_inf")
+                c_aris1, c_aris2 = st.columns(2)
+                with c_aris1:
+                    ariscat_enfermedad_pulmonar = st.checkbox("🔸 Patología respiratoria crónica activa (EPOC, Asma sintomática, Fibrosis)", key="mod3_ariscat_epoc")
+                with c_aris2:
+                    ariscat_infeccion_reciente = st.checkbox("🔸 Infección de vías respiratorias (altas o bajas) en el último mes", key="mod3_ariscat_inf")
 # ---------------------------------------------------------
         # MÓDULO 4: EVALUACIÓN CARDIOVASCULAR Y CAPACIDAD FUNCIONAL
         # ---------------------------------------------------------
