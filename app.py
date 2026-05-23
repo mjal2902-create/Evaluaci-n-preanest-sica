@@ -578,7 +578,7 @@ with col_derecha:
                 imc_control = peso_calc / (talla_m ** 2)
                 
                 if sexo_calc == "Masculino":
-                    peso_ideal = 50.0 + 2.3 * ((traw / 2.54) - 60.0) if 'traw' in locals() else (50.0 + 2.3 * ((talla_raw / 2.54) - 60.0))
+                    peso_ideal = 50.0 + 2.3 * ((talla_raw / 2.54) - 60.0)
                     peso_predicho = 50.0 + 0.91 * (talla_raw - 152.4)
                 else:
                     peso_ideal = 45.5 + 2.3 * ((talla_raw / 2.54) - 60.0)
@@ -603,7 +603,7 @@ with col_derecha:
                     st.metric(label="Peso Ajustado (20%)", value=f"{peso_ajustado_20:.1f} kg")
                 with m_col2:
                     st.metric(label="Superficie Corporal (BSA)", value=f"{bsa_calc:.2f} m²")
-                    st.metric(label="Peso Predicho (ARDSNet)", value=f"{peso_predicho:.1f} kg", help="Esencial para ventilación protectora.")
+                    st.metric(label="Peso Predicho (ARDSNet)", value=f"{peso_predicho:.1f} kg")
                     st.metric(label="Peso Ajustado (40%)", value=f"{peso_ajustado_40:.1f} kg")
                 
                 if imc_control >= 30.0:
@@ -627,7 +627,7 @@ with col_derecha:
                 # --- SUBSECCIÓN C: DUPLICACIÓN DE CONTEXTO QUIRÚRGICO Y PLAN ---
                 st.markdown("##### 🏥 Contexto Quirúrgico y Planificación")
                 st.markdown(f"**Carácter Quirúrgico:** {caracter_calc}")
-                st.markdown(f"**Riesgo Cardiovascular (AHA/ACC):** {riesgo_calc}")
+                st.markdown(f"**Riesgo Quirúrgico (AHA/ACC):** {riesgo_calc}") # <-- CORREGIDO AQUÍ
                 
                 # Bloque de Diagnóstico y Procedimientos destacados
                 st.markdown(f"**Diagnóstico Principal:** `{diag_calc}`")
@@ -641,6 +641,5 @@ with col_derecha:
             else:
                 st.warning("⏳ Esperando ingreso de Peso y Talla válidos en el Módulo 1...")
     else:
-        # Candado protector estético si falta validación inicial
         st.markdown("### 📊 PANEL DE CONTROL PERIOPERATORIO")
         st.info("🔒 **Falta Validación Inicial:** Por favor, registre la Clasificación Institucional y el Hospital en el Módulo de la izquierda para desplegar de forma estática los cálculos automáticos y las escalas perioperatorias.")
