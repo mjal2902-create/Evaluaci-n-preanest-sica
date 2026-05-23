@@ -935,3 +935,72 @@ with col_izq:
             for f in caprini_altoriesgo:
                 if "(+3)" in f: score_caprini += 3
                 elif "(+5)" in f: score_caprini += 5
+# =============================================================================
+# COLUMNA DERECHA: PANEL DE CÁLCULO CIENTÍFICO Y METABÓLICO
+# =============================================================================
+
+# Suponiendo que manejas pestañas en la columna derecha:
+with col_derecha:
+    st.markdown("### 📊 PANEL DE CONTROL PERIOPERATORIO")
+    tab1, tab2 = st.tabs(["🔢 Cálculos y Escalas", "📄 Reporte Final"])
+    
+    with tab1:
+        # ---------------------------------------------------------------------
+        # SECCIÓN 1: PROCESAMIENTO METABÓLICO Y ANTROPOMÉTRICO (MÓDULO 1)
+        # ---------------------------------------------------------------------
+        st.subheader("🧮 Antropometría y Volúmenes (Módulo 1)")
+        
+        # Validación de seguridad: Verificar que existan peso, talla, edad y sexo
+        if 'peso' in locals() and 'talla' in locals() and 'sexo' in locals() and 'edad' in locals():
+            
+            # Conversión de talla a cm para fórmulas estándar
+            talla_cm = talla * 100.0
+            
+            # 1. Cálculo de Índice de Masa Corporal (IMC)
+            imc_calc = peso / (talla ** 2)
+            
+            # 2. Cálculo de Peso Ideal (Fórmula de Devine) y Peso Predicho (ARDSNet)
+            if sexo == "Masculino":
+                peso_ideal = 50.0 + 2.3 * ((talla_cm / 2.54) - 60.0)
+                peso_predicho = 50.0 + 0.91 * (talla_cm - 152.4)
+            else:
+                peso_ideal = 45.5 + 2.3 * ((talla_cm / 2.54) - 60.0)
+                peso_predicho = 45.5 + 0.91 * (talla_cm - 152.4)
+                
+            # Control de límites inferiores para las fórmulas lineales
+            if peso_ideal < 0: peso_ideal = peso
+            if peso_predicho < 0: peso_predicho = peso
+            
+            # 3. Cálculo de Superficie Corporal (Fórmula de Mosteller - Estándar de Oro)
+            bsa_calc = ((peso * talla_cm) / 3600.0) ** 0.5
+            
+            # 4. Cálculo de Pesos Ajustados (Útiles para dosificación de fármacos hidrofílicos en obesidad)
+            if peso > peso_ideal:
+                peso_ajustado_20 = peso_ideal + 0.20 * (peso - peso_ideal)
+                peso_ajustado_40 = peso_ideal + 0.40 * (peso - peso_ideal)
+            else:
+                peso_ajustado_20 = pesoReal = peso
+                peso_ajustado_40 = peso
+            
+            # --- DESPLIEGUE EN MATRIZ DE MÉTRICAS SIMÉTRICAS ---
+            m_col1, m_col2 = st.columns(2)
+            
+            with m_col1:
+                st.metric(label="BMI / IMC", value=f"{imc_calc:.1f} kg/m²")
+                st.metric(label="Peso Ideal (Devine)", value=f"{peso_ideal:.1f} kg")
+                st.metric(label="Peso Ajustado (20%)", value=f"{peso_ajustado_20:.1f} kg")
+                
+            with m_col2:
+                st.metric(label="Superficie Corporal (BSA)", value=f"{bsa_calc:.2f} m²")
+                st.metric(label="Peso Predicho (ARDSNet)", value=f"{peso_predicho:.1f} kg", help="Útil para programar Volumen Corriente protector (6-8 ml/kg).")
+                st.metric(label="Peso Ajustado (40%)", value=f"{peso_ajustado_40:.1f} kg")
+            
+            # --- ALERTAS CLÍNICAS EPIDEMIOLÓGICAS ---
+            if imc_calc >= 30.0:
+                st.warning(f"⚠️ Paciente con Obesidad Grado {1 if imc_calc < 35 else (2 if imc_calc < 40 else 3)}. Cuidado con fármacos lipofílicos y acoplamiento ventilatorio.")
+            
+            # Mostrar datos demográficos relevantes consolidados
+            st.info(f"👤 **Expediente Sintético:** {sexo} | {edad} años | Tipo Quirúrgico: {riesgo_cx if 'riesgo_cx' in locals() else 'No definido'}")
+            
+        else:
+            st.error("❌ Faltan datos antropométricos esenciales en el Módulo 1 (Peso, Talla, Sexo o Edad).")
