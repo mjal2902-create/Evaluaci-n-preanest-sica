@@ -704,7 +704,12 @@ with col_izq:
 # ---------------------------------------------------------
         # MÓDULO 5: PRUEBAS DE LABORATORIO Y COAGULACIÓN (SINCRO ESCALAS)
         # ---------------------------------------------------------
-# --- VALORES BASALES DE SEGURIDAD (Mantiene la estabilidad global del backend) ---
+        with st.expander("5. Pruebas de Laboratorio y Coagulación", expanded=True):
+            
+            # 1. REINTRODUCIR CASILLA MAESTRA (Esto elimina el NameError)
+            sin_laboratorios = st.checkbox("✅ No dispone o no requiere exámenes de laboratorio (Paciente sano)", value=True, key="mod5_sin_labs")
+
+            # --- VALORES BASALES DE SEGURIDAD ---
             hb_val = 14.0
             hto_val = 42.0
             plaquetas_val = 250000
@@ -723,7 +728,6 @@ with col_izq:
             cirrosis_activa = "Cirrosis Hepática" in antecedentes_seleccionados
 
             # --- CONTROL DE RENDERIZADO INTERACTIVO MÓDULO 5 ---
-            # Si NO es paciente sano O si tiene cirrosis (forzado clínico), se despliega la analítica
             if not sin_laboratorios or cirrosis_activa:
                 
                 # --- 1. HEMATOLOGÍA COMPLETA ---
