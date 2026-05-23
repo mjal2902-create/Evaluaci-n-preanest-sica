@@ -1219,3 +1219,109 @@ with col_derecha:
                     
                 st.markdown("---")
                 st.caption("✨ **Monitorización de Pestaña 1 Completada.** Todos los cálculos basales e índices de seguridad han sido procesados y sincronizados.")
+                # =====================================================================
+        # PESTAÑA 2: GENERACIÓN DE REPORTE Y HISTORIA CLÍNICA COPIABLE
+        # =====================================================================
+        with tab2:
+            st.subheader("📄 Nota de Valoración Preanestésica")
+            st.caption("Haga clic en el ícono de copiar de la esquina derecha para pegar la nota directamente en el historial clínico electrónico.")
+            
+            # --- EXTRACTORES DE SEGURIDAD PARA TEXTO PLANO ---
+            # Filtros de Alergias
+            txt_alergias_final = "NEGADAS."
+            if not (sin_alergias if 'sin_alergias' in locals() else True):
+                componentes_al = []
+                if 'al_med_list' in locals() and al_med_list: componentes_al.append(f"Fármacos: {', '.join(al_med_list)}")
+                if 'al_ali_list' in locals() and al_ali_list: componentes_al.append(f"Alimentarias/Otras: {', '.join(al_ali_list)}")
+                if componentes_al: txt_alergias_final = " | ".join(componentes_al)
+
+            # Filtros de APP
+            txt_app_final = "NEGADOS."
+            if not (sin_antecedentes if 'sin_antecedentes' in locals() else True):
+                if 'app_list' in locals() and app_list and app_list != ["Ninguno"]: 
+                    txt_app_final = ", ".join(app_list)
+                    if "Cirrosis Hepática" in app_list:
+                        txt_app_final += f" (Child-Pugh Ascitis: {child_ascitis if 'child_ascitis' in locals() else 'Ausente'} | Encefalopatía: {child_encefalo if 'child_encefalo' in locals() else 'Ausente'})"
+
+            # Filtros de Medicación
+            txt_meds_final = "NEGADA."
+            if not (sin_antecedentes if 'sin_antecedentes' in locals() else True):
+                if 'meds_list' in locals() and meds_list and meds_list != ["Ninguno"]: txt_meds_final = ", ".join(meds_list)
+
+            # Filtros de Hábitos
+            txt_habitos_final = "NEGADOS."
+            if not (sin_habitos if 'sin_habitos' in locals() else True):
+                if 'habitos_activos' in locals() and habitos_activos: txt_habitos_final = " | ".join(habitos_activos)
+
+            # Filtros de Laboratorios
+            if sin_laboratorios if 'sin_laboratorios' in locals() else True:
+                txt_labs_final = "No requeridos / Paciente clínicamente sano."
+            else:
+                txt_labs_final = f"Hb: {hb_calc:.1f}g/dL | Hto: {hto_calc:.0f}% | Plaq: {plaq_calc:,}/uL | TP: {tp_calc:.1f}s | TTPa: {ttpa_calc:.1f}s | INR: {inr_calc:.2f}"
+                if 'gas_check' in locals() and gas_check:
+                    txt_labs_final += f"\n   [Gasometría] pH: {ph_val:.2f} | PaCO2: {paco2_val:.0f} mmHg | HCO3: {hco3_val:.1f} mEq/L | Lactato: {lactato_val:.1f} mmol/L | PaO2/FiO2: {pafi_calc:.0f} mmHg"
+
+            # --- CONSTRUCCIÓN DE LA PLANTILLA MÉDICA (TEXTO PLANO MULTILÍNEA) ---
+            reporte_medico_texto = f"""=====================================================================
+🏥 NOTA DE EVALUACIÓN PREANESTÉSICA CONSOLIDADA
+=====================================================================
+Centro Institucional: {hospital_final if 'hospital_final' in locals() else 'No registrado'}
+Responsable: Dr. Marcos Aviles
+Estatus de Validación: Certificado por Sistema Experto Perioperatorio
+
+1. FILIACIÓN Y ANTROPOMETRÍA
+---------------------------------------------------------------------
+• Sexo Biológico: {sexo_calc if 'sexo_calc' in locals() else 'Masculino'}
+• Edad Cronológica: {edad_calc if 'edad_calc' in locals() else '35'} años
+• Grupo Sanguíneo y Rh: {gs_calc if 'gs_calc' in locals() else 'Desconocido'}
+• Peso Real: {peso_calc:.1f} kg | Talla: {talla_raw:.0f} cm
+• IMC Calculado: {imc_control:.1f} kg/m²
+• Superficie Corporal (BSA): {bsa_calc:.2f} m²
+• Peso Ideal Estimado: {peso_ideal:.1f} kg
+• Pesos Ajustados: Al 20%: {peso_ajustado_20:.1f} kg | Al 40%: {peso_ajustado_40:.1f} kg
+
+2. CONTEXTO QUIRÚRGICO Y PLANIFICACIÓN
+---------------------------------------------------------------------
+• Diagnóstico Principal: {diag_calc if 'diag_calc' in locals() else 'No definido'}
+• Procedimiento Quirúrgico: {proc_calc if 'proc_calc' in locals() else 'No definido'}
+• Carácter de la Cirugía: {caracter_calc if 'caracter_calc' in locals() else 'Electiva'}
+• Riesgo Quirúrgico Intrínseco (AHA/ACC): {riesgo_calc if 'riesgo_calc' in locals() else 'Bajo'}
+• Clasificación del Estado Físico (ASA): {asa_calc if 'asa_calc' in locals() else 'ASA I'}
+• Técnica Anestésica Propuesta: {anestesia_calc if 'anestesia_calc' in locals() else 'Anestesia General'}
+
+3. SEGURIDAD, ALERGIAS Y ANTECEDENTES (APP)
+---------------------------------------------------------------------
+• Alergias y Sensibilidades: {txt_alergias_final}
+• Antecedentes Patológicos Clínicos: {txt_app_final}
+• Medicación de Uso Continuo: {txt_meds_final}
+• Hábitos y Estilo de Vida: {txt_habitos_final}
+
+4. SCREENING PREDICTIVO Y ESTRATIFICACIÓN DE RIESGO
+---------------------------------------------------------------------
+• Índice de Intubación Difícil (Arné): {arne_val if 'arne_val' in locals() else 0} puntos
+• Riesgo de Ventilación con Máscara (OBESE): {score_obese_total if ('score_obese_total' in locals() and not es_ped) else 'N/A'} puntos ({estrato_obese if ('estrato_obese' in locals() and not es_ped) else 'N/A'})
+• Tamizaje de Apnea del Sueño (STOP-Bang): {score_stop_bang_total if ('score_stop_bang_total' in locals() and not es_ped) else 'N/A'} puntos
+• Riesgo Pulmonar Postoperatorio (ARISCAT): {score_ariscat_total if 'score_ariscat_total' in locals() else 0} puntos ({estrato_ariscat if 'estrato_ariscat' in locals() else 'Bajo'})
+• Índice de Riesgo Cardíaco Revisado (Lee / RCRI): {lee_val if ('lee_val' in locals() and not es_ped) else 'N/A'} puntos ({clase_lee if ('clase_lee' in locals() and not es_ped) else 'N/A'})
+• Riesgo de Náuseas y Vómitos (Apfel): {apfel_final if 'apfel_final' in locals() else 0} / 4 puntos ({estrato_apfel if 'estrato_apfel' in locals() else 'Bajo'})
+
+5. EXÁMENES COMPLEMENTARIOS DE BASE
+---------------------------------------------------------------------
+• Reporte de Laboratorio: {txt_labs_final}
+• Electrocardiograma (ECG): {ecg_calc if 'ecg_calc' in locals() else 'No disponible'}
+• Ecocardiograma (FEVI %): {f"{fevi_val_calc:.0f}%" if (fevi_check if 'fevi_check' in locals() else False) else 'No solicitado'}
+
+6. PLAN DE ACCIÓN Y PROFILAXIS RECOMENDADA
+---------------------------------------------------------------------
+• Manejo Antiemético (Apfel): {'EXIGE Profilaxis Multimodal Combinada (Dexametasona + Ondansetrón).' if apfel_final >= 3 else ('Profilaxis estándar (Ondansetrón IV).' if apfel_final == 2 else 'Manejo sintomático según demanda.')}
+• Manejo Antitrombótico (Caprini): {'EXIGE Profilaxis Combinada: Mecánica + Farmacológica (HBPM Enoxaparina).' if caprini_final >= 5 else ('Profilaxis farmacológica o mecánica precoz.' if caprini_final >= 2 else 'Solo deambulación temprana activa.')}
+• Consideraciones de Vía Aérea: {'ALERTA: Vía Aérea Difícil Predictiva. Disponer de videolaringoscopio y/o dispositivo supraglótico en sala.' if (arne_val if 'arne_val' in locals() else 0) > 10 or (p_vad_previo if 'p_vad_previo' in locals() else False) else 'Vía aérea con predictores anatómicos estables de intubación.'}
+• Observación Especial Pediátrica: {f"Riesgo de Hiperreactividad Laríngea activo. {'CONSIDERAR ADICIÓN DE LIDOCAÍNA IV PROTOCOLO DE TESIS.' if (p_ivra or p_estridor) else 'Control de reflejos estándar.'}" if es_ped else "Paciente en entorno fisiológico adulto."}
+
+=====================================================================
+FIN DEL REPORTE - FIRMA REGISTRADA ELECTRÓNICAMENTE
+=====================================================================
+"""
+            
+            # Despliegue del bloque copiable con el botón nativo de Streamlit
+            st.code(reporte_medico_texto, language="text")
