@@ -585,6 +585,7 @@ with col_derecha:
             
             caracter_calc = caracter_cx if 'caracter_cx' in locals() else "Electiva"
             riesgo_calc = riesgo_cx if 'riesgo_cx' in locals() else "No definido"
+            asa_calc = asa_ps if 'asa_ps' in locals() else "No definido"
             diag_calc = diagnostico_final if 'diagnostico_final' in locals() else "No definido"
             frac_calc = tipo_fractura_cx if 'tipo_fractura_cx' in locals() else "No aplica"
             proc_calc = procedimiento_final if 'procedimiento_final' in locals() else "No definido"
@@ -642,16 +643,17 @@ with col_derecha:
                 
                 st.divider()
                 
-                # --- SUBSECCIÓN C: DUPLICACIÓN DE CONTEXTO QUIRÚRGICO Y PLAN ---
+# --- SUBSECCIÓN C: DUPLICACIÓN DE CONTEXTO QUIRÚRGICO Y PLAN ---
                 st.markdown("##### 🏥 Contexto Quirúrgico y Planificación")
-                st.markdown(f"**Carácter Quirúrgico:** {caracter_calc}")
-                st.markdown(f"**Riesgo Quirúrgico (AHA/ACC):** {riesgo_calc}") # <-- CORREGIDO AQUÍ
+                st.markdown(f"**Clasificación ASA:** **{asa_calc}**")
+                st.markdown(f"**Carácter Quirúrgico:** *{caracter_calc}*")
+                st.markdown(f"**Riesgo Quirúrgico (AHA/ACC):** *{riesgo_calc}*")
                 
                 # Bloque de Diagnóstico y Procedimientos destacados
-                st.markdown(f"**Diagnóstico Principal:** `{diag_calc}`")
+                st.markdown(f"**Diagnóstico Principal:** **{diag_calc}**")
                 if frac_calc != "No aplica":
-                    st.markdown(f"**Detalle de Traumatología:** 🦴 `{frac_calc}`")
-                st.markdown(f"**Procedimiento Quirúrgico:** `{proc_calc}`")
+                    st.markdown(f"**Detalle de Traumatología:** 🦴 *{frac_calc}*")
+                st.markdown(f"**Procedimiento Quirúrgico:** **{proc_calc}**")
                 
                 st.markdown("---")
                 st.success(f"💉 **Estrategia Anestésica:** **{anestesia_calc}**")
