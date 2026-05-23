@@ -1046,3 +1046,112 @@ with col_derecha:
                         st.warning(f"⚠️ **Hallazgo ECG Crítico:** Se registra `{ecg_calc}`. Correlacione estrechamente con el estado hemodinámico en vivo y mantenga monitorización continua del segmento ST en derivaciones DII y V5 en sala.")
 
                 st.divider()
+                # =====================================================================
+                # PESTAÑA 1 - SECCIÓN 5: EXÁMENES DE LABORATORIO Y COAGULACIÓN (MÓDULO 5)
+                # =====================================================================
+                st.subheader("🧪 Laboratorio Clínico y Coagulación (Módulo 5)")
+                
+                # --- LECTURA SEGURA DE VARIABLES NATIVAS ---
+                labs_negados = sin_laboratorios if 'sin_laboratorios' in locals() else True
+                cirrosis_presencia = cirrosis_activa if 'cirrosis_activa' in locals() else False
+                
+                # Hemograma
+                hb_calc = hb_val if 'hb_val' in locals() else 14.0
+                hto_calc = hto_val if 'hto_val' in locals() else 42.0
+                plaq_calc = plaquetas_val if 'plaquetas_val' in locals() else 250000
+                
+                # Renal / Hepático
+                creat_calc = creatinina_val if 'creatinina_val' in locals() else 0.8
+                urea_calc = urea_val if 'urea_val' in locals() else 30.0
+                albu_calc = albumina_serica if 'albumina_serica' in locals() else 3.5
+                bili_calc = bili_total if 'bili_total' in locals() else 1.0
+                
+                # Coagulación
+                tp_calc = tp_val if 'tp_val' in locals() else 12.0
+                ttpa_calc = ttpa_val if 'ttpa_val' in locals() else 30.0
+                inr_calc = inr_val if 'inr_val' in locals() else 1.0
+                
+                # Gasometría
+                gas_check = tiene_gasometria if 'tiene_gasometria' in locals() else False
+
+                # --- CASO A: PACIENTE SANO SIN REQUERIMIENTO DE LABS ---
+                if labs_negados and not cirrosis_presencia:
+                    st.success("✅ **Laboratorios:** No solicitados / Paciente calificado clínicamente como sano.")
+                else:
+                    # --- DESPLIEGUE EN MATRIZ DE HEMATOLOGÍA Y COAGULACIÓN ---
+                    l_col1, l_col2 = st.columns(2)
+                    
+                    with l_col1:
+                        st.markdown("**🩸 Serie Roja y Plaquetas**")
+                        st.markdown(f"* Hemoglobina: **{hb_calc:.1f} g/dL**")
+                        st.markdown(f"* Hematocrito: **{hto_calc:.0f}%**")
+                        st.markdown(f"* Plaquetas: **{plaq_calc:,} u/µL**")
+                        
+                    with l_col2:
+                        st.markdown("**⏱️ Perfil de Hemostasia**")
+                        st.markdown(f"* Tiempo de Protrombina (TP): **{tp_calc:.1f} seg**")
+                        st.markdown(f"* TTPa: **{ttpa_calc:.1f} seg**")
+                        st.markdown(f"* INR: **{inr_calc:.2f}**")
+                    
+                    st.markdown("##### 🔍 Alertas de Seguridad Analítica:")
+                    
+                    # 1. CRUCE MAESTRO: Contraindicación de Bloqueo Central por Plaquetopenia
+                    tecnica_anestesica = tipo_anestesia if 'tipo_anestesia' in locals() else ""
+                    if plaq_calc < 100000 and "Regional" in tecnica_anestesica:
+                        st.error(f"🚨 **CONTRAINDICACIÓN ABSOLUTA DE NEUROEJE:** Se registra un recuadro plaquetario crítico de **{plaq_calc:,} u/µL**. Existe un riesgo severo de hematoma epidural o espinal compresivo irreversible si se ejecuta la técnica propuesta (*{anestesia_calc}*). Recomiende firmemente cambiar la estrategia a Anestesia General.")
+                    elif plaq_calc < 150000:
+                        st.warning(f"⚠️ **Trombocitopenia Moderada:** ({plaq_calc:,} u/µL). Monitoree hemostasia quirúrgica y evite traumas innecesarios en la vía aérea.")
+                        
+                    # 2. Alerta de Anemia o Requerimiento de Hemoderivados
+                    if hb_calc < 10.0:
+                        st.error(f"🚨 **Anemia Significativa (Hb {hb_calc:.1f} g/dL):** Capacidad de transporte de oxígeno disminuida. Asegure la disponibilidad de concentrados de glóbulos rojos en banco de sangre, optimice la fracción inspirada de oxígeno intraoperatoria y aplique estrategias de ahorro de sangre (Patient Blood Management).")
+                    elif (sexo_calc == "Femenino" and hb_calc < 12.0) or (sexo_calc == "Masculino" and hb_calc < 13.0):
+                        st.caption(f"⚠️ *Anemia leve o marginal para el sexo biológico ({hb_calc:.1f} g/dL).*")
+
+                    # 3. Alerta de Coagulación Prolongada
+                    if inr_calc > 1.5 or tp_calc > 15.0:
+                        st.error(f"🚨 **COAGULOPATÍA ACTIVA / RIESGO DEFICITARIO:** INR elevado (**{inr_calc:.2f}**). Alto riesgo de sangrado en napa o microvascular intraoperatorio. Prevea la necesidad de plasma fresco congelado si el sangrado quirúrgico se activa.")
+
+                    # --- DETALLES DE FUNCIÓN RENAL Y HEPÁTICA (Consolidado de Texto) ---
+                    detalles_organicos = []
+                    if ('ver_renal' in locals() and ver_renal) or cirrosis_presencia:
+                        detalles_organicos.append(f"Creatinina: **{creat_calc:.2f} mg/dL** ({'Elevada ⚠️' if creat_calc > 1.2 else 'Normal'})")
+                        detalles_organicos.append(f"Urea: **{urea_calc:.0f} mg/dL**")
+                        detalles_organicos.append(f"Albúmina Sérica: **{albu_calc:.1f} g/dL**")
+                    if cirrosis_presencia:
+                        detalles_organicos.append(f"Bilirrubina Total: **{bili_calc:.1f} mg/dL**")
+                        
+                    if detalles_organicos:
+                        st.markdown("**💾 Función Renal / Hepática Consolidada:**")
+                        st.markdown(" | ".join(detalles_organicos))
+
+                    # --- SUBSECCIÓN: MONITOR GASOMÉTRICO (Si aplica) ---
+                    if gas_check:
+                        st.markdown("---")
+                        st.markdown("##### 🫁 Estado Ácido-Base (Gasometría Arterial)")
+                        ph_calc = ph_val if 'ph_val' in locals() else 7.40
+                        paco2_calc = paco2_val if 'paco2_val' in locals() else 40.0
+                        hco3_calc = hco3_val if 'hco3_val' in locals() else 24.0
+                        lactato_calc = lactato_val if 'lactato_val' in locals() else 1.0
+                        pafi_calc = pafi if 'pafi' in locals() else 300.0
+                        
+                        # Interpretación básica del pH
+                        if ph_calc < 7.35: estado_ph = "Acidemia 🚨"
+                        elif ph_calc > 7.45: estado_ph = "Alcalemia 🚨"
+                        else: estado_ph = "Normal ✅"
+                        
+                        g_col1, g_col2 = st.columns(2)
+                        with g_col1:
+                            st.markdown(f"* pH Arterial: **{ph_calc:.2f}** ({estado_ph})")
+                            st.markdown(f"* PaCO2: **{paco2_calc:.0f} mmHg**")
+                            st.markdown(f"* HCO3- Actual: **{hco3_calc:.1f} mEq/L**")
+                        with g_col2:
+                            st.markdown(f"* Lactato Sérico: **{lactato_calc:.1f} mmol/L** ({'Hiperlactatemia ⚠️' if lactato_calc > 2.0 else 'Normal'})")
+                            st.markdown(f"* Índice de Kirby (PaO2/FiO2): **{pafi_calc:.0f} mmHg**")
+                            
+                        if pafi_calc < 200:
+                            st.error(f"🚨 **INSUFICIENCIA RESPIRATORIA CRÍTICA:** PAFI severamente comprometida (**{pafi_calc:.0f} mmHg**). Alto riesgo de hipoxemia refractaria inmediata durante la apnea de inducción. Maximice preoxigenación e instrumente con estrategia protectora rígida.")
+                        elif pafi_calc < 300:
+                            st.warning(f"⚠️ **Trastorno de Oxigenación Moderado:** Índice de Kirby en **{pafi_calc:.0f} mmHg**.")
+
+                st.divider()
