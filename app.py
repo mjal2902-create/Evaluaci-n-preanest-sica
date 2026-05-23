@@ -939,7 +939,12 @@ with col_izq:
 # COLUMNA DERECHA: PANEL DE CÁLCULO CIENTÍFICO Y METABÓLICO
 # =============================================================================
 
-# Suponiendo que manejas pestañas en la columna derecha:
+# 1. INICIALIZAR LAS COLUMNAS DE LA APLICACIÓN (Esto elimina el NameError)
+# Nota: Ajusta los valores [2, 1] si deseas que la columna izquierda sea más ancha o estrecha.
+if 'col_izquierda' not in locals() and 'col_derecha' not in locals():
+    col_izquierda, col_derecha = st.columns([2, 1])
+
+# Ahora el sistema ya reconoce qué es col_derecha
 with col_derecha:
     st.markdown("### 📊 PANEL DE CONTROL PERIOPERATORIO")
     tab1, tab2 = st.tabs(["🔢 Cálculos y Escalas", "📄 Reporte Final"])
