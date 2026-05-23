@@ -701,15 +701,7 @@ with col_izq:
                 
                 # Nota: El factor_creatinina se sumará en el módulo de laboratorios posteriormente
                 score_lee = factor_cirugia_riesgo + factor_cardiopatia_isq + factor_insuf_cardiaca + factor_acv + factor_insulina
-# ---------------------------------------------------------
-        # MÓDULO 5: PRUEBAS DE LABORATORIO Y COAGULACIÓN (SINCRO ESCALAS)
-        # ---------------------------------------------------------
-        with st.expander("5. Pruebas de Laboratorio y Coagulación", expanded=True):
-            
-            # 1. REINTRODUCIR CASILLA MAESTRA (Esto elimina el NameError)
-            sin_laboratorios = st.checkbox("✅ No dispone o no requiere exámenes de laboratorio (Paciente sano)", value=True, key="mod5_sin_labs")
-
-            # --- VALORES BASALES DE SEGURIDAD ---
+# --- VALORES BASALES DE SEGURIDAD ---
             hb_val = 14.0
             hto_val = 42.0
             plaquetas_val = 250000
@@ -730,7 +722,7 @@ with col_izq:
             # --- CONTROL DE RENDERIZADO INTERACTIVO MÓDULO 5 ---
             if not sin_laboratorios or cirrosis_activa:
                 
-                # --- 1. HEMATOLOGÍA COMPLETA ---
+                # --- 1. HEMATOLOGÍA COMPLETA (Siempre visible si se piden laboratorios) ---
                 st.markdown("#### 🩸 Hemograma")
                 c_lab1, c_lab2, c_lab3 = st.columns(3)
                 hb_val = c_lab1.number_input("Hemoglobina (g/dL)", min_value=3.0, max_value=25.0, value=14.0, step=0.1, key="mod5_hb")
@@ -739,61 +731,45 @@ with col_izq:
                 
                 st.divider()
 
-                # --- 2. FUNCIÓN RENAL Y PROTEÍNAS (CON ACTIVADORES INDIVIDUALES) ---
-                st.markdown("#### 🧪 Función Renal y Proteínas")
-                c_ren1, c_ren2, c_ren3 = st.columns(3)
+                # --- 2. APARTADO GENERAL: FUNCIÓN RENAL Y PROTEÍNAS ---
+                ver_renal = st.checkbox("🧪 Incluir Función Renal y Proteínas", value=True, key="chk_grupo_renal")
                 
-                with c_ren1:
-                    tiene_urea = st.checkbox("Pedir Urea", value=True, key="chk_urea")
-                    if tiene_urea:
-                        urea_val = st.number_input("Urea (mg/dL)", min_value=5.0, max_value=300.0, value=30.0, step=1.0, key="mod5_urea")
-                
-                with c_ren2:
-                    tiene_creat = st.checkbox("Pedir Creatinina", value=True, key="chk_creat")
-                    if tiene_creat:
-                        creatinina_val = st.number_input("Creatinina Sérica (mg/dL)", min_value=0.1, max_value=20.0, value=0.8, step=0.1, key="mod5_creat")
-                
-                with c_ren3:
-                    tiene_albu = st.checkbox("Pedir Albúmina", value=cirrosis_activa, key="chk_albu") or cirrosis_activa
-                    if tiene_albu:
-                        albumina_serica = st.number_input("Albúmina Sérica (g/dL)", min_value=1.0, max_value=6.0, value=3.5, step=0.1, key="mod5_albu")
+                if ver_renal or cirrosis_activa:
+                    st.markdown("#### 💾 Función Renal y Proteínas")
+                    c_ren1, c_ren2, c_ren3 = st.columns(3)
+                    urea_val = c_ren1.number_input("Urea (mg/dL)", min_value=5.0, max_value=300.0, value=30.0, step=1.0, key="mod5_urea")
+                    creatinina_val = c_ren2.number_input("Creatinina Sérica (mg/dL)", min_value=0.1, max_value=20.0, value=0.8, step=0.1, key="mod5_creat")
+                    albumina_serica = c_ren3.number_input("Albúmina Sérica (g/dL)", min_value=1.0, max_value=6.0, value=3.5, step=0.1, key="mod5_albu")
+                    st.divider()
 
-                st.divider()
-
-                # --- 3. ELECTRÓLITOS SÉRICOS (APARTADO INDEPENDIENTE CON ACTIVADORES) ---
-                st.markdown("#### 🧪 Electrólitos Séricos (Bioquímica)")
-                c_el1, c_el2, c_el3 = st.columns(3)
+                # --- 3. APARTADO GENERAL: ELECTRÓLITOS SÉRICOS ---
+                ver_electrolitos = st.checkbox("🧪 Incluir Panel de Electrólitos Séricos", value=False, key="chk_grupo_elytes")
                 
-                with c_el1:
-                    tiene_na = st.checkbox("Pedir Sodio (Na+)", value=False, key="chk_na_ser")
-                    if tiene_na:
-                        sodio_serico = st.number_input("Sodio Sérico (mEq/L)", min_value=100.0, max_value=180.0, value=140.0, step=1.0, key="mod5_na_serico")
-                
-                with c_el2:
-                    tiene_k = st.checkbox("Pedir Potasio (K+)", value=False, key="chk_k_ser")
-                    if tiene_k:
-                        potasio_serico = st.number_input("Potasio Sérico (mEq/L)", min_value=1.5, max_value=8.0, value=4.0, step=0.1, key="mod5_k_serico")
-                
-                with c_el3:
-                    tiene_cl = st.checkbox("Pedir Cloro (Cl-)", value=False, key="chk_cl_ser")
-                    if tiene_cl:
-                        cloro_serico = st.number_input("Cloro Sérico (mEq/L)", min_value=70.0, max_value=130.0, value=102.0, step=1.0, key="mod5_cl_serico")
+                if ver_electrolitos:
+                    st.markdown("#### ⚡ Electrólitos Séricos")
+                    c_el1, c_el2, c_el3 = st.columns(3)
+                    sodio_serico = c_el1.number_input("Sodio Sérico (Na+ mEq/L)", min_value=100.0, max_value=180.0, value=140.0, step=1.0, key="mod5_na_serico")
+                    potasio_serico = c_el2.number_input("Potasio Sérico (K+ mEq/L)", min_value=1.5, max_value=8.0, value=4.0, step=0.1, key="mod5_k_serico")
+                    cloro_serico = c_el3.number_input("Cloro Sérico (Cl- mEq/L)", min_value=70.0, max_value=130.0, value=102.0, step=1.0, key="mod5_cl_serico")
+                    st.divider()
 
-                st.divider()
-
-                # --- 4. PERFIL HEPÁTICO DINÁMICO (SÓLO PARA CHILD-PUGH) ---
+                # --- 4. PERFIL HEPÁTICO ESPECÍFICO (Solo Bilirrubina por Cirrosis) ---
                 if cirrosis_activa:
-                    st.markdown("#### 🧪 Perfil Hepático Específico")
+                    st.markdown("#### 🧬 Perfil Hepático Crítico")
                     bili_total = st.number_input("Bilirrubina Total (mg/dL)", min_value=0.1, max_value=50.0, value=1.0, step=0.1, key="mod5_bili")
                     st.divider()
 
-                # --- 5. TIEMPOS DE COAGULACIÓN ---
-                st.markdown("#### 🫀 Coagulación")
-                c_lab6, c_lab7, c_lab8 = st.columns(3)
-                tp_val = c_lab6.number_input("Tiempo de Protrombina TP (seg)", min_value=5.0, max_value=60.0, value=12.0, step=0.1, key="mod5_tp")
-                ttpa_val = c_lab7.number_input("TTPa (seg)", min_value=10.0, max_value=120.0, value=30.0, step=0.1, key="mod5_ttpa")
-                inr_val = c_lab8.number_input("INR", min_value=0.5, max_value=10.0, value=1.0, step=0.1, key="mod5_inr")
-                st.divider()
+                # --- 5. APARTADO GENERAL: TIEMPOS DE COAGULACIÓN ---
+                # Se muestra si el usuario lo marca O si el paciente es cirrótico de forma mandatoria
+                ver_coagulacion = st.checkbox("🫀 Incluir Tiempos de Coagulación", value=True, key="chk_grupo_coag")
+                
+                if ver_coagulacion or cirrosis_activa:
+                    st.markdown("#### ⏱️ Coagulación")
+                    c_lab6, c_lab7, c_lab8 = st.columns(3)
+                    tp_val = c_lab6.number_input("Tiempo de Protrombina TP (seg)", min_value=5.0, max_value=60.0, value=12.0, step=0.1, key="mod5_tp")
+                    ttpa_val = c_lab7.number_input("TTPa (seg)", min_value=10.0, max_value=120.0, value=30.0, step=0.1, key="mod5_ttpa")
+                    inr_val = c_lab8.number_input("INR", min_value=0.5, max_value=10.0, value=1.0, step=0.1, key="mod5_inr")
+                    st.divider()
 
                 # --- 6. GASOMETRÍA ARTERIAL INTEGRAL Y CRÍTICA ---
                 tiene_gasometria = st.checkbox("🫁 ¿Cuenta con reporte de Gasometría Arterial?", value=False, key="mod5_check_gases")
