@@ -946,3 +946,103 @@ with col_derecha:
                         st.warning(f"⚠️ **Alertas Anatómicas Detectadas:** {' | '.join(hallazgos_va)}")
                 
                 st.divider()
+                # =====================================================================
+                # PESTAÑA 1 - SECCIÓN 4: EVALUACIÓN CARDIOVASCULAR (MÓDULO 4)
+                # =====================================================================
+                st.subheader("🫀 Monitor Cardiovascular y Riesgo (Módulo 4)")
+                
+                # --- LECTURA SEGURA DE VARIABLES NATIVAS ---
+                mets_calc = capacidad_funcional if 'capacidad_funcional' in locals() else "No definido"
+                nyha_calc = clase_nyha if 'clase_nyha' in locals() else "No definido"
+                ecg_calc = ecg_hallazgo if 'ecg_hallazgo' in locals() else "No disponible / No solicitado"
+                fevi_check = fevi_disponible if 'fevi_disponible' in locals() else False
+                fevi_val_calc = fevi_valor if 'fevi_valor' in locals() else 60.0
+                
+                # Síntomas y signos clínicos activos
+                angina_activa = cardio_angina if 'cardio_angina' in locals() else False
+                disnea_activa = cardio_disnea if 'cardio_disnea' in locals() else False
+                palp_activa = cardio_palpitaciones if 'cardio_palpitaciones' in locals() else False
+                edema_activo = cardio_edema if 'cardio_edema' in locals() else False
+                soplo_activo = cardio_soplo if 'cardio_soplo' in locals() else False
+
+                # =====================================================================
+                # ESCENARIO PACIENTE PEDIÁTRICO (< 18 AÑOS)
+                # =====================================================================
+                if es_ped:
+                    ped_sano = sin_cardiopatia_ped if 'sin_cardiopatia_ped' in locals() else True
+                    
+                    if ped_sano:
+                        st.success("✅ **Cardiología Pediátrica:** Lactante / Infante sano sin patologías cardíacas conocidas.")
+                    else:
+                        m4_col1, m4_col2 = st.columns(2)
+                        with m4_col1:
+                            st.metric(label="Clase Funcional (Ross)", value=nyha_calc)
+                        with m4_col2:
+                            st.metric(label="Complejidad de la CC", value=mets_calc)
+                            
+                        st.markdown("##### 🔍 Alertas Cardiológicas Pediátricas:")
+                        if "Severa" in mets_calc or "Class IV" in nyha_calc or "IV" in nyha_calc:
+                            st.error("🚨 **ALERTA CC COMPLEJA / ALTO RIESGO:** Paciente pediátrico con cardiopatía severa o insuficiencia cardíaca en reposo (Ross IV). Alto riesgo de inestabilidad hemodinámica intraoperatoria. Asegure monitorización invasiva de presión arterial, optimice estrictamente la precarga y evite caídas de la resistencia vascular sistémica.")
+                        else:
+                            st.warning("⚠️ **Riesgo Intermedio Pediátrico:** Cardiopatía congénita moderada o leve en seguimiento. Mantenga estabilidad hemodinámica basal y evite fluctuaciones severas del plano anestésico.")
+                
+                # =====================================================================
+                # ESCENARIO PACIENTE ADULTO (≥ 18 AÑOS)
+                # =====================================================================
+                else:
+                    # Ajuste dinámico del Score de Lee (RCRI) incorporando la creatinina de laboratorios (Módulo 5)
+                    lee_val = score_lee if 'score_lee' in locals() else 0
+                    if 'creatinina_val' in locals() and creatinina_val > 2.0:
+                        lee_val += 1
+                        
+                    # Estratificación clínica del Score de Lee
+                    if lee_val == 0:
+                        clase_lee = "Clase I (Riesgo Bajo ~0.4%)"
+                        color_lee = "normal"
+                    elif lee_val == 1:
+                        clase_lee = "Clase II (Riesgo Moderado ~0.9%)"
+                        color_lee = "normal"
+                    elif lee_val == 2:
+                        clase_lee = "Clase III (Riesgo Alto ~6.6%) ⚠️"
+                        color_lee = "inverse"
+                    else:
+                        clase_lee = "Clase IV (Riesgo Muy Alto ~11%) 🚨"
+                        color_lee = "inverse"
+                        
+                    # Renderizado de Tarjetas Métricas
+                    m4_col1, m4_col2 = st.columns(2)
+                    with m4_col1:
+                        st.metric(label="Índice de Lee (RCRI)", value=f"{lee_val} pts", delta=clase_lee, delta_color=color_lee)
+                    with m4_col2:
+                        if fevi_check:
+                            delta_fevi = "Normal ✅" if fevi_val_calc >= 50.0 else ("Disfunción Moderada ⚠️" if fevi_val_calc >= 40.0 else "Disfunción Severa 🚨")
+                            st.metric(label="FEVI (Ecocardiograma)", value=f"{fevi_val_calc:.0f}%", delta=delta_fevi)
+                        else:
+                            # Si no hay eco, mostramos una métrica de tamizaje rápido basado en METs
+                            estrato_mets = "Limitada (<4 METs) ⚠️" if "Limitada" in mets_calc or "Severamente" in mets_calc else "Adecuada (≥4 METs) ✅"
+                            st.metric(label="Reserva Metabólica", value=estrato_mets, help=mets_calc)
+
+                    st.markdown("##### 🔍 Estatus Hemodinámico y Riesgo Isquémico:")
+                    
+                    # 1. Alertas por Score de Lee y Reserva Metabólica
+                    if lee_val >= 2 or "Limitada" in mets_calc or "Severamente" in mets_calc:
+                        st.error(f"🚨 **ALERTA DE RIESGO CARDÍACO MAYOR:** Paciente en {clase_lee} o con capacidad funcional comprometida. Alto riesgo perioperatorio de infarto agudo de miocardio, arritmias o paro cardíaco. Mantenga terapia con beta-bloqueadores si la recibe habitualmente y evite la taquicardia intraoperatoria.")
+                    else:
+                        st.success("🟢 **Riesgo Cardiovascular Basal:** Paciente calificado en rangos estables de bajo riesgo con adecuada reserva miocárdica.")
+                        
+                    # 2. Alertas por Sintomatología Cardiovascular Activa
+                    sintomas_cardio = []
+                    if angina_activa: sintomas_cardio.append("💔 Angina Inestable o de reciente comienzo")
+                    if disnea_activa: sintomas_cardio.append("🫁 Disnea de causa cardíaca / Ortopnea")
+                    if palp_activa: sintomas_cardio.append("💓 Palpitaciones clínicas o Síncope")
+                    if edema_activo: sintomas_cardio.append("🦶 Edema maleolar reciente")
+                    if soplo_activo: sintomas_cardio.append("🩺 Soplo cardíaco patológico relevante")
+                    
+                    if sintomas_cardio:
+                        st.error(f"🚨 **SÍNTOMAS CARDIOVASCULARES ACTIVOS:** Alerta de sospecha clínica inestable. Presencia de: {', '.join(sintomas_cardio)}. Alto riesgo de descompensación intraoperatoria inmediata. Requiere optimización y valoración mandatoria por Especialidad antes del procedimiento.")
+                    
+                    # 3. Monitoreo Electrocardiográfico (ECG)
+                    if "Normal" not in ecg_calc and "No disponible" not in ecg_calc:
+                        st.warning(f"⚠️ **Hallazgo ECG Crítico:** Se registra `{ecg_calc}`. Correlacione estrechamente con el estado hemodinámico en vivo y mantenga monitorización continua del segmento ST en derivaciones DII y V5 en sala.")
+
+                st.divider()
