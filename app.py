@@ -745,7 +745,17 @@ with col_izq:
                 potasio_val = c_lab5.number_input("Potasio K+ (mEq/L)", min_value=1.5, max_value=8.0, value=4.0, step=0.1, key="mod5_potasio")
                 
                 st.divider()
-
+                # --- 3.5. PERFIL HEPÁTICO (CONDICIONAL PARA CHILD-PUGH) ---
+            # Inicialización de seguridad para evitar NameError si el bloque está oculto
+            bili_total = 1.0
+            albumina_serica = 3.5
+            
+            if "Cirrosis Hepática" in antecedentes_seleccionados:
+                st.markdown("#### 🧪 Perfil Hepático")
+                c_hep1, c_hep2 = st.columns(2)
+                bili_total = c_hep1.number_input("Bilirrubina Total (mg/dL)", min_value=0.1, max_value=50.0, value=1.0, step=0.1, key="mod5_bili")
+                albumina_serica = c_hep2.number_input("Albúmina Sérica (g/dL)", min_value=1.0, max_value=6.0, value=3.5, step=0.1, key="mod5_albu")
+                st.divider()
                 # --- 3. TIEMPOS DE COAGULACIÓN (CRÍTICO PARA ANESTESIA REGIONAL) ---
                 st.markdown("#### ⏱️ Coagulación")
                 c_lab6, c_lab7, c_lab8 = st.columns(3)
