@@ -592,44 +592,94 @@ with col_derecha:
             anestesia_calc = tipo_anestesia if 'tipo_anestesia' in locals() else "No definido"
 
             if peso_calc > 0 and talla_raw > 0:
-                # --- SUBSECCIÓN A: METABOLISMO Y VOLÚMENES ---
+                # --- SUBSECCIÓN A: METABOLISMO Y VOLÚMENES (BIFURCACIÓN PEDIATRÍA/ADULTO) ---
                 st.markdown("##### 📏 Índices Fisiológicos y Somatometría")
                 imc_control = peso_calc / (talla_m ** 2)
-                
-                if sexo_calc == "Masculino":
-                    peso_ideal = 50.0 + 2.3 * ((talla_raw / 2.54) - 60.0)
-                    peso_predicho = 50.0 + 0.91 * (talla_raw - 152.4)
-                else:
-                    peso_ideal = 45.5 + 2.3 * ((talla_raw / 2.54) - 60.0)
-                    peso_predicho = 45.5 + 0.91 * (talla_raw - 152.4)
-                
-                if peso_ideal < 0: peso_ideal = peso_calc
-                if peso_predicho < 0: peso_predicho = peso_calc
                 bsa_calc = math.sqrt((peso_calc * talla_raw) / 3600.0)
                 
-                if peso_calc > peso_ideal:
-                    peso_ajustado_20 = peso_ideal + 0.20 * (peso_calc - peso_ideal)
-                    peso_ajustado_40 = peso_ideal + 0.40 * (peso_calc - peso_ideal)
+                # =====================================================================
+                # ENTORNO PEDIÁTRICO (< 18 AÑOS) - FÓRMULAS DE ESTIMACIÓN CLÍNICA
+                # =====================================================================
+                if edad_calc < 18:
+                    # 1. Algoritmo de Peso y Talla esperados según la edad (Estándar APLS / OMS)
+                    if edad_calc == 0:
+                        peso_esperado = 7.5  # Lactante promedio estándar (6 meses)
+                        talla_esperada = 65.0
+                    elif 1 <= edad_calc <= 5:
+                        peso_esperado = (edad_calc * 2) + 8
+                        talla_esperada = (edad_calc * 6) + 77
+                    elif 6 <= edad_calc <= 12:
+                        peso_esperado = (edad_calc * 3) + 7
+                        talla_esperada = (edad_calc * 6) + 77
+                    else:  # Adolescentes (13 a 17 años)
+                        # Si alcanzan la talla base adulta (>152.4 cm), Devine es metodológicamente aceptable
+                        if talla_raw >= 152.4:
+                            if sexo_calc == "Masculino":
+                                peso_esperado = 50.0 + 2.3 * ((talla_raw / 2.54) - 60.0)
+                            else:
+                                peso_esperado = 45.5 + 2.3 * ((talla_raw / 2.54) - 60.0)
+                        else:
+                            peso_esperado = (edad_calc * 3.3) + 5  # Estimación lineal puberal alternativa
+                        talla_esperada = 162.0 if sexo_calc == "Femenino" else 173.0
+
+                    # 2. Estratificación del Estado Nutricional Pediátrico (% de Desvío Ponderal)
+                    porcentaje_peso = (peso_calc / peso_esperado) * 100
+                    if porcentaje_peso < 80: cat_ped = "Desnutrición Severa 🚨"
+                    elif porcentaje_peso < 90: cat_ped = "Bajo Peso / Delgadez ⚠️"
+                    elif porcentaje_peso <= 115: cat_ped = "Eutrófico (Normal) ✅"
+                    elif porcentaje_peso <= 130: cat_ped = "Sobrepeso Pediátrico ⚠️"
+                    else: cat_ped = "Obesidad Pediátrica 🚨"
+
+                    # 3. Renderizado de Tarjetas Métricas Pediátricas
+                    m_col1, m_col2 = st.columns(2)
+                    with m_col1:
+                        st.metric(label="BMI / IMC Pediátrico", value=f"{imc_control:.1f} kg/m²", delta=cat_ped, delta_color="normal")
+                        st.metric(label="Peso Esperado p/Edad", value=f"{peso_esperado:.1f} kg", help="Calculado mediante fórmulas oficiales APLS (Advanced Pediatric Life Support).")
+                    with m_col2:
+                        st.metric(label="Superficie Corporal (BSA)", value=f"{bsa_calc:.2f} m²", help="Parámetro de oro en pediatría para calcular tasas de fluidoterapia de mantenimiento, reposición de pérdidas y dosificación de inductores.")
+                        if edad_calc <= 12:
+                            st.metric(label="Talla Esperada p/Edad", value=f"{talla_esperada:.1f} cm", help="Fórmula de crecimiento lineal teórico: (Edad en años x 6) + 77 cm.")
+                        else:
+                            st.metric(label="Talla Objetivo Est.", value=f"{talla_esperada:.0f} cm", help="Estatura promedio proyectada para el sexo biológico al finalizar el desarrollo.")
+                            
+                    if edad_calc < 2:
+                        st.info("👶 **Nota clínica:** En lactantes menores de 2 años, el IMC aislado tiene baja correlación diagnóstica; se sugiere cotejar con las curvas de Peso para la Longitud de la OMS.")
+
+                # =====================================================================
+                # ENTORNO ADULTO (≥ 18 AÑOS) - FÓRMULAS CONVENCIONALES
+                # =====================================================================
                 else:
-                    peso_ajustado_20 = peso_calc
-                    peso_ajustado_40 = peso_calc
-                
-                # Renderizado de Tarjetas Métricas
-                m_col1, m_col2 = st.columns(2)
-                with m_col1:
-                    st.metric(label="BMI / IMC Real", value=f"{imc_control:.1f} kg/m²")
-                    st.metric(label="Peso Ideal (Devine)", value=f"{peso_ideal:.1f} kg")
-                    st.metric(label="Peso Ajustado (20%)", value=f"{peso_ajustado_20:.1f} kg")
-                with m_col2:
-                    st.metric(label="Superficie Corporal (BSA)", value=f"{bsa_calc:.2f} m²")
-                    st.metric(label="Peso Predicho (ARDSNet)", value=f"{peso_predicho:.1f} kg")
-                    st.metric(label="Peso Ajustado (40%)", value=f"{peso_ajustado_40:.1f} kg")
-                
-                if imc_control >= 30.0:
-                    grado_obesidad = 1 if imc_control < 35 else (2 if imc_control < 40 else 3)
-                    st.warning(f"⚠️ **Alerta:** Obesidad Grado {grado_obesidad}. Ajuste volúmenes y fármacos.")
-                
-                st.divider()
+                    if sexo_calc == "Masculino":
+                        peso_ideal = 50.0 + 2.3 * ((talla_raw / 2.54) - 60.0)
+                        peso_predicho = 50.0 + 0.91 * (talla_raw - 152.4)
+                    else:
+                        peso_ideal = 45.5 + 2.3 * ((talla_raw / 2.54) - 60.0)
+                        peso_predicho = 45.5 + 0.91 * (talla_raw - 152.4)
+                    
+                    if peso_ideal < 0: peso_ideal = peso_calc
+                    if peso_predicho < 0: peso_predicho = peso_calc
+                    
+                    if peso_calc > peso_ideal:
+                        peso_ajustado_20 = peso_ideal + 0.20 * (peso_calc - peso_ideal)
+                        peso_ajustado_40 = peso_ideal + 0.40 * (peso_calc - peso_ideal)
+                    else:
+                        peso_ajustado_20 = peso_calc
+                        peso_ajustado_40 = peso_calc
+                    
+                    # Renderizado de Tarjetas Métricas Adultos
+                    m_col1, m_col2 = st.columns(2)
+                    with m_col1:
+                        st.metric(label="BMI / IMC Real", value=f"{imc_control:.1f} kg/m²")
+                        st.metric(label="Peso Ideal (Devine)", value=f"{peso_ideal:.1f} kg")
+                        st.metric(label="Peso Ajustado (20%)", value=f"{peso_ajustado_20:.1f} kg")
+                    with m_col2:
+                        st.metric(label="Superficie Corporal (BSA)", value=f"{bsa_calc:.2f} m²")
+                        st.metric(label="Peso Predicho (ARDSNet)", value=f"{peso_predicho:.1f} kg")
+                        st.metric(label="Peso Ajustado (40%)", value=f"{peso_ajustado_40:.1f} kg")
+                    
+                    if imc_control >= 30.0:
+                        grado_obesidad = 1 if imc_control < 35 else (2 if imc_control < 40 else 3)
+                        st.warning(f"⚠️ **Alerta:** Obesidad Grado {grado_obesidad}. Ajuste volúmenes y fármacos.")
                 
                 # --- SUBSECCIÓN B: DUPLICACIÓN DE DATOS DEMOGRÁFICOS ---
                 st.markdown("##### 👤 Perfil Demográfico del Paciente")
