@@ -765,10 +765,7 @@ with col_izq:
                 inr_val = c_lab8.number_input("INR", min_value=0.5, max_value=10.0, value=1.0, step=0.1, key="mod5_inr")
                 
                 st.divider()
-# --- DENTRO DEL MÓDULO 5 (Sección de Química) ---
-                c_lab_hep1, c_lab_hep2 = st.columns(2)
-                bili_total = c_lab_hep1.number_input("Bilirrubina Total (mg/dL)", min_value=0.1, max_value=50.0, value=1.0, step=0.1, key="mod5_bili")
-                albumina_serica = c_lab_hep2.number_input("Albúmina Sérica (g/dL)", min_value=1.0, max_value=6.0, value=3.5, step=0.1, key="mod5_albu")
+
                 # --- 4. GASOMETRÍA ARTERIAL (CONDICIONAL OPTIONAL) ---
                 tiene_gasometria = st.checkbox("🫁 ¿Cuenta con reporte de Gasometría Arterial?", value=False, key="mod5_check_gases")
                 
