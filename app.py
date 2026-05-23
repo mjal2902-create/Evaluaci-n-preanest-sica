@@ -117,18 +117,31 @@ with col_izquierda:
             c_ant3.metric(label="IMC Calculado", value=f"{imc:.1f} kg/m²", delta=cat_imc, delta_color="normal")
             st.divider() 
             
-            st.markdown("**Contexto Quirúrgico y Plan Anestésico**")
+           st.markdown("**Contexto Quirúrgico y Plan Anestésico**")
+            
+            # Lógica inteligente: Casilla obstétrica solo en mujeres en edad reproductiva o mayor
             es_obstetrico = False
             if sexo == "Femenino" and edad >= 10:
                 es_obstetrico = st.checkbox("🤰 Paciente Obstétrica (Cambia diagnósticos y procedimientos)", key="mod1_obstetrico")
 
-            c_cx1, c_cx2 = st.columns(2)
+            # Tres columnas para alinear Carácter, Riesgo Quirúrgico y ASA (usamos c_asa para no chocar)
+            c_cx1, c_cx2, c_asa = st.columns(3)
             caracter_cx = c_cx1.selectbox("Carácter", ["Electiva", "Urgencia", "Emergencia"], key="mod1_caracter")
+            
             riesgo_cx = c_cx2.selectbox("Riesgo Quirúrgico (AHA/ACC)", [
                 "Bajo (<1%) - Ej: Superficial, Endoscópica, Catarata", 
                 "Intermedio (1-5%) - Ej: Intraperitoneal, Ortopédica mayor", 
                 "Alto (>5%) - Ej: Vascular mayor, Torácica, Aórtica"
             ], key="mod1_riesgo")
+            
+            asa_ps = c_asa.selectbox("Clasificación ASA", [
+                "ASA I: Paciente sano normal",
+                "ASA II: Enfermedad sistémica leve",
+                "ASA III: Enfermedad sistémica grave",
+                "ASA IV: Enfermedad sistémica grave con amenaza vital constante",
+                "ASA V: Paciente moribundo",
+                "ASA VI: Muerte cerebral (Donante de órganos)"
+            ], key="mod1_asa")
             
             c_cx3, c_cx4 = st.columns(2)
             
