@@ -118,32 +118,36 @@ with col_izquierda:
             st.divider() 
             
 # Fila 3: Contexto Quirúrgico Base
-            st.markdown("**Contexto Quirúrgico y Plan Anestésico**")
+            st.markdown("**Contexto Quirúrgico y Clasificación**")
             
             # Lógica inteligente: Casilla obstétrica solo en mujeres en edad reproductiva o mayor
             es_obstetrico = False
             if sexo == "Femenino" and edad >= 10:
                 es_obstetrico = st.checkbox("🤰 Paciente Obstétrica (Cambia diagnósticos y procedimientos)", key="mod1_obstetrico")
 
-            # Tres columnas para alinear Carácter, Riesgo Quirúrgico y ASA (usamos c_asa para no chocar)
-            c_cx1, c_cx2, c_asa = st.columns(3)
-            caracter_cx = c_cx1.selectbox("Carácter", ["Electiva", "Urgencia", "Emergencia"], key="mod1_caracter")
-            
-            riesgo_cx = c_cx2.selectbox("Riesgo Quirúrgico (AHA/ACC)", [
-                "Bajo (<1%) - Ej: Superficial, Endoscópica, Catarata", 
-                "Intermedio (1-5%) - Ej: Intraperitoneal, Ortopédica mayor", 
-                "Alto (>5%) - Ej: Vascular mayor, Torácica, Aórtica"
-            ], key="mod1_riesgo")
+            # Fila A: Carácter y ASA (2 columnas amplias para no apiñar el texto)
+            c_cx1, c_asa = st.columns(2)
+            caracter_cx = c_cx1.selectbox("Carácter de la Intervención", ["Electiva", "Urgencia", "Emergencia"], key="mod1_caracter")
             
             asa_ps = c_asa.selectbox("Clasificación ASA", [
                 "ASA I: Paciente sano normal",
                 "ASA II: Enfermedad sistémica leve",
                 "ASA III: Enfermedad sistémica grave",
-                "ASA IV: Enfermedad sistémica grave con amenaza vital constante",
+                "ASA IV: Enf. sistémica grave con amenaza vital",
                 "ASA V: Paciente moribundo",
-                "ASA VI: Muerte cerebral (Donante de órganos)"
+                "ASA VI: Muerte cerebral (Donante)"
             ], key="mod1_asa")
             
+            # Fila B: Riesgo Quirúrgico (A todo lo ancho para que el texto largo encaje perfecto)
+            riesgo_cx = st.selectbox("Riesgo Quirúrgico (AHA/ACC)", [
+                "Bajo (<1%) - Ej: Superficial, Endoscópica, Catarata", 
+                "Intermedio (1-5%) - Ej: Intraperitoneal, Ortopédica mayor", 
+                "Alto (>5%) - Ej: Vascular mayor, Torácica, Aórtica"
+            ], key="mod1_riesgo")
+            
+            st.divider()
+            
+            # Fila 4: Diagnóstico y Procedimiento Dinámico
             c_cx3, c_cx4 = st.columns(2)
             
             if es_obstetrico:
