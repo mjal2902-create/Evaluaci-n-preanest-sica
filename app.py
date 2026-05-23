@@ -552,37 +552,42 @@ with col_derecha:
         
         with tab1:
             # ---------------------------------------------------------------------
-            # PESTAÑA 1 - SECCIÓN 1: PROCESAMIENTO ANTROPOMÉTRICO (MÓDULO 1)
+            # PESTAÑA 1 - SECCIÓN 1: DUPLICACIÓN COMPLETA - ANTROPOMETRÍA Y CONTEXTO
             # ---------------------------------------------------------------------
-            st.subheader("🧮 Antropometría y Volúmenes (Módulo 1)")
+            st.subheader("🧮 Espejo Clínico y Volúmenes (Módulo 1)")
             
-            # Sincronización analítica cruzada de variables nativas
+            # Recolección analítica y segura de variables nativas del Módulo 1
             peso_calc = peso_real if 'peso_real' in locals() else 0.0
             talla_raw = talla_cm if 'talla_cm' in locals() else 0.0
             talla_m = talla_raw / 100.0
             sexo_calc = sexo if 'sexo' in locals() else "Masculino"
             edad_calc = edad if 'edad' in locals() else 35
+            gs_calc = grupo_sangre if 'grupo_sangre' in locals() else "Desconocido"
+            obs_calc = es_obstetrico if 'es_obstetrico' in locals() else False
+            
+            caracter_calc = caracter_cx if 'caracter_cx' in locals() else "Electiva"
+            riesgo_calc = riesgo_cx if 'riesgo_cx' in locals() else "No definido"
+            diag_calc = diagnostico_final if 'diagnostico_final' in locals() else "No definido"
+            frac_calc = tipo_fractura_cx if 'tipo_fractura_cx' in locals() else "No aplica"
+            proc_calc = procedimiento_final if 'procedimiento_final' in locals() else "No definido"
+            anestesia_calc = tipo_anestesia if 'tipo_anestesia' in locals() else "No definido"
 
             if peso_calc > 0 and talla_raw > 0:
-                # 1. Cálculo del IMC de control
+                # --- SUBSECCIÓN A: METABOLISMO Y VOLÚMENES ---
+                st.markdown("##### 📏 Índices Fisiológicos y Somatometría")
                 imc_control = peso_calc / (talla_m ** 2)
                 
-                # 2. Peso Ideal (Devine) y Peso Predicho (ARDSNet)
                 if sexo_calc == "Masculino":
-                    peso_ideal = 50.0 + 2.3 * ((talla_raw / 2.54) - 60.0)
+                    peso_ideal = 50.0 + 2.3 * ((traw / 2.54) - 60.0) if 'traw' in locals() else (50.0 + 2.3 * ((talla_raw / 2.54) - 60.0))
                     peso_predicho = 50.0 + 0.91 * (talla_raw - 152.4)
                 else:
                     peso_ideal = 45.5 + 2.3 * ((talla_raw / 2.54) - 60.0)
                     peso_predicho = 45.5 + 0.91 * (talla_raw - 152.4)
                 
-                # Límites fisiológicos inferiores
                 if peso_ideal < 0: peso_ideal = peso_calc
                 if peso_predicho < 0: peso_predicho = peso_calc
-                
-                # 3. Superficie Corporal (Mosteller)
                 bsa_calc = math.sqrt((peso_calc * talla_raw) / 3600.0)
                 
-                # 4. Pesos Ajustados Clínicos (20% y 40% para el paciente con sobrepeso/obesidad)
                 if peso_calc > peso_ideal:
                     peso_ajustado_20 = peso_ideal + 0.20 * (peso_calc - peso_ideal)
                     peso_ajustado_40 = peso_ideal + 0.40 * (peso_calc - peso_ideal)
@@ -590,21 +595,49 @@ with col_derecha:
                     peso_ajustado_20 = peso_calc
                     peso_ajustado_40 = peso_calc
                 
-                # --- RENDERIZADO SIMÉTRICO EN TARJETAS DE QUIRÓFANO ---
+                # Renderizado de Tarjetas Métricas
                 m_col1, m_col2 = st.columns(2)
-                
                 with m_col1:
                     st.metric(label="BMI / IMC Real", value=f"{imc_control:.1f} kg/m²")
                     st.metric(label="Peso Ideal (Devine)", value=f"{peso_ideal:.1f} kg")
-                    st.metric(label="Peso Ajustado (20%)", value=f"{peso_ajustado_20:.1f} kg", help="Útil para dosificación de ciertos fármacos hidrofílicos.")
-                    
+                    st.metric(label="Peso Ajustado (20%)", value=f"{peso_ajustado_20:.1f} kg")
                 with m_col2:
                     st.metric(label="Superficie Corporal (BSA)", value=f"{bsa_calc:.2f} m²")
-                    st.metric(label="Peso Predicho (ARDSNet)", value=f"{peso_predicho:.1f} kg", help="Calibración exacta del volumen corriente protector (6-8 mL/kg).")
-                    st.metric(label="Peso Ajustado (40%)", value=f"{peso_ajustado_40:.1f} kg", help="Recomendado para dosificación lipofílica e inducción.")
+                    st.metric(label="Peso Predicho (ARDSNet)", value=f"{peso_predicho:.1f} kg", help="Esencial para ventilación protectora.")
+                    st.metric(label="Peso Ajustado (40%)", value=f"{peso_ajustado_40:.1f} kg")
+                
+                if imc_control >= 30.0:
+                    grado_obesidad = 1 if imc_control < 35 else (2 if imc_control < 40 else 3)
+                    st.warning(f"⚠️ **Alerta:** Obesidad Grado {grado_obesidad}. Ajuste volúmenes y fármacos.")
                 
                 st.divider()
-                st.info(f"📋 **Estratificación Demográfica:** {sexo_calc} | {edad_calc} años | Plan Anestésico: {tipo_anestesia.split('(')[0].strip()}")
+                
+                # --- SUBSECCIÓN B: DUPLICACIÓN DE DATOS DEMOGRÁFICOS ---
+                st.markdown("##### 👤 Perfil Demográfico del Paciente")
+                c_der_demo1, c_der_demo2 = st.columns(2)
+                with c_der_demo1:
+                    st.markdown(f"**Sexo Biológico:** {sexo_calc}")
+                    st.markdown(f"**Edad Cronológica:** {edad_calc} años")
+                with c_der_demo2:
+                    st.markdown(f"**Grupo Sanguíneo y Rh:** {gs_calc}")
+                    st.markdown(f"**Estado Obstétrico:** {'Paciente Obstétrica 🤰' if obs_calc else 'No aplica / No gestante'}")
+                
+                st.divider()
+                
+                # --- SUBSECCIÓN C: DUPLICACIÓN DE CONTEXTO QUIRÚRGICO Y PLAN ---
+                st.markdown("##### 🏥 Contexto Quirúrgico y Planificación")
+                st.markdown(f"**Carácter Quirúrgico:** {caracter_calc}")
+                st.markdown(f"**Riesgo Cardiovascular (AHA/ACC):** {riesgo_calc}")
+                
+                # Bloque de Diagnóstico y Procedimientos destacados
+                st.markdown(f"**Diagnóstico Principal:** `{diag_calc}`")
+                if frac_calc != "No aplica":
+                    st.markdown(f"**Detalle de Traumatología:** 🦴 `{frac_calc}`")
+                st.markdown(f"**Procedimiento Quirúrgico:** `{proc_calc}`")
+                
+                st.markdown("---")
+                st.success(f"💉 **Estrategia Anestésica:** **{anestesia_calc}**")
+                
             else:
                 st.warning("⏳ Esperando ingreso de Peso y Talla válidos en el Módulo 1...")
     else:
