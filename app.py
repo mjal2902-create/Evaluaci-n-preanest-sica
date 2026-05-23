@@ -745,22 +745,36 @@ with col_derecha:
                 # =====================================================================
                 st.subheader("🫁 Vía Aérea y Predictores Dinámicos (Módulo 3)")
                 
-                # --- 1. PROCESAMIENTO AVANZADO DEL STOP-BANG EN TIEMPO REAL ---
-                # Recolección de síntomas clínicos del Módulo 3
+                # --- LECTURA SEGURA DE VARIABLES CLÍNICAS ---
                 sb_s_calc = sb_s if 'sb_s' in locals() else False
                 sb_t_calc = sb_t if 'sb_t' in locals() else False
                 sb_o_calc = sb_o if 'sb_o' in locals() else False
+                vmd_barba_calc = vmd_barba if 'vmd_barba' in locals() else False
+                vmd_edentulo_calc = vmd_edentulo if 'vmd_edentulo' in locals() else False
                 
-                # Inferencia epidemiológica cruzada en segundo plano
+                # --- 1. MOTOR OBESE AUTOMATIZADO (VENTILACIÓN DIFÍCIL) ---
+                score_obese_total = 0
+                if 'imc_control' in locals() and imc_control >= 30.0: score_obese_total += 1  # O - Obesity
+                if vmd_barba_calc: score_obese_total += 1                                      # B - Beard
+                if vmd_edentulo_calc: score_obese_total += 1                                  # E - Edentulous
+                if sb_s_calc: score_obese_total += 1                                          # S - Snoring
+                if 'edad_calc' in locals() and edad_calc > 55: score_obese_total += 1         # E - Elderly (>55 años)
+                
+                if es_pediatrico_va:
+                    estrato_obese = "No aplica (Pediátrico)"
+                elif score_obese_total >= 2:
+                    estrato_obese = "Riesgo Alto de Ventilación Difícil 🚨"
+                else:
+                    estrato_obese = "Riesgo Bajo de Ventilación Difícil"
+
+                # --- 2. MOTOR STOP-BANG AUTOMATIZADO (APNEA DEL SUEÑO) ---
                 score_stop_bang_total = sum([sb_s_calc, sb_t_calc, sb_o_calc])
-                
                 if 'edad_calc' in locals() and edad_calc > 50: score_stop_bang_total += 1
                 if 'sexo_calc' in locals() and sexo_calc == "Masculino": score_stop_bang_total += 1
                 if 'imc_control' in locals() and imc_control > 35.0: score_stop_bang_total += 1
-                if 'vmd_barba' in locals() and vmd_barba: score_stop_bang_total += 1
+                if vmd_barba_calc: score_stop_bang_total += 1
                 if 'app_raw' in locals() and "Hipertensión Arterial (HTA)" in app_raw: score_stop_bang_total += 1
                 
-                # Estratificación STOP-Bang
                 if es_pediatrico_va:
                     estrato_sb = "No aplica (Pediátrico)"
                 elif score_stop_bang_total <= 2:
@@ -770,76 +784,81 @@ with col_derecha:
                 else:
                     estrato_sb = "Riesgo Alto para AOS 🚨"
 
-                # --- 2. PROCESAMIENTO AVANZADO DE ARISCAT EN TIEMPO REAL ---
+                # --- 3. MOTOR ARISCAT AUTOMATIZADO (RIESGO PULMONAR) ---
                 score_ariscat_total = 0
-                aris_epoc = ariscat_enfermedad_pulmonar if 'ariscat_enfermedad_pulmonar' in locals() else False
+                aris_epoc = ariscat_enfermedad_pulmonar if 'ariscat_enfermedar_pulmonar' in locals() else False
                 aris_inf = ariscat_infeccion_reciente if 'ariscat_infeccion_reciente' in locals() else False
                 
                 if aris_inf: score_ariscat_total += 17
+                if aris_epoc: score_ariscat_total += 4
                 if 'edad_calc' in locals():
                     if 51 <= edad_calc <= 80: score_ariscat_total += 3
                     elif edad_calc > 80: score_ariscat_total += 16
                 if 'hb_val' in locals() and hb_val <= 10.0: score_ariscat_total += 11
                 
-                # Inferencia por sitio quirúrgico (Módulo 1)
                 if 'proc_calc' in locals():
                     proc_upper = proc_calc.upper()
                     if any(x in proc_upper for x in ["COLECIST", "GASTRO", "LAPAROTOM", "TORAC", "RESECCION ONCOLOGICA"]):
-                        score_ariscat_total += 24  # Incisión Abdominal Superior / Torácica
+                        score_ariscat_total += 24
                     elif any(x in proc_upper for x in ["HERNIA", "HISTERECTOM", "APENDIC"]):
-                        score_ariscat_total += 15  # Incisión Abdominal Inferior
+                        score_ariscat_total += 15
                         
                 if 'riesgo_calc' in locals() and "Alto" in riesgo_calc: score_ariscat_total += 6
 
-                # Estratificación ARISCAT
                 if score_ariscat_total < 26:
-                    estrato_ariscat = "Riesgo Bajo (~1.6% complicaciones)"
+                    estrato_ariscat = "Riesgo Bajo (~1.6% RCP)"
                 elif 26 <= score_ariscat_total <= 44:
-                    estrato_ariscat = "Riesgo Moderado (~13.3% complicaciones)"
+                    estrato_ariscat = "Riesgo Moderado (~13.3% RCP)"
                 else:
-                    estrato_ariscat = "Riesgo Alto (~42.1% complicaciones) 🚨"
+                    estrato_ariscat = "Riesgo Alto (~42.1% RCP) 🚨"
 
-                # --- 3. RENDIMIENTO VISUAL EN TRES COLUMNAS MAESTRAS ---
+                # --- 4. DESPLIEGUE EN MATRIZ SIMÉTRICA DE 2X2 ---
                 arne_val = score_arne if 'score_arne' in locals() else 0
                 
-                m3_col1, m3_col2, m3_col3 = st.columns(3)
-                m3_col1.metric(label="Score de Arné", value=f"{arne_val} pts", help="Puntuación multifactorial de intubación difícil. > 11 pts predice VAD.")
-                m3_col2.metric(label="STOP-Bang", value=f"{score_stop_bang_total if not es_pediatrico_va else 'N/A'} pts", help="Tamizaje de Apnea Obstructiva del Sueño automatizado.")
-                m3_col3.metric(label="Score ARISCAT", value=f"{score_ariscat_total} pts", help="Predicción de complicaciones pulmonares postoperatorias.")
+                row1_col1, row1_col2 = st.columns(2)
+                with row1_col1:
+                    st.metric(label="Arné (Intubación)", value=f"{arne_val} pts", help="Score predictor de Intubación Difícil. >11 pts indica VAD.")
+                with row1_col2:
+                    st.metric(label="OBESE (Ventilación)", value=f"{score_obese_total if not es_pediatrico_va else 'N/A'} pts", help="Escala predictora de Ventilación Difícil con Máscara Facial. >=2 pts indica riesgo.")
                 
-                st.markdown("##### 🔍 Interpretación del Estado Ventilatorio:")
+                row2_col1, row2_col2 = st.columns(2)
+                with row2_col1:
+                    st.metric(label="STOP-Bang (Apnea)", value=f"{score_stop_bang_total if not es_pediatrico_va else 'N/A'} pts")
+                with row2_col2:
+                    st.metric(label="ARISCAT (Pulmonar)", value=f"{score_ariscat_total} pts")
                 
-                # Alertas de Intubación (Arné)
+                st.markdown("##### 🔍 Diagnóstico Predictivo de Vía Aérea:")
+                
+                # Alerta Clínica: Índice de Intubación Difícil (Arné)
                 if arne_val <= 10:
-                    st.success(f"🟢 **Predicción de Intubación:** Riesgo Bajo de Intubación Difícil ({arne_val} pts).")
+                    st.success(f"🟢 **Índice de Intubación:** Riesgo Bajo de Intubación Difícil ({arne_val} pts).")
                 else:
-                    st.error(f"🚨 **ALERTA VAD:** Score de Arné Elevado ({arne_val} pts). Alto riesgo de intubación difícil. Prepare videolaringoscopio o dispositivo supraglótico.")
+                    st.error(f"🚨 **ALERTA: Índice de Intubación Difícil Elevado** ({arne_val} pts). Alto riesgo de laringoscopia dificultosa. Asegure laringoscopio convencional funcional y videolaringoscopio en sala.")
 
-                # Alertas de Sueño (STOP-Bang)
+                # Alerta Clínica: Índice de Ventilación Difícil (OBESE)
+                if not es_pediatrico_va:
+                    if score_obese_total >= 2:
+                        st.error(f"🚨 **Índice de Ventilación:** {estrato_obese} ({score_obese_total} pts). Riesgo de sello inadecuado o resistencia al flujo. Tenga a la mano cánulas orofaríngeas (Guedel) y considere inducción de secuencia rápida o asistencia técnica.")
+                    else:
+                        st.success(f"🟢 **Índice de Ventilación:** Riesgo Bajo de Ventilación con Máscara Facial.")
+
+                # Alertas STOP-Bang
                 if not es_pediatrico_va:
                     if score_stop_bang_total >= 5:
-                        st.error(f"🚨 **STOP-Bang:** {estrato_sb}. Alta probabilidad de colapso de vía aérea y sensibilidad crítica a opioides en el despertar.")
-                    elif score_stop_bang_total >= 3:
-                        st.warning(f"⚠️ **STOP-Bang:** {estrato_sb}. Considere monitorización continua de oximetría postoperatoria.")
-                    else:
-                        st.success(f"🟢 **STOP-Bang:** {estrato_sb}.")
+                        st.warning(f"⚠️ **STOP-Bang:** {estrato_sb}. Alta probabilidad de obstrucción de vía aérea en sedación y despertar.")
                 
                 # Alertas Pulmonares (ARISCAT)
                 if score_ariscat_total >= 45:
-                    st.error(f"🚨 **Riesgo Pulmonar (ARISCAT):** {estrato_ariscat}. Alta probabilidad de atelectasias o neumonía postoperatoria. Considere analgesia libre de opioides (ej. Lidocaína IV) y reclutamiento alveolar alveolar temprano.")
-                elif score_ariscat_total >= 26:
-                    st.warning(f"⚠️ **Riesgo Pulmonar (ARISCAT):** {estrato_ariscat}. Planifique fisioterapia respiratoria perioperatoria.")
-                else:
-                    st.success(f"🟢 **Riesgo Pulmonar (ARISCAT):** {estrato_ariscat}.")
+                    st.error(f"🚨 **Riesgo Pulmonar (ARISCAT):** {estrato_ariscat}.")
                 
                 # Espejo anatómico rápido si hay hallazgos críticos
                 hallazgos_va = []
-                if 'mallampati' in locals() and ("Class III" in mallampati or "Class IV" in mallampati or "III" in mallampati or "IV" in mallampati): hallazgos_va.append(f"👅 Mallampati Alto")
-                if 'dtm' in locals() and "Clase III" in dtm: hallazgos_va.append("📐 DTM Corta (<6cm)")
-                if 'apertura_bucal' in locals() and "Clase III" in apertura_bucal: hallazgos_va.append("👄 Apertura Bucal Limitada (<3cm)")
+                if 'mallampati' in locals() and any(x in mallampati for x in ["III", "IV"]): hallazgos_va.append("👅 Mallampati Alto")
+                if 'dtm' in locals() and "Clase III" in dtm: hallazgos_va.append("📐 DTM Corta")
+                if 'apertura_bucal' in locals() and "Clase III" in apertura_bucal: hallazgos_va.append("👄 Apertura Limitada")
                 if 'vad_retrognatia' in locals() and vad_retrognatia: hallazgos_va.append("🦷 Retrognatia")
                 
                 if hallazgos_va:
-                    st.warning(f"⚠️ **Alertas Anatómicas Visualizadas:** {' | '.join(hallazgos_va)}")
+                    st.warning(f"⚠️ **Alertas Anatómicas Detectadas:** {' | '.join(hallazgos_va)}")
                 
                 st.divider()
