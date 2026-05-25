@@ -557,7 +557,7 @@ with col_derecha:
         st.markdown(
             """
             <style>
-                [data-testid="stColumn"]:nth-child(2) [data-testid="stVerticalBlock"] {
+                div[data-testid="stColumn"]:has(#panel-de-control-perioperatorio) > div[data-testid="stVerticalBlock"] {
                     position: -webkit-sticky;
                     position: sticky;
                     top: 1.5rem;
@@ -568,6 +568,8 @@ with col_derecha:
                 }
             </style>
             """,
+            unsafe_allow_html=True
+        )
             unsafe_allow_html=True
         )
         
