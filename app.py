@@ -553,7 +553,7 @@ with col_izquierda:
 # =============================================================================
 with col_derecha:
     if hospital_valido:
-        # Inyección CSS para congelar el panel derecho y dejarlo estático con el scroll
+# Inyección CSS ultra-específica: Evita que se filtre a las subcolumnas de la izquierda
         st.markdown("""
             <style>
                 div[data-testid="stColumn"]:has(#panel-de-control-perioperatorio) > div[data-testid="stVerticalBlock"] {
@@ -567,12 +567,6 @@ with col_derecha:
                 }
             </style>
         """, unsafe_allow_html=True)
-            unsafe_allow_html=True
-        )
-            unsafe_allow_html=True
-        )
-            unsafe_allow_html=True
-        )
         
         st.markdown("### 📊 PANEL DE CONTROL PERIOPERATORIO")
         tab1, tab2 = st.tabs(["🔢 Cálculos y Escalas", "📄 Reporte Final"])
