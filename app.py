@@ -123,9 +123,6 @@ with col_izquierda:
             
             st.divider()
             
-            c_ant3.metric(label="IMC Calculado", value=f"{imc:.1f} kg/m²", delta=cat_imc, delta_color="normal")
-            st.divider() 
-            
 # Fila 3: Contexto Quirúrgico Base
             st.markdown("**Contexto Quirúrgico y Clasificación**")
             
