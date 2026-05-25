@@ -554,6 +554,7 @@ with col_izquierda:
 with col_derecha:
     if hospital_valido:
         # Inyección CSS para congelar el panel derecho y dejarlo estático con el scroll
+        # Inyección CSS ultra-específica: Evita que se filtre a las subcolumnas de la izquierda
         st.markdown(
             """
             <style>
@@ -568,6 +569,8 @@ with col_derecha:
                 }
             </style>
             """,
+            unsafe_allow_html=True
+        )
             unsafe_allow_html=True
         )
             unsafe_allow_html=True
