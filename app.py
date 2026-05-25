@@ -104,11 +104,14 @@ with col_izquierda:
             edad_default = 30 if sexo == "Femenino" else 50
             edad = c_demo2.number_input("Edad (años)", min_value=0, max_value=120, value=edad_default, key="mod1_edad")
             grupo_sangre = c_demo3.selectbox("Grupo y Rh", ["O+", "O-", "A+", "A-", "B+", "B-", "AB+", "AB-", "Desconocido"], key="mod1_gs")
-            
-            c_ant1, c_ant2, c_ant3 = st.columns(3)
+
+            # Fila 2: Antropometría (Optimizado a 2 columnas, sin visualización de IMC)
+            c_ant1, c_ant2 = st.columns(2)
             peso_real = c_ant1.number_input("Peso Real (kg)", min_value=1.0, max_value=300.0, value=70.0, step=0.1, key="mod1_peso")
             talla_cm = c_ant2.number_input("Talla (cm)", min_value=30.0, max_value=250.0, value=165.0, step=1.0, key="mod1_talla")
             
+            # --- PROCESAMIENTO SILENCIOSO DEL IMC ---
+            # Se calcula bajo el hood para alimentar el Score de Caprini y el Monitor Derecho
             imc = 0.0
             cat_imc = "No calculado"
             if talla_cm > 0:
@@ -117,6 +120,8 @@ with col_izquierda:
                 elif imc < 25.0: cat_imc = "Normal ✅"
                 elif imc < 30.0: cat_imc = "Sobrepeso ⚠️"
                 else: cat_imc = "Obesidad 🚨"
+            
+            st.divider()
             
             c_ant3.metric(label="IMC Calculado", value=f"{imc:.1f} kg/m²", delta=cat_imc, delta_color="normal")
             st.divider() 
