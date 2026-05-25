@@ -39,6 +39,8 @@ with col_izquierda:
             "Hospital de Especialidades Abel Gilbert Pontón (MSP)",
             "Hospital General del Norte de Guayaquil Los Ceibos (IESS)",
             "Hospital de Especialidades Teodoro Maldonado Carbo (IESS)",
+            "Hospital Generl Gusmo Sur (MSP)",
+            "Hospital Generl DR. Enrique Ortega Moreira (MSP)",
             "Hospital General Monte Sinaí (MSP)",
             "Hospital Universitario de Guayaquil (MSP)",
             "Otro Hospital Público (Especificar)"
