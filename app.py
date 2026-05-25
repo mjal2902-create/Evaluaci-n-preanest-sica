@@ -554,9 +554,7 @@ with col_izquierda:
 with col_derecha:
     if hospital_valido:
         # Inyección CSS para congelar el panel derecho y dejarlo estático con el scroll
-        # Inyección CSS ultra-específica: Evita que se filtre a las subcolumnas de la izquierda
-        st.markdown(
-            """
+        st.markdown("""
             <style>
                 div[data-testid="stColumn"]:has(#panel-de-control-perioperatorio) > div[data-testid="stVerticalBlock"] {
                     position: -webkit-sticky;
@@ -568,7 +566,7 @@ with col_derecha:
                     border: 1px solid rgba(128, 128, 128, 0.15);
                 }
             </style>
-            """,
+        """, unsafe_allow_html=True)
             unsafe_allow_html=True
         )
             unsafe_allow_html=True
