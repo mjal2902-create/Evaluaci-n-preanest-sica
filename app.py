@@ -19,7 +19,6 @@ col_izquierda, col_derecha = st.columns([1.3, 1])
 # =============================================================================
 with col_izquierda:
     st.header("📋 Datos de Entrada")
-    
     # ---------------------------------------------------------
     # GATEKEEPER: REGISTRO INSTITUCIONAL (Bloqueo Estricto)
     # ---------------------------------------------------------
@@ -27,14 +26,14 @@ with col_izquierda:
     
     tipo_institucion = st.selectbox(
         "Clasificación Institucional",
-        ["👈 Seleccione el Sector...", "Red Pública (MSP / IESS / JBG)", "Sector Privado", "Otro Centro / Práctica Privada"],
+        ["👈 Seleccione el Sector...", "Red Pública (MSP / IESS)", "Sector Privado / JBG", "Otro Centro / Práctica Privada"],
         key="mod_inst_tipo"
     )
     
     hospital_final = ""
     hospital_valido = False
     
-    if tipo_institucion == "Red Pública (MSP / IESS / JBG)":
+    if tipo_institucion == "Red Pública (MSP / IESS)":
         lista_publicos = [
             "👈 Seleccione un hospital público...", 
             "Hospital de Especialidades Abel Gilbert Pontón (MSP)",
@@ -42,12 +41,11 @@ with col_izquierda:
             "Hospital de Especialidades Teodoro Maldonado Carbo (IESS)",
             "Hospital General Monte Sinaí (MSP)",
             "Hospital Universitario de Guayaquil (MSP)",
-            "Hospital de Niños Dr. Roberto Gilbert Elizalde (JBG)",
-            "Hospital Gineco-Obstétrico Alfredo G. Paulson (JBG)",
             "Otro Hospital Público (Especificar)"
         ]
         hosp_sel = st.selectbox("📍 Seleccione el Hospital Público", lista_publicos, key="mod_inst_pub")
         
+        # Lógica estricta de validación
         if hosp_sel == "👈 Seleccione un hospital público...":
             hospital_valido = False
         elif hosp_sel == "Otro Hospital Público (Especificar)":
@@ -57,9 +55,11 @@ with col_izquierda:
             hospital_final = hosp_sel
             hospital_valido = True
             
-    elif tipo_institucion == "Sector Privado":
+    elif tipo_institucion == "Sector Privado / JBG":
         lista_privados = [
-            "👈 Seleccione un centro privado...", 
+            "👈 Seleccione un centro...", 
+            "Hospital de Niños Dr. Roberto Gilbert Elizalde (JBG)",
+            "Hospital Gineco-Obstétrico Alfredo G. Paulson (JBG)",
             "Omni Hospital",
             "Hospital Clínica Kennedy (Policentro / Alborada / Samborondón)",
             "Hospital Alcívar",
@@ -67,9 +67,10 @@ with col_izquierda:
             "Hospital Clínica Panamericana",
             "Otro Centro Privado (Especificar)"
         ]
-        hosp_sel = st.selectbox("📍 Seleccione el Centro Privado", lista_privados, key="mod_inst_priv")
+        hosp_sel = st.selectbox("📍 Seleccione el Centro Privado / JBG", lista_privados, key="mod_inst_priv")
         
-        if hosp_sel == "👈 Seleccione un centro privado...":
+        # Lógica estricta de validación
+        if hosp_sel == "👈 Seleccione un centro...":
             hospital_valido = False
         elif hosp_sel == "Otro Centro Privado (Especificar)":
             hospital_final = st.text_input("Escriba el nombre del centro privado:", key="mod_inst_priv_txt")
@@ -81,6 +82,7 @@ with col_izquierda:
     elif tipo_institucion == "Otro Centro / Práctica Privada":
         hospital_final = st.text_input("Escriba el nombre de la Clínica o Centro Médico:", key="mod_inst_otro_txt")
         if hospital_final.strip() != "": hospital_valido = True
+    
 
     # --- APLICACIÓN DEL CANDADO DE SEGURIDAD ---
     if not hospital_valido:
