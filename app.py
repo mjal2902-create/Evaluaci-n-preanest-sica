@@ -125,11 +125,13 @@ with col_izquierda:
             
 # Fila 3: Contexto Quirúrgico Base
             st.markdown("**Contexto Quirúrgico y Clasificación**")
-            
-            # Lógica inteligente: Casilla obstétrica solo en mujeres en edad reproductiva o mayor
+            # --- CONDICIONAMIENTO BIOLÓGICO Y CRONOLÓGICO DE PACIENTE OBSTÉTRICA ---
             es_obstetrico = False
-            if sexo == "Femenino" and edad >= 10:
-                es_obstetrico = st.checkbox("🤰 Paciente Obstétrica (Cambia diagnósticos y procedimientos)", key="mod1_obstetrico")
+            if sexo == "Femenino" and 12 <= edad <= 45:
+                es_obstetrico = st.checkbox(
+                    "🤰 Paciente Obstétrica (Cambia diagnósticos y procedimientos)", 
+                    key="mod1_es_obstetrico"
+                )
 
             # Fila A: Carácter y ASA (2 columnas amplias para no apiñar el texto)
             c_cx1, c_asa = st.columns(2)
@@ -173,9 +175,18 @@ with col_izquierda:
                 "Cirugía Plástica y Maxilofacial",
                 "Otra Especialidad"
             ])
+            # --- DETERMINACIÓN INTELIGENTE DEL ÍNDICE POR DEFECTO ---
+            default_index = 0
+            if es_obstetrico and "Ginecología y Obstetricia" in lista_especialidades:
+                default_index = lista_especialidades.index("Ginecología y Obstetricia")
             
-            # 2. Renderizado del componente con la lista filtrada
-            especialidad_cx = st.selectbox("Especialidad Quirúrgica", lista_especialidades, key="mod1_especialidad")
+            # # 2. Renderizado del componente con el índice automatizado
+            especialidad_cx = st.selectbox(
+                "Especialidad Quirúrgica", 
+                lista_especialidades, 
+                index=default_index, 
+                key="mod1_especialidad"
+            )
        
             c_cx3, c_cx4 = st.columns(2)
             # =====================================================================
