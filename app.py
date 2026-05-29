@@ -206,8 +206,15 @@ with col_izquierda:
 
             diag_base = c_cx3.selectbox("Diagnóstico Principal", lista_diagnosticos, key="mod1_diag_base")
             diagnostico_final = c_cx3.text_input("Especifique el diagnóstico", key="mod1_diag_txt") if diag_base == "Otro (Especificar)" else diag_base
-            
+            # --- CONTROL DE TIEMPO DE EVOLUCIÓN PARA CAPRINI ---
             tipo_fractura_cx = "No aplica"
+            if "Fractura" in diagnostico_final:
+                tipo_fractura_cx = st.radio(
+                    "⏱️ Tiempo de Evolución de la Fractura:",
+                    ["Menor a un mes", "Mayor a un mes", "Mayor a un año"],
+                    key="mod1_tiempo_fractura",
+                    help="Clave para la estratificación de riesgo trombótico en la escala de Caprini."
+                )
             if "Fractura" in diagnostico_final:
                 st.caption("⚠️ Detalle de Traumatología Quirúrgica detectado:")
                 tipo_fractura_cx = st.selectbox(
@@ -247,7 +254,7 @@ with col_izquierda:
             sin_antecedentes = st.checkbox("✅ No refiere antecedentes patológicos ni medicación de uso continuo", value=True, key="mod2_sin_antecedentes")
             
             antecedentes_seleccionados = ["Ninguno"]; otros_antecedentes_txt = ""; medicacion_actual = ["Ninguno"]; notas_medicacion_txt = ""
-            tipo_fractura_app = "No aplica"; child_ascitis = "Ausente"; child_encefalo = "Ausente"
+            tipo_fractura_app = "No aplica"; tipo_fractura_ant = "No aplica"; child_ascitis = "Ausente"; child_ecefalo = "Ausente"
             
             if not sin_antecedentes:
                 if es_obstetrico: lista_patologias = ["Ninguno", "Trastornos Hipertensivos (Preeclampsia/HTA)", "Diabetes Gestacional", "Anemia", "Hipotiroidismo", "Asma", "Cardiopatía", "Obesidad", "Otros (Especificar)"]
@@ -272,10 +279,14 @@ with col_izquierda:
                     c_hep1, c_hep2 = st.columns(2)
                     child_ascitis = c_hep1.selectbox("Ascitis", ["Ausente", "Leve / Moderada (Controlada)", "Tensa / Grave (Refractaria)"], key="mod2_ascitis")
                     child_encefalo = c_hep2.selectbox("Encefalopatía", ["Ausente", "Grado I - II (Leve)", "Grado III - IV (Grave)"], key="mod2_encefalo")
-                
+
                 if "Fractura / Traumatismo Mayor" in antecedentes_seleccionados:
-                    tipo_fractura_app = c_unif1.selectbox("🦴 Tipo / Localización de la Fractura", ["Fractura de Cadera (Fémur Proximal) [Riesgo Caprini Alto]", "Fractura de Pelvis o Acetábulo [Riesgo Caprini Alto]", "Fractura de Miembro Inferior (Diáfisis de Fémur, Tibia, Peroné) [Riesgo Caprini Alto]", "Fractura de Miembro Superior (Húmero, Radio, Cúbito, Clavícula)", "Fractura Vertebral / Columna (Torácica / Lumbar)", "Fractura Craneofacial / Mandibular"], key="mod2_tipo_fractura")
-                
+            tipo_fractura_app = c_unif1.selectbox("🛹 Tipo / Localización de la Fractura", ["Fractura de Cadera (Fémur Proximal) [Riesgo Caprini Alto]", "Fractura de Pelvis o Acetábulo [Riesgo Caprini Alto]", "Fractura de Miembro Inferior (Diáfisis de Fémur, Tibia, Peroné)", "Otro Traumatismo Mayor"])
+            tipo_fractura_ant = c_unif1.radio(
+                "⏱️ Tiempo desde el antecedente de la fractura:",
+                ["Menor a un mes", "Mayor a un mes", "Mayor a un año"],
+                key="mod2_tiempo_frac_ant"
+            )
                 if "Otros (Especificar)" in antecedentes_seleccionados: otros_antecedentes_txt = c_unif1.text_input("🔍 Especifique otros antecedentes:", key="mod2_ant_otros_txt")
                 medicacion_actual = c_unif2.multiselect("Fármacos de Uso Continuo", options=lista_medicamentos, key="mod2_medicacion")
                 if "Otros (Especificar)" in medicacion_actual: notas_medicacion_txt = c_unif2.text_input("📝 Especifique dosis o frecuencias:", key="mod2_med_notas_txt")
@@ -1203,6 +1214,10 @@ with col_derecha:
                     color_apfel = "inverse"
                     
                 # 2. Estratificación de la Escala de Caprini (Riesgo de TVP/TEP)
+                # --- AJUSTE DINÁMICO DE CAPRINI POR FRACTURA RECIENTE (< 1 MES) ---
+        # Usamos un 'or' para sumar los 5 puntos solo una vez, evitando duplicar si se marcó en APP y Diagnóstico
+                if ('frac_calc' in locals() and frac_calc == "Menor a un mes") or ('frac_ant_calc' in locals() and frac_ant_calc == "Menor a un mes"):
+                    caprini_final += 5
                 if caprini_final <= 1:
                     estrato_caprini = "Riesgo Bajo"
                     color_caprini = "normal"
@@ -1309,7 +1324,7 @@ Estatus de Validación: Certificado por Sistema Experto Perioperatorio
 
 2. CONTEXTO QUIRÚRGICO Y PLANIFICACIÓN
 ---------------------------------------------------------------------
-• Diagnóstico Principal: {diag_calc if 'diag_calc' in locals() else 'No definido'}
+• Diagnóstico Principal: {diag_calc if 'diag_calc' in locals() else 'No definido'} {f'({frac_calc})' if (frac_calc != "No aplica") else ''}
 • Procedimiento Quirúrgico: {proc_calc if 'proc_calc' in locals() else 'No definido'}
 • Carácter de la Cirugía: {caracter_calc if 'caracter_calc' in locals() else 'Electiva'}
 • Riesgo Quirúrgico Intrínseco (AHA/ACC): {riesgo_calc if 'riesgo_calc' in locals() else 'Bajo'}
