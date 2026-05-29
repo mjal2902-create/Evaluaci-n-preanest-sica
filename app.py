@@ -150,62 +150,76 @@ with col_izquierda:
                 )
 
             st.markdown("**Contexto Quirúrgico y Clasificación**")
-
             # =====================================================================
-            # DESPLIEGUE DINÁMICO SEGÚN EL ÁMBITO SELECCIONADO
-            # =====================================================================
-            if "Quirófano / Emergencia" in ambito_atencion:
-                c_cx1, c_asa = st.columns(2)
-                caracter_cx = c_cx1.selectbox("Carácter de la Intervención", ["Electiva", "Urgencia", "Emergencia"], key="mod1_caracter")
-                
-                asa_ps = c_asa.selectbox("Clasificación ASA", [
-                    "ASA I: Paciente sano normal",
-                    "ASA II: Enfermedad sistémica leve",
-                    "ASA III: Enfermedad sistémica grave",
-                    "ASA IV: Enf. sistémica grave con amenaza vital",
-                    "ASA V: Paciente moribundo",
-                    "ASA VI: Muerte cerebral (Donante)"
-                ], key="mod1_asa")
+        # DESPLIEGUE DINÁMICO SEGÚN EL ÁMBITO SELECCIONADO
+        # =====================================================================
+        # Inicialización de seguridad de variables de Quirófano a nivel global del módulo
+        semanas_eg = 0
+        horas_ayuno = 8
+        tipo_ayuno = "No aplica"
+        plan_suspension_meds = "No aplica (Entorno Quirófano)"
+        interconsultas_req = []
 
-                st.markdown("⏱️ **Control de Ayuno Activo (Estatus NPO)**")
-                c_npo1, c_npo2 = st.columns(2)
-                tipo_ayuno = c_npo1.selectbox("Última ingesta de:", ["Sólidos pesados / Grasas", "Comida ligera / Leche de fórmula", "Leche materna", "Líquidos claros (Agua, té, café negro)"], key="mod1_tipo_ayuno")
-                horas_ayuno = c_npo2.number_input("Horas de ayuno cumplidas:", min_value=0, max_value=48, value=8, step=1, key="mod1_horas_ayuno")
-                
-                plan_suspension_meds = "No aplica (Entorno Quirófano)"
-                interconsultas_req = []
+        if "Quirófano / Emergencia" in ambito_atencion:
+            c_cx1, c_asa = st.columns(2)
+            caracter_cx = c_cx1.selectbox("Carácter de la Intervención", ["Electiva", "Urgencia", "Emergencia"], key="mod1_caracter")
+            
+            asa_ps = c_asa.selectbox("Clasificación ASA", [
+                "ASA I: Paciente sano normal",
+                "ASA II: Enfermedad sistémica leve",
+                "ASA III: Enfermedad sistémica grave",
+                "ASA IV: Enf. sistémica grave con amenaza vital",
+                "ASA V: Paciente moribundo",
+                "ASA VI: Muerte cerebral (Donante)"
+            ], key="mod1_asa")
 
-            else:
-                caracter_cx = "Electiva"
-                c_cx1, c_asa = st.columns(2)
-                c_cx1.info("📋 **Carácter Quirúrgico:** Fijado automáticamente como **Electiva**.")
-                
-                asa_ps = c_asa.selectbox("Clasificación ASA Proyectada", [
-                    "ASA I: Paciente sano normal",
-                    "ASA II: Enfermedad sistémica leve",
-                    "ASA III: Enfermedad sistémica grave",
-                    "ASA IV: Enf. sistémica grave con amenaza vital"
-                ], key="mod1_asa")
-
-                st.markdown("📑 **Planificación y Optimización de Consulta Externa**")
-                c_ce1, c_ce2 = st.columns(2)
-                plan_suspension_meds = c_ce1.multiselect(
-                    "🛑 Plan de Suspensión de Fármacos Críticos:",
-                    ["Suspender Antiagregantes (Aspirina/Clopidogrel) 5-7 días antes", 
-                     "Suspender Anticoagulantes Orales (Warfarina/DOACs) según protocolo", 
-                     "Suspender Metformina 24 horas antes del procedimiento", 
-                     "Continuar Beta-bloqueadores de forma habitual el día de la cirugía", 
-                     "No requiere suspensiones de tratamiento continuo"],
-                    key="mod1_ce_suspensiones"
+            # --- SUB-MÓDULO: EDAD GESTACIONAL (SOLO SI ES OBSTÉTRICA EN QUIRÓFANO) ---
+            if es_obstetrico:
+                st.markdown("🤰 **Datos Obstétricos de Emergencia**")
+                semanas_eg = st.number_input(
+                    "Semanas de Gestación Actual (EG):", 
+                    min_value=4, max_value=42, value=38, step=1, 
+                    key="mod1_semanas_eg"
                 )
-                interconsultas_req = c_ce2.multiselect(
-                    "🩺 Interconsultas de Optimización Solicitadas:",
-                    ["Valoración por Cardiología (Riesgo Quirúrgico)", 
-                     "Valoración por Neumología (Espirometría / EPOC)", 
-                     "Valoración por Endocrinología (Control metabólico HbA1c)", 
-                     "Ninguna interconsulta adicional requerida"],
-                    key="mod1_ce_interconsultas"
-                )
+
+            # --- SUB-MÓDULO: CONTROL DE AYUNO REAL ---
+            st.markdown("⏱️ **Control de Ayuno Activo (Estatus NPO)**")
+            c_npo1, c_npo2 = st.columns(2)
+            tipo_ayuno = c_npo1.selectbox("Última ingesta de:", ["Sólidos pesados / Grasas", "Comida ligera / Leche de fórmula", "Leche materna", "Líquidos claros (Agua, té, café negro)"], key="mod1_tipo_ayuno")
+            horas_ayuno = c_npo2.number_input("Horas de ayuno cumplidas:", min_value=0, max_value=48, value=8, step=1, key="mod1_horas_ayuno")
+
+        else:
+            # --- CASILLAS EXCLUSIVAS DE CONSULTA EXTERNA (SE QUEDA IGUAL) ---
+            caracter_cx = "Electiva"
+            c_cx1, c_asa = st.columns(2)
+            c_cx1.info("📋 **Carácter Quirúrgico:** Fijado automáticamente como **Electiva**.")
+            
+            asa_ps = c_asa.selectbox("Clasificación ASA Proyectada", [
+                "ASA I: Paciente sano normal",
+                "ASA II: Enfermedad sistémica leve",
+                "ASA III: Enfermedad sistémica grave",
+                "ASA IV: Enf. sistémica grave con amenaza vital"
+            ], key="mod1_asa")
+
+            st.markdown("📑 **Planificación y Optimización de Consulta Externa**")
+            c_ce1, c_ce2 = st.columns(2)
+            plan_suspension_meds = c_ce1.multiselect(
+                "🛑 Plan de Suspensión de Fármacos Críticos:",
+                ["Suspender Antiagregantes (Aspirina/Clopidogrel) 5-7 días antes", 
+                 "Suspender Anticoagulantes Orales (Warfarina/DOACs) según protocolo", 
+                 "Suspender Metformina 24 horas antes del procedimiento", 
+                 "Continuar Beta-bloqueadores de forma habitual el día de la cirugía", 
+                 "No requiere suspensiones de tratamiento continuo"],
+                key="mod1_ce_suspensiones"
+            )
+            interconsultas_req = c_ce2.multiselect(
+                "🩺 Interconsultas de Optimización Solicitadas:",
+                ["Valoración por Cardiología (Riesgo Quirúrgico)", 
+                 "Valoración por Neumología (Espirometría / EPOC)", 
+                 "Valoración por Endocrinología (Control metabólico HbA1c)", 
+                 "Ninguna interconsulta adicional requerida"],
+                key="mod1_ce_interconsultas"
+            )
                 tipo_ayuno = "No aplica"; horas_ayuno = 8
 
             riesgo_cx = st.selectbox("Riesgo Quirúrgico Intrínseco (AHA/ACC)", [
@@ -819,19 +833,43 @@ with col_derecha:
                     st.markdown(f"**Estado Obstétrico:** {'Paciente Obstétrica 🤰' if obs_calc else 'No aplica / No gestante'}")
                 
                 st.divider()
-                
+                # --- SUBSECCIÓN C: DUPLICACIÓN DE CONTEXTO QUIRÚRGICO Y PLAN ---
                 st.markdown("##### 🏥 Contexto Quirúrgico y Planificación")
+                st.markdown(f"**Ámbito de Atención:** *{ambito_atencion}*")
                 st.markdown(f"**Especialidad Quirúrgica:** *{especialidad_calc}*")
                 st.markdown(f"**Clasificación ASA:** **{asa_calc}**")
                 st.markdown(f"**Carácter Quirúrgico:** *{caracter_calc}*")
                 st.markdown(f"**Riesgo Quirúrgico (AHA/ACC):** *{riesgo_calc}*")
                 
-                st.markdown(f"**Diagnóstico Principal:** **{diag_calc}**")
-                if localizacion_frac_calc != "No aplica":
-                    st.markdown(f"**Detalle de Traumatología:** 🦴 *{localizacion_frac_calc}*")
-                st.markdown(f"**Procedimiento Quirúrgico:** **{proc_calc}**")
-                st.divider()
-                st.success(f"💉 **Estrategia Anestésica:** **{anestesia_calc}**")
+                # Despliegue dinámico de Ayuno / Obstetricia en el Espejo
+                if "Quirófano / Emergencia" in ambito_atencion:
+                    horas_calc = horas_ayuno if 'horas_ayuno' in locals() else 8
+                    tipo_ayuno_calc = tipo_ayuno if 'tipo_ayuno' in locals() else "Sólidos pesados"
+                    st.markdown(f"**Estatus NPO:** {horas_calc} horas de ayuno para *{tipo_ayuno_calc}*")
+                    
+                    if obs_calc:
+                        eg_calc = semanas_eg if 'semanas_eg' in locals() else 0
+                        st.markdown(f"**Edad Gestacional Activa:** **{eg_calc} semanas**")
+                    
+                    # --- MOTOR DE ALERTAS DE SEGURIDAD EN QUIRÓFANO ---
+                    st.markdown("##### 🔍 Alertas de Seguridad en Quirófano:")
+                    
+                    # 1. Alerta de Ayuno Insuficiente (Guía ASA)
+                    ayuno_insuficiente = False
+                    if "Sólidos" in tipo_ayuno_calc and horas_calc < 8: ayuno_insuficiente = True
+                    elif "formula" in tipo_ayuno_calc and horas_calc < 6: ayuno_insuficiente = True
+                    elif "materna" in tipo_ayuno_calc and horas_calc < 4: ayuno_insuficiente = True
+                    elif "Líquidos claros" in tipo_ayuno_calc and horas_calc < 2: ayuno_insuficiente = True
+                    
+                    # Toda gestante pasada el primer trimestre o paciente de emergencia se considera estómago lleno
+                    if ayuno_insuficiente or (obs_calc and semanas_eg > 12) or caracter_calc == "Emergencia":
+                        st.error("🚨 **ALERTA CRÍTICA: RIESGO DE ESTÓMAGO LLENO / SÍNDROME DE MENDELSON:** Alto riesgo de broncoaspiración activa. Si el procedimiento no puede posponerse, se exige **Inducción de Secuencia Rápida (ISR)** con presión cricoidea (Maniobra de Sellick), tubo con neumotaponador y proquinéticos IV.")
+                    else:
+                        st.success("🟢 **Seguridad de Vía Aérea:** Tiempos de ayuno conformes a directrices formales ASA.")
+                        
+                    # 2. Alerta de Compresión Aortocava Obstétrica
+                    if obs_calc and semanas_eg >= 20:
+                        st.warning(f"⚠️ **ALERTA DE COMPRESIÓN AORTOCAVA ({semanas_eg} semanas):** El útero grávido compromete críticamente el retorno venoso. Al posicionar a la paciente en la mesa quirúrgica, aplique obligatoriamente un **desplazamiento uterino a la izquierda de 15 grados** (mediante cuña o inclinación de la mesa) para prevenir hipotensión materna severa e hipoperfusión placentaria.")
                 
                 # =====================================================================
                 # PESTAÑA 1 - SECCIÓN 2: SEGURIDAD, ALERGIAS Y ANTECEDENTES (MÓDULO 2)
@@ -1271,15 +1309,19 @@ Estatus de Validación: Certificado por Sistema Experto Perioperatorio
 • IMC Calculado: {imc_control:.1f} kg/m²
 • Superficie Corporal (BSA): {bsa_calc:.2f} m²
 • Peso Ideal Estimado: {peso_ideal if 'peso_ideal' in locals() else peso_calc:.1f} kg
-
 2. CONTEXTO QUIRÚRGICO Y PLANIFICACIÓN
 ---------------------------------------------------------------------
+• Ámbito de Atención: {ambito_atencion}
 • Diagnóstico Principal: {diag_calc} {f'(Evolución: {frac_calc} | Localización: {localizacion_frac_calc})' if (frac_calc != "No aplica") else ''}
 • Procedimiento Quirúrgico: {proc_calc}
 • Carácter de la Cirugía: {caracter_calc}
 • Riesgo Quirúrgico Intrínseco (AHA/ACC): {riesgo_calc}
 • Clasificación del Estado Físico (ASA): {asa_calc}
 • Técnica Anestésica Propuesta: {anestesia_calc}
+{f'• Estatus NPO en Quirófano: {horas_ayuno} horas de ayuno para {tipo_ayuno}' if "Quirófano" in ambito_atencion else ''}
+{f'• Edad Gestacional: {semanas_eg} semanas de gestación (Prever ISR y desplazamiento lateral)' if (obs_calc and "Quirófano" in ambito_atencion) else ''}
+{f'• Planificación CE - Suspensión de Fármacos: {", ".join(plan_suspension_meds) if plan_suspension_meds else "No requiere"}' if "Consulta Externa" in ambito_atencion else ''}
+{f'• Planificación CE - Interconsultas Solicitadas: {", ".join(interconsultas_req) if interconsultas_req else "Ninguna"}' if "Consulta Externa" in ambito_atencion else ''}
 
 3. SEGURIDAD, ALERGIAS Y ANTECEDENTES (APP)
 ---------------------------------------------------------------------
