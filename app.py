@@ -219,8 +219,9 @@ with col_izquierda:
                  "Valoración por Endocrinología (Control metabólico HbA1c)", 
                  "Ninguna interconsulta adicional requerida"],
                 key="mod1_ce_interconsultas"
-            )
-                tipo_ayuno = "No aplica"; horas_ayuno = 8
+                )
+            
+            tipo_ayuno = "No aplica"; horas_ayuno = 8
 
             riesgo_cx = st.selectbox("Riesgo Quirúrgico Intrínseco (AHA/ACC)", [
                 "Bajo (<1%) - Ej: Superficial, Endoscópica, Catarata", 
