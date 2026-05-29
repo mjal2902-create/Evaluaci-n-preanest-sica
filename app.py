@@ -125,14 +125,24 @@ with col_izquierda:
             
 # Fila 3: Contexto Quirúrgico Base
             st.markdown("**Contexto Quirúrgico y Clasificación**")
-            # --- CONDICIONAMIENTO BIOLÓGICO Y CRONOLÓGICO DE PACIENTE OBSTÉTRICA ---
-            es_obstetrico = False
-            if sexo == "Femenino" and 12 <= edad <= 45:
-                es_obstetrico = st.checkbox(
-                    "🤰 Paciente Obstétrica (Cambia diagnósticos y procedimientos)", 
-                    key="mod1_es_obstetrico"
-                )
+            # --- CENTINELA DE TRANSICIÓN DE ESTADO (ANTI-BUG DE RETENCIÓN) ---
+        def conmutar_modulo_obstetrico():
+            # Si el usuario ACTIVA el check, forzamos Ginecología
+            if st.session_state.get("mod1_es_obstetrico"):
+                st.session_state["mod1_especialidad"] = "Ginecología y Obstetricia"
+            # Si el usuario DESACTIVA el check, y estaba en Gineco, lo regresamos a Cirugía General
+            else:
+                if st.session_state.get("mod1_especialidad") == "Ginecología y Obstetricia":
+                    st.session_state["mod1_especialidad"] = "Cirugía General"
 
+        # --- CONDICIONAMIENTO BIOLÓGICO Y CRONOLÓGICO DE PACIENTE OBSTÉTRICA ---
+        es_obstetrico = False
+        if sexo == "Femenino" and 12 <= edad <= 45:
+            es_obstetrico = st.checkbox(
+                "🤰 Paciente Obstétrica (Cambia diagnósticos y procedimientos)", 
+                key="mod1_es_obstetrico",
+                on_change=conmutar_modulo_obstetrico
+            )
             # Fila A: Carácter y ASA (2 columnas amplias para no apiñar el texto)
             c_cx1, c_asa = st.columns(2)
             caracter_cx = c_cx1.selectbox("Carácter de la Intervención", ["Electiva", "Urgencia", "Emergencia"], key="mod1_caracter")
