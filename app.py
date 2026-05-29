@@ -4,7 +4,7 @@ import math
 st.set_page_config(layout="wide", page_title="Asistente Anestésico", page_icon="🩺")
 
 # =============================================================================
-# 🛠️ FUNCIONES UTALITARIAS GLOBALES (ACCESIBLES DESDE CUALQUIER MÓDULO)
+# 🛠️ FUNCIONES UTILITARIAS GLOBALES (ACCESIBLES DESDE CUALQUIER MÓDULO)
 # =============================================================================
 def formatear_lista(lista_original, texto_extra):
     lista = [x for x in lista_original if x != "Ninguno"] if len(lista_original) > 1 else list(lista_original)
@@ -157,7 +157,7 @@ with col_izquierda:
             es_obstetrico = False
             if sexo == "Femenino" and 12 <= edad <= 45:
                 es_obstetrico = st.checkbox(
-                    "🤰 Paciente Obstétrica (Cambia diagnósticos y procedures)", 
+                    "🤰 Paciente Obstétrica (Cambia diagnósticos y procedimientos)", 
                     key="mod1_es_obstetrico",
                     on_change=conmutar_modulo_obstetrico
                 )
@@ -170,7 +170,7 @@ with col_izquierda:
             semanas_eg = 0
             horas_ayuno = 8
             tipo_ayuno = "No aplica"
-            plan_suspension_meds = "No aplica (Entorno Quirófano)"
+            plan_suspension_meds = []
             interconsultas_req = []
 
             if "Quirófano / Emergencia" in ambito_atencion:
@@ -186,7 +186,7 @@ with col_izquierda:
                     "ASA VI: Muerte cerebral (Donante)"
                 ], key="mod1_asa")
 
-                # --- SUB-MÓDULO: EDAD GESTACIONAL (SI ES OBSTÉTRICA EN QUIRÓFANO) ---
+                # --- SUB-MÓDULO: EDAD GESTACIONAL ---
                 if es_obstetrico:
                     st.markdown("🤰 **Datos Obstétricos de Emergencia**")
                     semanas_eg = st.number_input(
@@ -301,7 +301,7 @@ with col_izquierda:
                 lista_procedimientos = ["Craneotomía + Resección de Tumor / Evacuación de Hematoma", "Discectomía / Microdiscectomía Laminectomía", "Colocación de Válvula de Derivación Ventriculoperitoneal (DVP)", "Clipaje de Aneurisma por Craneotomía", "Otro (Especificar)"]
 
             elif especialidad_cx == "Urología":
-                lista_diagnosticos = ["Hipertrofia Prostática Benigna (HPB)", "Litiasis Renoureteral Obstrictiva", "Neoplasia de Vejiga / Próstata", "Hidrocele / Varicocele Sintomático", "Estenosis de Uretra", "Otro (Especificar)"]
+                lista_diagnosticos = ["Hipertrofia Prostática Benigna (HPB)", "Litiasis Renoureteral Obstructiva", "Neoplasia de Vejiga / Próstata", "Hidrocele / Varicocele Sintomático", "Estenosis de Uretra", "Otro (Especificar)"]
                 lista_procedimientos = ["Resección Transuretral de Próstata (RTU-P) o Enucleación", "Ureterolitotripsia Láser / Nefrolitotomía Percutánea", "Prostatectomía Radical / Cistectomía", "Hidrocelectomía / Varicocelectomía Unilateral", "Uretropatía / Dilatación Uretra", "Otro (Especificar)"]
 
             elif especialidad_cx == "Cirugía Cardiovascular y Torácica":
@@ -352,7 +352,12 @@ with col_izquierda:
             proc_base = c_cx4.selectbox("Procedimiento Propuesto", lista_procedimientos, key="mod1_proc_base")
             procedimiento_final = c_cx4.text_input("Especifique el procedimiento", key="mod1_proc_txt") if proc_base == "Otro (Especificar)" else proc_base
                 
-            tipo_anestesia = st.selectbox("Técnica Anestésica Propuesta", ["Anestesia General (Balanceada / TIVA)", "Anestesia Regional (Neuroeje: Raquídea / Epidural)", "Bloqueo de Nervio Periférico + Sedación", "Cuidado Anestésico Monitorizado (MAC) / Sedación", "Anestesia Local"], key="mod1_tecnica")
+            c_ane1, c_ane2 = st.columns(2)
+            tipo_anestesia = c_ane1.selectbox("Técnica Anestésica Propuesta", ["Anestesia General (Balanceada / TIVA)", "Anestesia Regional (Neuroeje: Raquídea / Epidural)", "Bloqueo de Nervio Periférico + Sedación", "Cuidado Anestésico Monitorizado (MAC) / Sedación", "Anestesia Local"], key="mod1_tecnica")
+            
+            # NUEVO: Control de Hemoderivados
+            st.markdown("<br>", unsafe_allow_html=True) # Espaciador
+            req_sangre = c_ane2.checkbox("🩸 **Previsión de sangrado mayor (>500ml) / Requiere reserva de sangre cruzada**", key="mod1_sangre")
 
         # ---------------------------------------------------------
         # MÓDULO 2: SEGURIDAD, ALERGIAS Y ANTECEDENTES
@@ -367,7 +372,7 @@ with col_izquierda:
                 alergias_med = c_al1.multiselect("Farmacológicas / Sustancias", options=["Penicilinas / Betalactámicos", "AINEs", "Látex", "Opioides", "Relajantes Musculares", "Anestésicos Locales", "Medios de Contraste", "Otros (Especificar)"], key="mod2_al_med")
                 if "Otros (Especificar)" in alergias_med: otras_alergias_med_txt = c_al1.text_input("💊 Especifique otras alergias farmacológicas:", key="mod2_al_med_txt")
                 alergias_alim = c_al2.multiselect("Alimentarias", options=["Huevo", "Soya", "Mariscos / Yodo", "Frutos secos", "Lácteos", "Gluten", "Otros (Especificar)"], key="mod2_al_ali")
-                if "Otros (Especificar)" in alergias_alim: otras_alergias_ali_txt = c_al2.text_input("🥚 Especifique otras allergic alimentarias:", key="mod2_al_ali_txt")
+                if "Otros (Especificar)" in alergias_alim: otras_alergias_ali_txt = c_al2.text_input("🥚 Especifique otras alergias alimentarias:", key="mod2_al_ali_txt")
 
             st.divider()
             st.markdown("#### 📋 Antecedentes Patológicos y Medicación Habitual")
@@ -438,7 +443,7 @@ with col_izquierda:
         # ---------------------------------------------------------
         # MÓDULO 3: VÍA AÉREA Y PREDICTORES RESPIRATORIOS
         # ---------------------------------------------------------
-        with st.expander("3. Vía Aérea y Predictors de Dificultad", expanded=True):
+        with st.expander("3. Vía Aérea y Predictores de Dificultad", expanded=True):
             arne_historia = False; arne_patologia = False; mallampati = "No aplica (Pediátrico)"; dtm = "No aplica (Pediátrico)"; apertura_bucal = "No aplica (Pediátrico)"; dem = "No aplica (Pediátrico)"; cuello_cat = "No aplica (Pediátrico)"; ulbt = "No aplica (Pediátrico)"; mov_cervical_arne = "Normal: Extensión completa (> 90°)"
             vad_incisivos = False; vad_paladar = False; vad_lengua = False; vad_retrognatia = False; vmd_barba = False; vmd_edentulo = False; sb_s = False; sb_t = False; sb_o = False
             score_arne = 0; puntos_vmd = 0; puntos_stop_bang = 0
@@ -469,7 +474,7 @@ with col_izquierda:
 
             if mostrar_va_adultos:
                 if es_pediatrico_va:
-                    opciones_mallampati = ["Clase I: Visibilidad de paladar blando, úvula y pilares", "Clase II: Visibilidad de paladar blando and úvula", "Clase III: Visibilidad de paladar blando y base de la úvula", "Clase IV: Solo es visible el paladar duro"]
+                    opciones_mallampati = ["Clase I: Visibilidad de paladar blando, úvula y pilares", "Clase II: Visibilidad de paladar blando y úvula", "Clase III: Visibilidad de paladar blando y base de la úvula", "Clase IV: Solo es visible el paladar duro"]
                     opciones_dtm = ["Clase I (Normal): > 3 dedos del propio paciente (Distancia conservada)", "Clase II (Moderada): 2 - 3 dedos del propio paciente (Acortamiento leve)", "Clase III (VAD Predictiva): < 2 dedos del propio paciente (Acortamiento severo)"]
                     opciones_ab = ["Clase I (Normal): > 2 dedos del propio paciente (Apertura conservada)", "Clase II (Moderada): 1.5 - 2 dedos del propio paciente (Limitación leve)", "Clase III (Severa): < 1.5 dedos del propio paciente (Limitación crítica)"]
                     opciones_dem = ["Clase I (Normal): Extensión esternomentoniana conservada para la edad", "Clase II (Moderada): Restricción parcial de la extensión cefálica", "Clase III (Severa): Extensión críticamente limitada / VAD predictiva"]
@@ -587,7 +592,6 @@ with col_izquierda:
                 factor_cirugia_riesgo = 1 if (riesgo_actual and "Alto" in riesgo_actual) else 0
                 factor_cardiopatia_isq = 1 if (not sin_antecedentes and any("Isquémica" in p or "IAM" in p for p in antecedentes_seleccionados)) or cardio_angina else 0
                 
-                # CORRECCIÓN MAESTRA: Se evalúa 'antecedentes_seleccionados' en lugar de 'lista_patologias'
                 factor_insuf_cardiaca = 1 if (not sin_antecedentes and "Insuficiencia Cardíaca" in antecedentes_seleccionados) or cardio_edema or cardio_disnea else 0
                 factor_acv = 1 if (not sin_antecedentes and any("ACV" in p or "Isquemia" in p for p in antecedentes_seleccionados)) else 0
                 factor_insulina = 1 if (not sin_antecedentes and "Insulina" in medicacion_actual) else 0
@@ -750,6 +754,7 @@ with col_derecha:
             proc_calc = procedimiento_final if 'procedimiento_final' in locals() else "No definido"
             anestesia_calc = tipo_anestesia if 'tipo_anestesia' in locals() else "No definido"
             especialidad_calc = especialidad_cx if 'especialidad_cx' in locals() else "Cirugía General"
+            req_sangre_calc = req_sangre if 'req_sangre' in locals() else False
             
             if peso_calc > 0 and talla_raw > 0:
                 st.markdown("##### 📏 Índices Fisiológicos y Somatometría")
@@ -850,7 +855,13 @@ with col_derecha:
                 st.markdown("##### 🏥 Contexto Quirúrgico y Planificación")
                 st.markdown(f"**Ámbito de Atención:** *{ambito_atencion}*")
                 st.markdown(f"**Especialidad Quirúrgica:** *{especialidad_calc}*")
-                st.markdown(f"**Clasificación ASA:** **{asa_calc}**")
+                
+                # Ajuste del modificador ASA "E" para urgencias/emergencias
+                asa_final = asa_calc
+                if caracter_calc in ["Urgencia", "Emergencia"] and "E" not in asa_final:
+                    asa_final += " - 'E' (Emergencia)"
+                    
+                st.markdown(f"**Clasificación ASA:** **{asa_final}**")
                 st.markdown(f"**Carácter Quirúrgico:** *{caracter_calc}*")
                 st.markdown(f"**Riesgo Quirúrgico (AHA/ACC):** *{riesgo_calc}*")
                 
@@ -883,13 +894,17 @@ with col_derecha:
                     if obs_calc and semanas_eg >= 20:
                         st.warning(f"⚠️ **ALERTA DE COMPRESIÓN AORTOCAVA ({semanas_eg} semanas):** El útero grávido compromete críticamente el retorno venoso. Al posicionar a la paciente en la mesa quirúrgica, aplique obligatoriamente un **desplazamiento uterino a la izquierda de 15 grados** para prevenir hipotensión materna severa.")
                 
-                # Campos universales de diagnóstico y procedimiento (Visibles en ambos entornos)
+                # Campos universales de diagnóstico y procedimiento
                 st.markdown(f"**Diagnóstico Principal:** **{diag_calc}**")
                 if localizacion_frac_calc != "No aplica":
                     st.markdown(f"**Detalle de Traumatología:** 🦴 *{localizacion_frac_calc}*")
                 st.markdown(f"**Procedimiento Quirúrgico:** **{proc_calc}**")
                 st.divider()
                 st.success(f"💉 **Estrategia Anestésica:** **{anestesia_calc}**")
+                
+                # Alerta de Previsión de Hemoderivados
+                if req_sangre_calc:
+                    st.error("🩸 **REQUERIMIENTO TRANSFUSIONAL ACTIVO:** Procedimiento con previsión de sangrado mayor. Se exige verificación de pruebas cruzadas y reserva de hemoderivados en banco de sangre previo a la inducción.")
 
                 # =====================================================================
                 # PESTAÑA 1 - SECCIÓN 2: SEGURIDAD, ALERGIAS Y ANTECEDENTES (MÓDULO 2)
@@ -910,11 +925,11 @@ with col_derecha:
                 txt_meds = notas_medicacion_txt if 'notas_medicacion_txt' in locals() else ""
                 habitos_negados = sin_habitos if 'sin_habitos' in locals() else True
                 
-                # Aquí se ejecutan las líneas limpiamente usando la función del tope del archivo
                 al_med_list = formatear_lista(al_med_raw, txt_al_med)
                 al_ali_list = formatear_lista(al_ali_raw, txt_al_ali)
                 app_list = formatear_lista(app_raw, txt_app)
                 meds_list = formatear_lista(meds_raw, txt_meds)
+                
                 if alergias_negadas:
                     st.success("✅ **Alergias:** Negadas por el paciente.")
                 else:
@@ -1329,8 +1344,9 @@ Estatus de Validación: Certificado por Sistema Experto Perioperatorio
 • Procedimiento Quirúrgico: {proc_calc}
 • Carácter de la Cirugía: {caracter_calc}
 • Riesgo Quirúrgico Intrínseco (AHA/ACC): {riesgo_calc}
-• Clasificación del Estado Físico (ASA): {asa_calc}
+• Clasificación del Estado Físico (ASA): {asa_final}
 • Técnica Anestésica Propuesta: {anestesia_calc}
+{f'• Reserva de Hemoderivados: REQUERIDA (Riesgo de sangrado mayor)' if req_sangre_calc else '• Reserva de Hemoderivados: No requerida de rutina'}
 {f'• Estatus NPO en Quirófano: {horas_ayuno} horas de ayuno para {tipo_ayuno}' if "Quirófano" in ambito_atencion else ''}
 {f'• Edad Gestacional: {semanas_eg} semanas de gestación (Prever ISR y desplazamiento lateral)' if (obs_calc and "Quirófano" in ambito_atencion) else ''}
 {f'• Planificación CE - Suspensión de Fármacos: {", ".join(plan_suspension_meds) if plan_suspension_meds else "No requiere"}' if "Consulta Externa" in ambito_atencion else ''}
