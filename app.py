@@ -175,16 +175,14 @@ with col_izquierda:
                 "Cirugía Plástica y Maxilofacial",
                 "Otra Especialidad"
             ])
-            # --- DETERMINACIÓN INTELIGENTE DEL ÍNDICE POR DEFECTO ---
-            default_index = 0
+            # --- ACOPLAMIENTO INMEDIATO DE ESTADO (ANTI-BUG DE STREAMLIT) ---
             if es_obstetrico and "Ginecología y Obstetricia" in lista_especialidades:
-                default_index = lista_especialidades.index("Ginecología y Obstetricia")
+                st.session_state["mod1_especialidad"] = "Ginecología y Obstetricia"
             
-            # # 2. Renderizado del componente con el índice automatizado
+            # 2. Renderizado del componente sincronizado con el estado activo
             especialidad_cx = st.selectbox(
                 "Especialidad Quirúrgica", 
                 lista_especialidades, 
-                index=default_index, 
                 key="mod1_especialidad"
             )
        
