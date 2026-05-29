@@ -185,10 +185,6 @@ with col_izquierda:
                 "Cirugía Plástica y Maxilofacial",
                 "Otra Especialidad"
             ])
-            # --- ACOPLAMIENTO INMEDIATO DE ESTADO (ANTI-BUG DE STREAMLIT) ---
-            if es_obstetrico and "Ginecología y Obstetricia" in lista_especialidades:
-                st.session_state["mod1_especialidad"] = "Ginecología y Obstetricia"
-            
             # 2. Renderizado del componente sincronizado con el estado activo
             especialidad_cx = st.selectbox(
                 "Especialidad Quirúrgica", 
