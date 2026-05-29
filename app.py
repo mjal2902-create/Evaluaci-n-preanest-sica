@@ -114,8 +114,8 @@ with col_izquierda:
             sexo = c_demo1.radio("Sexo", ["Masculino", "Femenino"], key="mod1_sexo")
             edad_default = 30 if sexo == "Femenino" else 50
             edad = c_demo2.number_input("Edad (años)", min_value=0, max_value=120, value=edad_default, key="mod1_edad")
-            grupo_sangre = c_demo3.selectbox("Grupo y Rh", ["O+", "O-", "A+", "A-", "B+", "B-", "AB+", "AB-", "Desconocido"], key="mod1_gs")
-
+            grupo_sangre = c_demo3.selectbox("Grupo y Rh", ["Desconocido", "O+", "O-", "A+", "A-", "B+", "B-", "AB+", "AB-"], key="mod1_gs")
+            
             # --- FILA 2: ANTROPOMETRÍA ---
             c_ant1, c_ant2 = st.columns(2)
             peso_real = c_ant1.number_input("Peso Real (kg)", min_value=1.0, max_value=300.0, value=70.0, step=0.1, key="mod1_peso")
