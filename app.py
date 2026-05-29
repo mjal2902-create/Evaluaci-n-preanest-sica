@@ -617,7 +617,6 @@ with col_derecha:
             proc_calc = procedimiento_final if 'procedimiento_final' in locals() else "No definido"
             anestesia_calc = tipo_anestesia if 'tipo_anestesia' in locals() else "No definido"
             especialidad_calc = especialidad_cx if 'especialidad_cx' in locals() else "Cirugía General"
-
             if peso_calc > 0 and talla_raw > 0:
                 # --- SUBSECCIÓN A: METABOLISMO Y VOLÚMENES (BIFURCACIÓN PEDIATRÍA/ADULTO) ---
                 st.markdown("##### 📏 Índices Fisiológicos y Somatometría")
