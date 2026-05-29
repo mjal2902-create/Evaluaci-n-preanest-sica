@@ -152,19 +152,30 @@ with col_izquierda:
             ], key="mod1_riesgo")
             
             st.divider()
-            # Fila 4: Diagnóstico y Procedimiento Dinámico
-            especialidad_cx = st.selectbox("Especialidad Quirúrgica", [
-                "Cirugía General / Digestiva",
+# 1. Construcción dinámica de la lista de especialidades
+            lista_especialidades = ["Cirugía General"]
+            
+            # Filtro por Edad: Menores de 15 años activan Cirugía Pediátrica
+            if edad < 15:
+                lista_especialidades.append("Cirugía Pediátrica")
+                
+            # Filtro por Sexo: Mujeres activan Ginecología y Obstetricia
+            if sexo == "Femenino":
+                lista_especialidades.append("Ginecología y Obstetricia")
+                
+            # Resto de especialidades comunes
+            lista_especialidades.extend([
                 "Traumatología y Ortopedia",
-                "Ginecología y Obstetricia",
-                "Cirugía Pediátrica",
                 "Cirugía Cardiovascular y Torácica",
                 "Neurocirugía",
                 "Urología",
                 "Otorrinolaringología y Oftalmología",
                 "Cirugía Plástica y Maxilofacial",
                 "Otra Especialidad"
-            ], key="mod1_especialidad")
+            ])
+            
+            # 2. Renderizado del componente con la lista filtrada
+            especialidad_cx = st.selectbox("Especialidad Quirúrgica", lista_especialidades, key="mod1_especialidad")
        
             c_cx3, c_cx4 = st.columns(2)
             
