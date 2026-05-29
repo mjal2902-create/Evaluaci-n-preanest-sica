@@ -281,12 +281,12 @@ with col_izquierda:
                     child_encefalo = c_hep2.selectbox("Encefalopatía", ["Ausente", "Grado I - II (Leve)", "Grado III - IV (Grave)"], key="mod2_encefalo")
 
                 if "Fractura / Traumatismo Mayor" in antecedentes_seleccionados:
-            tipo_fractura_app = c_unif1.selectbox("🛹 Tipo / Localización de la Fractura", ["Fractura de Cadera (Fémur Proximal) [Riesgo Caprini Alto]", "Fractura de Pelvis o Acetábulo [Riesgo Caprini Alto]", "Fractura de Miembro Inferior (Diáfisis de Fémur, Tibia, Peroné)", "Otro Traumatismo Mayor"])
-            tipo_fractura_ant = c_unif1.radio(
-                "⏱️ Tiempo desde el antecedente de la fractura:",
-                ["Menor a un mes", "Mayor a un mes", "Mayor a un año"],
-                key="mod2_tiempo_frac_ant"
-            )
+                    tipo_fractura_app = c_unif1.selectbox("🛹 Tipo / Localización de la Fractura", ["Fractura de Cadera (Fémur Proximal) [Riesgo Caprini Alto]", "Fractura de Pelvis o Acetábulo [Riesgo Caprini Alto]", "Fractura de Miembro Inferior (Diáfisis de Fémur, Tibia, Peroné)", "Otro Traumatismo Mayor"])
+                    tipo_fractura_ant = c_unif1.radio(
+                        "⏱️ Tiempo desde el antecedente de la fractura:",
+                        ["Menor a un mes", "Mayor a un mes", "Mayor a un año"],
+                        key="mod2_tiempo_frac_ant"
+                    )
                 if "Otros (Especificar)" in antecedentes_seleccionados: otros_antecedentes_txt = c_unif1.text_input("🔍 Especifique otros antecedentes:", key="mod2_ant_otros_txt")
                 medicacion_actual = c_unif2.multiselect("Fármacos de Uso Continuo", options=lista_medicamentos, key="mod2_medicacion")
                 if "Otros (Especificar)" in medicacion_actual: notas_medicacion_txt = c_unif2.text_input("📝 Especifique dosis o frecuencias:", key="mod2_med_notas_txt")
