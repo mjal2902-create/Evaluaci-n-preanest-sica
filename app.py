@@ -91,6 +91,7 @@ with col_izquierda:
     else: 
         st.success(f"✅ Centro registrado: **{hospital_final}**")
         st.divider()
+        
         # ---------------------------------------------------------
         # MÓDULO 1: DATOS DEMOGRÁFICOS Y CONTEXTO QUIRÚRGICO (ADAPTATIVO)
         # ---------------------------------------------------------
@@ -120,6 +121,7 @@ with col_izquierda:
             c_ant1, c_ant2 = st.columns(2)
             peso_real = c_ant1.number_input("Peso Real (kg)", min_value=1.0, max_value=300.0, value=70.0, step=0.1, key="mod1_peso")
             talla_cm = c_ant2.number_input("Talla (cm)", min_value=30.0, max_value=250.0, value=165.0, step=1.0, key="mod1_talla")
+            
             # --- PROCESAMIENTO SILENCIOSO DEL IMC ---
             imc = 0.0
             cat_imc = "No calculado"
@@ -144,85 +146,83 @@ with col_izquierda:
             es_obstetrico = False
             if sexo == "Femenino" and 12 <= edad <= 45:
                 es_obstetrico = st.checkbox(
-                    "🤰 Paciente Obstétrica (Cambia diagnósticos y procedimientos)", 
+                    "🤰 Paciente Obstétrica (Cambia diagnósticos y procedures)", 
                     key="mod1_es_obstetrico",
                     on_change=conmutar_modulo_obstetrico
                 )
 
             st.markdown("**Contexto Quirúrgico y Clasificación**")
+
             # =====================================================================
-        # DESPLIEGUE DINÁMICO SEGÚN EL ÁMBITO SELECCIONADO
-        # =====================================================================
-        # Inicialización de seguridad de variables de Quirófano a nivel global del módulo
-        semanas_eg = 0
-        horas_ayuno = 8
-        tipo_ayuno = "No aplica"
-        plan_suspension_meds = "No aplica (Entorno Quirófano)"
-        interconsultas_req = []
+            # DESPLIEGUE DINÁMICO SEGÚN EL ÁMBITO SELECCIONADO
+            # =====================================================================
+            semanas_eg = 0
+            horas_ayuno = 8
+            tipo_ayuno = "No aplica"
+            plan_suspension_meds = "No aplica (Entorno Quirófano)"
+            interconsultas_req = []
 
-        if "Quirófano / Emergencia" in ambito_atencion:
-            c_cx1, c_asa = st.columns(2)
-            caracter_cx = c_cx1.selectbox("Carácter de la Intervención", ["Electiva", "Urgencia", "Emergencia"], key="mod1_caracter")
-            
-            asa_ps = c_asa.selectbox("Clasificación ASA", [
-                "ASA I: Paciente sano normal",
-                "ASA II: Enfermedad sistémica leve",
-                "ASA III: Enfermedad sistémica grave",
-                "ASA IV: Enf. sistémica grave con amenaza vital",
-                "ASA V: Paciente moribundo",
-                "ASA VI: Muerte cerebral (Donante)"
-            ], key="mod1_asa")
+            if "Quirófano / Emergencia" in ambito_atencion:
+                c_cx1, c_asa = st.columns(2)
+                caracter_cx = c_cx1.selectbox("Carácter de la Intervención", ["Electiva", "Urgencia", "Emergencia"], key="mod1_caracter")
+                
+                asa_ps = c_asa.selectbox("Clasificación ASA", [
+                    "ASA I: Paciente sano normal",
+                    "ASA II: Enfermedad sistémica leve",
+                    "ASA III: Enfermedad sistémica grave",
+                    "ASA IV: Enf. sistémica grave con amenaza vital",
+                    "ASA V: Paciente moribundo",
+                    "ASA VI: Muerte cerebral (Donante)"
+                ], key="mod1_asa")
 
-            # --- SUB-MÓDULO: EDAD GESTACIONAL (SOLO SI ES OBSTÉTRICA EN QUIRÓFANO) ---
-            if es_obstetrico:
-                st.markdown("🤰 **Datos Obstétricos de Emergencia**")
-                semanas_eg = st.number_input(
-                    "Semanas de Gestación Actual (EG):", 
-                    min_value=4, max_value=42, value=38, step=1, 
-                    key="mod1_semanas_eg"
+                # --- SUB-MÓDULO: EDAD GESTACIONAL (SI ES OBSTÉTRICA EN QUIRÓFANO) ---
+                if es_obstetrico:
+                    st.markdown("🤰 **Datos Obstétricos de Emergencia**")
+                    semanas_eg = st.number_input(
+                        "Semanas de Gestación Actual (EG):", 
+                        min_value=4, max_value=42, value=38, step=1, 
+                        key="mod1_semanas_eg"
+                    )
+
+                # --- SUB-MÓDULO: CONTROL DE AYUNO REAL ---
+                st.markdown("⏱️ **Control de Ayuno Activo (Estatus NPO)**")
+                c_npo1, c_npo2 = st.columns(2)
+                tipo_ayuno = c_npo1.selectbox("Última ingesta de:", ["Sólidos pesados / Grasas", "Comida ligera / Leche de fórmula", "Leche materna", "Líquidos claros (Agua, té, café negro)"], key="mod1_tipo_ayuno")
+                horas_ayuno = c_npo2.number_input("Horas de ayuno cumplidas:", min_value=0, max_value=48, value=8, step=1, key="mod1_horas_ayuno")
+
+            else:
+                caracter_cx = "Electiva"
+                c_cx1, c_asa = st.columns(2)
+                c_cx1.info("📋 **Carácter Quirúrgico:** Fijado automáticamente como **Electiva**.")
+                
+                asa_ps = c_asa.selectbox("Clasificación ASA Proyectada", [
+                    "ASA I: Paciente sano normal",
+                    "ASA II: Enfermedad sistémica leve",
+                    "ASA III: Enfermedad sistémica grave",
+                    "ASA IV: Enf. sistémica grave con amenaza vital"
+                ], key="mod1_asa")
+
+                st.markdown("📑 **Planificación y Optimización de Consulta Externa**")
+                c_ce1, c_ce2 = st.columns(2)
+                plan_suspension_meds = c_ce1.multiselect(
+                    "🛑 Plan de Suspensión de Fármacos Críticos:",
+                    ["Suspender Antiagregantes (Aspirina/Clopidogrel) 5-7 días antes", 
+                     "Suspender Anticoagulantes Orales (Warfarina/DOACs) según protocolo", 
+                     "Suspender Metformina 24 horas antes del procedimiento", 
+                     "Continuar Beta-bloqueadores de forma habitual el día de la cirugía", 
+                     "No requiere suspensiones de tratamiento continuo"],
+                    key="mod1_ce_suspensiones"
+                )
+                interconsultas_req = c_ce2.multiselect(
+                    "🩺 Interconsultas de Optimización Solicitadas:",
+                    ["Valoración por Cardiología (Riesgo Quirúrgico)", 
+                     "Valoración por Neumología (Espirometría / EPOC)", 
+                     "Valoración por Endocrinología (Control metabólico HbA1c)", 
+                     "Ninguna interconsulta adicional requerida"],
+                    key="mod1_ce_interconsultas"
                 )
 
-            # --- SUB-MÓDULO: CONTROL DE AYUNO REAL ---
-            st.markdown("⏱️ **Control de Ayuno Activo (Estatus NPO)**")
-            c_npo1, c_npo2 = st.columns(2)
-            tipo_ayuno = c_npo1.selectbox("Última ingesta de:", ["Sólidos pesados / Grasas", "Comida ligera / Leche de fórmula", "Leche materna", "Líquidos claros (Agua, té, café negro)"], key="mod1_tipo_ayuno")
-            horas_ayuno = c_npo2.number_input("Horas de ayuno cumplidas:", min_value=0, max_value=48, value=8, step=1, key="mod1_horas_ayuno")
-
-        else:
-            # --- CASILLAS EXCLUSIVAS DE CONSULTA EXTERNA (SE QUEDA IGUAL) ---
-            caracter_cx = "Electiva"
-            c_cx1, c_asa = st.columns(2)
-            c_cx1.info("📋 **Carácter Quirúrgico:** Fijado automáticamente como **Electiva**.")
-            
-            asa_ps = c_asa.selectbox("Clasificación ASA Proyectada", [
-                "ASA I: Paciente sano normal",
-                "ASA II: Enfermedad sistémica leve",
-                "ASA III: Enfermedad sistémica grave",
-                "ASA IV: Enf. sistémica grave con amenaza vital"
-            ], key="mod1_asa")
-
-            st.markdown("📑 **Planificación y Optimización de Consulta Externa**")
-            c_ce1, c_ce2 = st.columns(2)
-            plan_suspension_meds = c_ce1.multiselect(
-                "🛑 Plan de Suspensión de Fármacos Críticos:",
-                ["Suspender Antiagregantes (Aspirina/Clopidogrel) 5-7 días antes", 
-                 "Suspender Anticoagulantes Orales (Warfarina/DOACs) según protocolo", 
-                 "Suspender Metformina 24 horas antes del procedimiento", 
-                 "Continuar Beta-bloqueadores de forma habitual el día de la cirugía", 
-                 "No requiere suspensiones de tratamiento continuo"],
-                key="mod1_ce_suspensiones"
-            )
-            interconsultas_req = c_ce2.multiselect(
-                "🩺 Interconsultas de Optimización Solicitadas:",
-                ["Valoración por Cardiología (Riesgo Quirúrgico)", 
-                 "Valoración por Neumología (Espirometría / EPOC)", 
-                 "Valoración por Endocrinología (Control metabólico HbA1c)", 
-                 "Ninguna interconsulta adicional requerida"],
-                key="mod1_ce_interconsultas"
-                )
-            
-            tipo_ayuno = "No aplica"; horas_ayuno = 8
-
+            # --- LIBERACIÓN DE CAMPOS UNIVERSALES (EXENTOS DE LA BIFURCACIÓN) ---
             riesgo_cx = st.selectbox("Riesgo Quirúrgico Intrínseco (AHA/ACC)", [
                 "Bajo (<1%) - Ej: Superficial, Endoscópica, Catarata", 
                 "Intermedio (1-5%) - Ej: Intraperitoneal, Ortopédica mayor", 
@@ -290,7 +290,7 @@ with col_izquierda:
                 lista_procedimientos = ["Craneotomía + Resección de Tumor / Evacuación de Hematoma", "Discectomía / Microdiscectomía Laminectomía", "Colocación de Válvula de Derivación Ventriculoperitoneal (DVP)", "Clipaje de Aneurisma por Craneotomía", "Otro (Especificar)"]
 
             elif especialidad_cx == "Urología":
-                lista_diagnosticos = ["Hipertrofia Prostática Benigna (HPB)", "Litiasis Renoureteral Obstructiva", "Neoplasia de Vejiga / Próstata", "Hidrocele / Varicocele Sintomático", "Estenosis de Uretra", "Otro (Especificar)"]
+                lista_diagnosticos = ["Hipertrofia Prostática Benigna (HPB)", "Litiasis Renoureteral Obstrictiva", "Neoplasia de Vejiga / Próstata", "Hidrocele / Varicocele Sintomático", "Estenosis de Uretra", "Otro (Especificar)"]
                 lista_procedimientos = ["Resección Transuretral de Próstata (RTU-P) o Enucleación", "Ureterolitotripsia Láser / Nefrolitotomía Percutánea", "Prostatectomía Radical / Cistectomía", "Hidrocelectomía / Varicocelectomía Unilateral", "Uretropatía / Dilatación Uretra", "Otro (Especificar)"]
 
             elif especialidad_cx == "Cirugía Cardiovascular y Torácica":
@@ -458,7 +458,7 @@ with col_izquierda:
 
             if mostrar_va_adultos:
                 if es_pediatrico_va:
-                    opciones_mallampati = ["Clase I: Visibilidad de paladar blando, úvula y pilares", "Clase II: Visibilidad de paladar blando y úvula", "Clase III: Visibilidad de paladar blando y base de la úvula", "Clase IV: Solo es visible el paladar duro"]
+                    opciones_mallampati = ["Clase I: Visibilidad de paladar blando, úvula y pilares", "Clase II: Visibilidad de paladar blando and úvula", "Clase III: Visibilidad de paladar blando y base de la úvula", "Clase IV: Solo es visible el paladar duro"]
                     opciones_dtm = ["Clase I (Normal): > 3 dedos del propio paciente (Distancia conservada)", "Clase II (Moderada): 2 - 3 dedos del propio paciente (Acortamiento leve)", "Clase III (VAD Predictiva): < 2 dedos del propio paciente (Acortamiento severo)"]
                     opciones_ab = ["Clase I (Normal): > 2 dedos del propio paciente (Apertura conservada)", "Clase II (Moderada): 1.5 - 2 dedos del propio paciente (Limitación leve)", "Clase III (Severa): < 1.5 dedos del propio paciente (Limitación crítica)"]
                     opciones_dem = ["Clase I (Normal): Extensión esternomentoniana conservada para la edad", "Clase II (Moderada): Restricción parcial de la extensión cefálica", "Clase III (Severa): Extensión críticamente limitada / VAD predictiva"]
@@ -834,6 +834,7 @@ with col_derecha:
                     st.markdown(f"**Estado Obstétrico:** {'Paciente Obstétrica 🤰' if obs_calc else 'No aplica / No gestante'}")
                 
                 st.divider()
+                
                 # --- SUBSECCIÓN C: DUPLICACIÓN DE CONTEXTO QUIRÚRGICO Y PLAN ---
                 st.markdown("##### 🏥 Contexto Quirúrgico y Planificación")
                 st.markdown(f"**Ámbito de Atención:** *{ambito_atencion}*")
@@ -862,7 +863,6 @@ with col_derecha:
                     elif "materna" in tipo_ayuno_calc and horas_calc < 4: ayuno_insuficiente = True
                     elif "Líquidos claros" in tipo_ayuno_calc and horas_calc < 2: ayuno_insuficiente = True
                     
-                    # Toda gestante pasada el primer trimestre o paciente de emergencia se considera estómago lleno
                     if ayuno_insuficiente or (obs_calc and semanas_eg > 12) or caracter_calc == "Emergencia":
                         st.error("🚨 **ALERTA CRÍTICA: RIESGO DE ESTÓMAGO LLENO / SÍNDROME DE MENDELSON:** Alto riesgo de broncoaspiración activa. Si el procedimiento no puede posponerse, se exige **Inducción de Secuencia Rápida (ISR)** con presión cricoidea (Maniobra de Sellick), tubo con neumotaponador y proquinéticos IV.")
                     else:
@@ -870,21 +870,21 @@ with col_derecha:
                         
                     # 2. Alerta de Compresión Aortocava Obstétrica
                     if obs_calc and semanas_eg >= 20:
-                        st.warning(f"⚠️ **ALERTA DE COMPRESIÓN AORTOCAVA ({semanas_eg} semanas):** El útero grávido compromete críticamente el retorno venoso. Al posicionar a la paciente en la mesa quirúrgica, aplique obligatoriamente un **desplazamiento uterino a la izquierda de 15 grados** (mediante cuña o inclinación de la mesa) para prevenir hipotensión materna severa e hipoperfusión placentaria.")
+                        st.warning(f"⚠️ **ALERTA DE COMPRESIÓN AORTOCAVA ({semanas_eg} semanas):** El útero grávido compromete críticamente el retorno venoso. Al posicionar a la paciente en la mesa quirúrgica, aplique obligatoriamente un **desplazamiento uterino a la izquierda de 15 grados** para prevenir hipotensión materna severa.")
+                
+                # Campos universales de diagnóstico y procedimiento (Visibles en ambos entornos)
+                st.markdown(f"**Diagnóstico Principal:** **{diag_calc}**")
+                if localizacion_frac_calc != "No aplica":
+                    st.markdown(f"**Detalle de Traumatología:** 🦴 *{localizacion_frac_calc}*")
+                st.markdown(f"**Procedimiento Quirúrgico:** **{proc_calc}**")
+                st.divider()
+                st.success(f"💉 **Estrategia Anestésica:** **{anestesia_calc}**")
                 
                 # =====================================================================
                 # PESTAÑA 1 - SECCIÓN 2: SEGURIDAD, ALERGIAS Y ANTECEDENTES (MÓDULO 2)
                 # =====================================================================
                 st.subheader("🛡️ Seguridad y Antecedentes (Módulo 2)")
                 
-                def formatear_lista(lista_original, texto_extra):
-                    lista = [x for x in lista_original if x != "Ninguno"] if len(lista_original) > 1 else list(lista_original)
-                    if "Otros (Especificar)" in lista:
-                        lista.remove("Otros (Especificar)")
-                        if texto_extra.strip() != "":
-                            lista.append(f"*{texto_extra.strip()}*")
-                    return lista
-
                 alergias_negadas = sin_alergias if 'sin_alergias' in locals() else True
                 al_med_raw = alergias_med if 'alergias_med' in locals() else []
                 al_ali_raw = alergias_alim if 'alergias_alim' in locals() else []
@@ -1310,6 +1310,7 @@ Estatus de Validación: Certificado por Sistema Experto Perioperatorio
 • IMC Calculado: {imc_control:.1f} kg/m²
 • Superficie Corporal (BSA): {bsa_calc:.2f} m²
 • Peso Ideal Estimado: {peso_ideal if 'peso_ideal' in locals() else peso_calc:.1f} kg
+
 2. CONTEXTO QUIRÚRGICO Y PLANIFICACIÓN
 ---------------------------------------------------------------------
 • Ámbito de Atención: {ambito_atencion}
