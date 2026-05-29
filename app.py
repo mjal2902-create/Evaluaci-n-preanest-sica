@@ -1038,4 +1038,217 @@ with col_derecha:
                 plaq_calc = plaquetas_val if 'plaquetas_val' in locals() else 250000
                 
                 creat_calc = creatinina_val if 'creatinina_val' in locals() else 0.8
-                urea_calc = urea_val if 'urea_val' in locals() else 30.
+                urea_calc = urea_val if 'urea_val' in locals() else 30.0
+                albu_calc = albumina_serica if 'albumina_serica' in locals() else 3.5
+                bili_calc = bili_total if 'bili_total' in locals() else 1.0
+                
+                tp_calc = tp_val if 'tp_val' in locals() else 12.0
+                ttpa_calc = ttpa_val if 'ttpa_val' in locals() else 30.0
+                inr_calc = inr_val if 'inr_val' in locals() else 1.0
+                gas_check = tiene_gasometria if 'tiene_gasometria' in locals() else False
+
+                if labs_negados and not cirrosis_presencia:
+                    st.success("✅ **Laboratorios:** No solicitados / Paciente calificado clínicamente como sano.")
+                else:
+                    l_col1, l_col2 = st.columns(2)
+                    with l_col1:
+                        st.markdown("**🩸 Serie Roja y Plaquetas**")
+                        st.markdown(f"* Hemoglobina: **{hb_calc:.1f} g/dL**")
+                        st.markdown(f"* Hematocrito: **{hto_calc:.0f}%**")
+                        st.markdown(f"* Plaquetas: **{plaq_calc:,} u/µL**")
+                    with l_col2:
+                        st.markdown("**⏱️ Perfil de Hemostasia**")
+                        st.markdown(f"* Tiempo de Protrombina (TP): **{tp_calc:.1f} seg**")
+                        st.markdown(f"* TTPa: **{ttpa_calc:.1f} seg**")
+                        st.markdown(f"* INR: **{inr_calc:.2f}**")
+                    
+                    st.markdown("##### 🔍 Alertas de Seguridad Analítica:")
+                    tecnica_anestesica = tipo_anestesia if 'tipo_anestesia' in locals() else ""
+                    if plaq_calc < 100000 and "Regional" in tecnica_anestesica:
+                        st.error(f"🚨 **CONTRAINDICACIÓN ABSOLUTA DE NEUROEJE:** Con solo **{plaq_calc:,} u/µL** plaquetas, existe riesgo crítico de hematoma epidural/espinal. Cambie la estrategia a Anestesia General.")
+                    elif plaq_calc < 150000:
+                        st.warning(f"⚠️ **Trombocitopenia Moderada:** ({plaq_calc:,} u/µL).")
+                        
+                    if hb_calc < 10.0:
+                        st.error(f"🚨 **Anemia Significativa (Hb {hb_calc:.1f} g/dL):** Asegure reserva de hematíes en banco de sangre.")
+                    elif (sexo_calc == "Femenino" and hb_calc < 12.0) or (sexo_calc == "Masculino" and hb_calc < 13.0):
+                        st.caption(f"⚠️ *Anemia leve marginal ({hb_calc:.1f} g/dL).*")
+
+                    if inr_calc > 1.5 or tp_calc > 15.0:
+                        st.error(f"🚨 **COAGULOPATÍA ACTIVA:** INR elevado (**{inr_calc:.2f}**). Alto riesgo de sangrado.")
+
+                    detalles_organicos = []
+                    if ('ver_renal' in locals() and ver_renal) or cirrosis_presencia:
+                        detalles_organicos.append(f"Creatinina: **{creat_calc:.2f} mg/dL**")
+                        detalles_organicos.append(f"Urea: **{urea_calc:.0f} mg/dL**")
+                        detalles_organicos.append(f"Albúmina: **{albu_calc:.1f} g/dL**")
+                    if cirrosis_presencia:
+                        detalles_organicos.append(f"Bilirrubina: **{bili_calc:.1f} mg/dL**")
+                        
+                    if detalles_organicos:
+                        st.markdown("**💾 Función Renal / Hepática Consolidada:**")
+                        st.markdown(" | ".join(detalles_organicos))
+
+                    if gas_check:
+                        st.markdown("---")
+                        st.markdown("##### 🫁 Estado Ácido-Base (Gasometría Arterial)")
+                        if ph_val < 7.35: estado_ph = "Acidemia 🚨"
+                        elif ph_val > 7.45: estado_ph = "Alcalemia 🚨"
+                        else: estado_ph = "Normal ✅"
+                        
+                        g_col1, g_col2 = st.columns(2)
+                        with g_col1:
+                            st.markdown(f"* pH: **{ph_val:.2f}** ({estado_ph})")
+                            st.markdown(f"* PaCO2: **{paco2_val:.0f} mmHg**")
+                            st.markdown(f"* HCO3-: **{hco3_val:.1f} mEq/L**")
+                        with g_col2:
+                            st.markdown(f"* Lactato: **{lactato_val:.1f} mmol/L**")
+                            st.metric(label="Kirby (PaO2/FiO2)", value=f"{pafi:.0f} mmHg")
+                        
+                        if pafi < 200: st.error(f"🚨 **INSUFICIENCIA RESPIRATORIA CRÍTICA:** Kirby gravemente comprometido (**{pafi:.0f} mmHg**).")
+
+                st.divider()
+
+                # =====================================================================
+                # PESTAÑA 1 - SECCIÓN 6: EMETOGÉNESIS Y TROMBOFILIA (MÓDULO 6)
+                # =====================================================================
+                st.subheader("🤢 Emetogénesis y Trombofilia (Módulo 6)")
+                
+                apfel_final = pts_apfel if 'pts_apfel' in locals() else 0
+                caprini_final = score_caprini if 'score_caprini' in locals() else 0
+                
+                if apfel_final <= 1: estrato_apfel = "Riesgo Bajo (~10-20%)"; color_apfel = "normal"
+                elif apfel_final == 2: estrato_apfel = "Riesgo Moderado (~40%)"; color_apfel = "normal"
+                else: estrato_apfel = "Riesgo Alto (~60-80%) 🚨"; color_apfel = "inverse"
+                    
+                # --- AJUSTE DINÁMICO DE CAPRINI POR FRACTURA RECIENTE (< 1 MES) ---
+                if frac_calc == "Menor a un mes" or ('frac_ant_calc' in locals() and frac_ant_calc == "Menor a un mes"):
+                    caprini_final += 5
+                    
+                if caprini_final <= 1: estrato_caprini = "Riesgo Bajo"; color_caprini = "normal"
+                elif caprini_final == 2: estrato_caprini = "Riesgo Moderado"; color_caprini = "normal"
+                elif 3 <= caprini_final <= 4: estrato_caprini = "Riesgo Alto ⚠️"; color_caprini = "inverse"
+                else: estrato_caprini = "Riesgo Muy Alto / Extremo 🚨"; color_caprini = "inverse"
+                    
+                m6_col1, m6_col2 = st.columns(2)
+                with m6_col1: st.metric(label="Escala de Apfel (NVPO)", value=f"{apfel_final} / 4 pts", delta=estrato_apfel, delta_color=color_apfel)
+                with m6_col2: st.metric(label="Score de Caprini (ETV)", value=f"{caprini_final} pts", delta=estrato_caprini, delta_color=color_caprini)
+                    
+                st.markdown("##### 🔍 Directrices de Profilaxis Perioperatoria:")
+                
+                if apfel_final >= 3:
+                    st.error(f"🚨 **ALERTA NVPO CRÍTICA:** Exige **Estrategia Multimodal Profiláctica**: Dexametasona 4 mg IV + Ondansetrón 4 mg IV.")
+                    st.info("💡 **Aporte de Tesis:** La infusión de Lidocaína IV reduce el consumo de opioides intraoperatorios, atacando la emetogénesis basal.")
+                elif apfel_final == 2:
+                    st.warning(f"⚠️ **Profilaxis Apfel Moderada:** Ondansetrón 4 mg IV previo a la emersión.")
+                else:
+                    st.success("🟢 **Emetogénesis Controlada:** Riesgo bajo de NVPO.")
+                    
+                if caprini_final >= 5:
+                    st.error(f"🚨 **ALERTA DE RIESGO TROMBOEMBÓLICO MUY ALTO ({caprini_final} pts):** Indicación mandatoria de **Profilaxis Combinada**: Medidas mecánicas + Enoxaparina 40 mg SC cada 24h.")
+                elif 3 <= caprini_final <= 4:
+                    st.warning(f"⚠️ **Riesgo Caprini Alto ({caprini_final} pts):** HBPM farmacológica mandatoria + deambulación.")
+                elif caprini_final == 2:
+                    st.info(f"🔹 **Riesgo Caprini Moderado ({caprini_final} pts):** Considere medias elásticas.")
+                else:
+                    st.success("🟢 **Riesgo Tromboembólico Mínimo:** Solo deambulación temprana.")
+                    
+                st.markdown("---")
+                st.caption("✨ **Monitorización de Pestaña 1 Completada.** Sincronización analítica establecida.")
+
+        # =====================================================================
+        # PESTAÑA 2: GENERACIÓN DE REPORTE Y HISTORIA CLÍNICA COPIABLE
+        # =====================================================================
+        with tab2:
+            st.subheader("📄 Nota de Valoración Preanestésica")
+            st.caption("Haga clic en el ícono de copiar para trasladar la nota estructurada a tu historial clínico:")
+            
+            txt_alergias_final = "NEGADAS."
+            if not (sin_alergias if 'sin_alergias' in locals() else True):
+                componentes_al = []
+                if 'al_med_list' in locals() and al_med_list: componentes_al.append(f"Fármacos: {', '.join(al_med_list)}")
+                if 'al_ali_list' in locals() and al_ali_list: componentes_al.append(f"Alimentarias: {', '.join(al_ali_list)}")
+                if componentes_al: txt_alergias_final = " | ".join(componentes_al)
+
+            txt_app_final = "NEGADOS."
+            if not (sin_antecedentes if 'sin_antecedentes' in locals() else True):
+                if 'app_list' in locals() and app_list and app_list != ["Ninguno"]: 
+                    txt_app_final = ", ".join(app_list)
+                    if "Cirrosis Hepática" in app_list:
+                        txt_app_final += f" (Child-Pugh Ascitis: {child_ascitis if 'child_ascitis' in locals() else 'Ausente'} | Encefalopatía: {child_encefalo if 'child_encefalo' in locals() else 'Ausente'})"
+
+            txt_meds_final = "NEGADA."
+            if not (sin_antecedentes if 'sin_antecedentes' in locals() else True):
+                if 'meds_list' in locals() and meds_list and meds_list != ["Ninguno"]: txt_meds_final = ", ".join(meds_list)
+
+            txt_habitos_final = "NEGADOS."
+            if not (sin_habitos if 'sin_habitos' in locals() else True):
+                if 'habitos_activos' in locals() and habitos_activos: txt_habitos_final = " | ".join(habitos_activos)
+
+            if sin_laboratorios if 'sin_laboratorios' in locals() else True:
+                txt_labs_final = "No requeridos / Paciente clínicamente sano."
+            else:
+                txt_labs_final = f"Hb: {hb_calc:.1f}g/dL | Hto: {hto_calc:.0f}% | Plaq: {plaq_calc:,}/uL | TP: {tp_calc:.1f}s | TTPa: {ttpa_calc:.1f}s | INR: {inr_calc:.2f}"
+                if 'gas_check' in locals() and gas_check:
+                    txt_labs_final += f"\n   [Gasometría] pH: {ph_val:.2f} | PaCO2: {paco2_val:.0f} mmHg | HCO3: {hco3_val:.1f} mEq/L | Lactato: {lactato_val:.1f} mmol/L | PaO2/FiO2: {pafi:.0f} mmHg"
+
+            reporte_medico_texto = f"""=====================================================================
+🏥 NOTA DE EVALUACIÓN PREANESTÉSICA CONSOLIDADA
+=====================================================================
+Centro Institucional: {hospital_final if 'hospital_final' in locals() else 'No registrado'}
+Responsable: Dr. Marcos Aviles
+Estatus de Validación: Certificado por Sistema Experto Perioperatorio
+
+1. FILIACIÓN Y ANTROPOMETRÍA
+---------------------------------------------------------------------
+• Sexo Biológico: {sexo_calc}
+• Edad Cronológica: {edad_calc} años
+• Grupo Sanguíneo y Rh: {gs_calc}
+• Peso Real: {peso_calc:.1f} kg | Talla: {talla_raw:.0f} cm
+• IMC Calculado: {imc_control:.1f} kg/m²
+• Superficie Corporal (BSA): {bsa_calc:.2f} m²
+• Peso Ideal Estimado: {peso_ideal if 'peso_ideal' in locals() else peso_calc:.1f} kg
+
+2. CONTEXTO QUIRÚRGICO Y PLANIFICACIÓN
+---------------------------------------------------------------------
+• Diagnóstico Principal: {diag_calc} {f'(Evolución: {frac_calc} | Localización: {localizacion_frac_calc})' if (frac_calc != "No aplica") else ''}
+• Procedimiento Quirúrgico: {proc_calc}
+• Carácter de la Cirugía: {caracter_calc}
+• Riesgo Quirúrgico Intrínseco (AHA/ACC): {riesgo_calc}
+• Clasificación del Estado Físico (ASA): {asa_calc}
+• Técnica Anestésica Propuesta: {anestesia_calc}
+
+3. SEGURIDAD, ALERGIAS Y ANTECEDENTES (APP)
+---------------------------------------------------------------------
+• Alergias y Sensibilidades: {txt_alergias_final}
+• Antecedentes Patológicos Clínicos: {txt_app_final}
+• Medicación de Uso Continuo: {txt_meds_final}
+• Hábitos y Estilo de Vida: {txt_habitos_final}
+
+4. SCREENING PREDICTIVO Y ESTRATIFICACIÓN DE RIESGO
+---------------------------------------------------------------------
+• Índice de Intubación Difícil (Arné): {arne_val} puntos
+• Riesgo de Ventilación (OBESE): {score_obese_total if ('score_obese_total' in locals() and not es_ped) else 'N/A'} puntos
+• Tamizaje de Apnea del Sueño (STOP-Bang): {score_stop_bang_total if ('score_stop_bang_total' in locals() and not es_ped) else 'N/A'} puntos
+• Riesgo Pulmonar Postoperatorio (ARISCAT): {score_ariscat_total if 'score_ariscat_total' in locals() else 0} puntos
+• Índice de Riesgo Cardíaco Revisado (Lee / RCRI): {lee_val if ('lee_val' in locals() and not es_ped) else 'N/A'} puntos
+• Riesgo de Náuseas y Vómitos (Apfel): {apfel_final} / 4 puntos
+
+5. EXÁMENES COMPLEMENTARIOS DE BASE
+---------------------------------------------------------------------
+• Reporte de Laboratorio: {txt_labs_final}
+• Electrocardiograma (ECG): {ecg_calc}
+• Ecocardiograma (FEVI %): {f"{fevi_val_calc:.0f}%" if fevi_check else 'No solicitado'}
+
+6. PLAN DE ACCIÓN Y PROFILAXIS RECOMENDADA
+---------------------------------------------------------------------
+• Manejo Antiemético (Apfel): {'EXIGE Profilaxis Multimodal Combinada (Dexametasona + Ondansetrón).' if apfel_final >= 3 else ('Profilaxis estándar (Ondansetrón IV).' if apfel_final == 2 else 'Manejo sintomático según demanda.')}
+• Manejo Antitrombótico (Caprini): {'EXIGE Profilaxis Combinada: Mecánica + Farmacológica (HBPM Enoxaparina).' if caprini_final >= 5 else ('Profilaxis farmacológica o mecánica precoz.' if caprini_final >= 2 else 'Solo deambulación temprana activa.')}
+• Consideraciones de Vía Aérea: {f'ALERTA: Vía Aérea Difícil Predictiva.' if arne_val > 10 or (p_vad_previo if 'p_vad_previo' in locals() else False) else 'Vía aérea con predictores anatómicos estables de intubación.'}
+• Observación Especial Pediátrica: {f"Riesgo de Hiperreactividad Laríngea activo. CONSIDERAR ADICIÓN DE LIDOCAÍNA IV PROTOCOLO DE TESIS." if es_ped and (p_ivra or p_estridor) else "Estable sin criterios especiales."}
+
+=====================================================================
+FIN DEL REPORTE - FIRMA REGISTRADA ELECTRÓNICAMENTE
+=====================================================================
+"""
+            st.code(reporte_medico_texto, language="text")
