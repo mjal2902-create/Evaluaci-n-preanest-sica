@@ -91,24 +91,37 @@ with col_izquierda:
     else: 
         st.success(f"✅ Centro registrado: **{hospital_final}**")
         st.divider()
-        
         # ---------------------------------------------------------
-        # MÓDULO 1: DATOS DEMOGRÁFICOS Y QUIRÚRGICOS
+        # MÓDULO 1: DATOS DEMOGRÁFICOS Y CONTEXTO QUIRÚRGICO (ADAPTATIVO)
         # ---------------------------------------------------------
         with st.expander("1. Datos Demográficos y Contexto Quirúrgico", expanded=True):
             st.divider() 
+            
+            # =====================================================================
+            # 🩺 BIFURCACIÓN DE ENTORNO: QUIRÓFANO VS CONSULTA EXTERNA
+            # =====================================================================
+            st.markdown("### 🏢 Ámbito de la Evaluación Anestésica")
+            ambito_atencion = st.radio(
+                "Seleccione el entorno actual del paciente:",
+                ["Quirófano / Emergencia 🏥", "Consulta Externa Preanestésica 📑"],
+                horizontal=True,
+                key="mod1_ambito_atencion"
+            )
+            st.divider()
+
+            # --- FILA 1: DATOS DEMOGRÁFICOS BASALES ---
             c_demo1, c_demo2, c_demo3 = st.columns(3)
             sexo = c_demo1.radio("Sexo", ["Masculino", "Femenino"], key="mod1_sexo")
             edad_default = 30 if sexo == "Femenino" else 50
             edad = c_demo2.number_input("Edad (años)", min_value=0, max_value=120, value=edad_default, key="mod1_edad")
             grupo_sangre = c_demo3.selectbox("Grupo y Rh", ["O+", "O-", "A+", "A-", "B+", "B-", "AB+", "AB-", "Desconocido"], key="mod1_gs")
 
-            # Fila 2: Antropometría
+            # --- FILA 2: ANTROPOMETRÍA ---
             c_ant1, c_ant2 = st.columns(2)
             peso_real = c_ant1.number_input("Peso Real (kg)", min_value=1.0, max_value=300.0, value=70.0, step=0.1, key="mod1_peso")
             talla_cm = c_ant2.number_input("Talla (cm)", min_value=30.0, max_value=250.0, value=165.0, step=1.0, key="mod1_talla")
             
-            # --- PROCESAMIENTO SILENCIOSO DEL IMC ---
+            # Procesamiento silencioso del IMC
             imc = 0.0
             cat_imc = "No calculado"
             if talla_cm > 0:
@@ -120,10 +133,7 @@ with col_izquierda:
             
             st.divider()
             
-            # Fila 3: Contexto Quirúrgico Base
-            st.markdown("**Contexto Quirúrgico y Clasificación**")
-            
-            # --- CENTINELA DE TRANSICIÓN DE ESTADO (ANTI-BUG DE RETENCIÓN) ---
+            # --- CONMUTADOR OBSTÉTRICO ---
             def conmutar_modulo_obstetrico():
                 if st.session_state.get("mod1_es_obstetrico"):
                     st.session_state["mod1_especialidad"] = "Ginecología y Obstetricia"
@@ -131,7 +141,6 @@ with col_izquierda:
                     if st.session_state.get("mod1_especialidad") == "Ginecología y Obstetricia":
                         st.session_state["mod1_especialidad"] = "Cirugía General"
 
-            # --- CONDICIONAMIENTO BIOLÓGICO Y CRONOLÓGICO DE PACIENTE OBSTÉTRICA ---
             es_obstetrico = False
             if sexo == "Femenino" and 12 <= edad <= 45:
                 es_obstetrico = st.checkbox(
@@ -139,29 +148,86 @@ with col_izquierda:
                     key="mod1_es_obstetrico",
                     on_change=conmutar_modulo_obstetrico
                 )
+            
+            st.markdown("**Contexto Quirúrgico y Clasificación**")
+
+            # =====================================================================
+            # 💥 DESPLIEGUE DINÁMICO SEGÚN EL ÁMBITO SELECCIONADO
+            # =====================================================================
+            
+            if "Quirófano / Emergencia" in ambito_atencion:
+                # --- CASILLA EXCLUSIVAS DE QUIRÓFANO ---
+                c_cx1, c_asa = st.columns(2)
+                caracter_cx = c_cx1.selectbox("Carácter de la Intervención", ["Electiva", "Urgencia", "Emergencia"], key="mod1_caracter")
                 
-            # Fila A: Carácter y ASA (Liberados correctamente de la indentación restrictiva)
-            c_cx1, c_asa = st.columns(2)
-            caracter_cx = c_cx1.selectbox("Carácter de la Intervención", ["Electiva", "Urgencia", "Emergencia"], key="mod1_caracter")
-            
-            asa_ps = c_asa.selectbox("Clasificación ASA", [
-                "ASA I: Paciente sano normal",
-                "ASA II: Enfermedad sistémica leve",
-                "ASA III: Enfermedad sistémica grave",
-                "ASA IV: Enf. sistémica grave con threat vital",
-                "ASA V: Paciente moribundo",
-                "ASA VI: Muerte cerebral (Donante)"
-            ], key="mod1_asa")
-            
-            # Fila B: Riesgo Quirúrgico
-            riesgo_cx = st.selectbox("Riesgo Quirúrgico (AHA/ACC)", [
+                asa_ps = c_asa.selectbox("Clasificación ASA", [
+                    "ASA I: Paciente sano normal",
+                    "ASA II: Enfermedad sistémica leve",
+                    "ASA III: Enfermedad sistémica grave",
+                    "ASA IV: Enf. sistémica grave con threat vital",
+                    "ASA V: Paciente moribundo",
+                    "ASA VI: Muerte cerebral (Donante)"
+                ], key="mod1_asa")
+
+                # Submódulo de Ayuno Inmediato para Quirófano
+                st.markdown("⏱️ **Control de Ayuno Activo (Estatus NPO)**")
+                c_npo1, c_npo2 = st.columns(2)
+                tipo_ayuno = c_npo1.selectbox("Última ingesta de:", ["Sólidos pesados / Grasas", "Comida ligera / Leche de fórmula", "Leche materna", "Líquidos claros (Agua, té, café negro)"], key="mod1_tipo_ayuno")
+                horas_ayuno = c_npo2.number_input("Horas de ayuno cumplidas:", min_value=0, max_value=48, value=8, step=1, key="mod1_horas_ayuno")
+                
+                # Inicializamos variables de consulta externa en falso/vacío por seguridad contra NameErrors
+                plan_suspension_meds = "No aplica (Entorno Quirófano)"
+                interconsultas_req = []
+
+            else:
+                # --- CASILLAS EXCLUSIVAS DE CONSULTA EXTERNA ---
+                # Toda consulta externa preanestésica es para cirugías programadas (Electivas)
+                caracter_cx = "Electiva"
+                
+                c_cx1, c_asa = st.columns(2)
+                c_cx1.info("📋 **Carácter Quirúrgico:** Fijado automáticamente como **Electiva** (Planificación Ambulatoria).")
+                
+                asa_ps = c_asa.selectbox("Clasificación ASA Proyectada", [
+                    "ASA I: Paciente sano normal",
+                    "ASA II: Enfermedad sistémica leve",
+                    "ASA III: Enfermedad sistémica grave",
+                    "ASA IV: Enf. sistémica grave con threat vital"
+                ], key="mod1_asa")
+
+                st.markdown("📑 **Planificación y Optimización de Consulta Externa**")
+                c_ce1, c_ce2 = st.columns(2)
+                
+                plan_suspension_meds = c_ce1.multiselect(
+                    "🛑 Plan de Suspensión de Fármacos Críticos:",
+                    ["Suspender Antiagregantes (Aspirina/Clopidogrel) 5-7 días antes", 
+                     "Suspender Anticoagulantes Orales (Warfarina/DOACs) según protocolo", 
+                     "Suspender Metformina 24 horas antes del procedimiento", 
+                     "Continuar Beta-bloqueadores de forma habitual el día de la cirugía", 
+                     "No requiere suspensiones de tratamiento continuo"],
+                    key="mod1_ce_suspensiones"
+                )
+                
+                interconsultas_req = c_ce2.multiselect(
+                    "🩺 Interconsultas de Optimización Solicitadas:",
+                    ["Valoración por Cardiología (Riesgo Quirúrgico)", 
+                     "Valoración por Neumología (Espirometría / EPOC)", 
+                     "Valoración por Endocrinología (Control metabólico HbA1c)", 
+                     "Ninguna interconsulta adicional requerida"],
+                    key="mod1_ce_interconsultas"
+                )
+                
+                # Inicializamos variables de quirófano por seguridad
+                tipo_ayuno = "No aplica"; horas_ayuno = 8
+
+            # Fila B: Riesgo Quirúrgico (Universal para ambos)
+            riesgo_cx = st.selectbox("Riesgo Quirúrgico Intrínseco (AHA/ACC)", [
                 "Bajo (<1%) - Ej: Superficial, Endoscópica, Catarata", 
                 "Intermedio (1-5%) - Ej: Intraperitoneal, Ortopédica mayor", 
                 "Alto (>5%) - Ej: Vascular mayor, Torácica, Aórtica"
             ], key="mod1_riesgo")
             
             st.divider()
-
+        
             # 1. Construcción dinámica de la lista de especialidades
             lista_especialidades = ["Cirugía General"]
             if edad < 15:
