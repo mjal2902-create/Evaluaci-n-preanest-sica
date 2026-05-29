@@ -178,8 +178,20 @@ with col_izquierda:
                 "Cirugía Plástica y Maxilofacial",
                 "Otra Especialidad"
             ])
+            # --- AUTOMATIZACIÓN EN BASE A LA EDAD (SINCRONIZACIÓN ETARIA) ---
+            if "mod1_especialidad" in st.session_state:
+                current_spec = st.session_state["mod1_especialidad"]
+                # 1. Si es menor de 15 y estaba en "Cirugía General", salta directo a "Cirugía Pediátrica"
+                if edad < 15 and current_spec == "Cirugía General":
+                    st.session_state["mod1_especialidad"] = "Cirugía Pediátrica"
+                # 2. Si el paciente deja de ser pediátrico (>= 15) y se quedó en "Cirugía Pediátrica", regresa a "Cirugía General"
+                elif edad >= 15 and current_spec == "Cirugía Pediátrica":
+                    st.session_state["mod1_especialidad"] = "Cirugía General"
+            else:
+                # Inicialización por defecto en la primera carga del script
+                st.session_state["mod1_especialidad"] = "Cirugía Pediátrica" if edad < 15 else "Cirugía General"
 
-            # 2. Renderizado del componente sincronizado con el estado activo
+            # 2. Renderizado del componente sincronizado con el estado dinámico
             especialidad_cx = st.selectbox(
                 "Especialidad Quirúrgica", 
                 lista_especialidades, 
