@@ -178,31 +178,49 @@ with col_izquierda:
             especialidad_cx = st.selectbox("Especialidad Quirúrgica", lista_especialidades, key="mod1_especialidad")
        
             c_cx3, c_cx4 = st.columns(2)
-            
-            if es_obstetrico:
-                lista_diagnosticos = ["Embarazo a Término", "Trabajo de Parto Fase Activa", "Pre-eclampsia / Eclampsia", "Sufrimiento Fetal Agudo", "Ruptura Prematura de Membranas", "Placenta Previa", "Embarazo Ectópico", "Aborto Incompleto", "Otro (Especificar)"]
-                lista_procedimientos = ["Cesárea Segmentaria", "Legrado Uterino Instrumental (LUI)", "Aspiración Manual Endouterina (AMEU)", "Cerclaje Cervical", "Laparotomía Exploradora", "Salpingectomía", "Otro (Especificar)"]
-            elif edad < 18:
-                if sexo == "Masculino":
-                    lista_diagnosticos = ["Fimosis / Parafimosis", "Criptorquidia", "Apendicitis Aguda", "Hernia Inguinal", "Hipertrofia Amigdalina", "Fractura / Traumatismo", "Otro (Especificar)"]
-                    lista_procedimientos = ["Circuncisión", "Orquidopexia", "Apendicectomía", "Hernioplastia", "Amigdalectomía", "Reducción y Fijación (RAFI)", "Otro (Especificar)"]
-                else:
-                    lista_diagnosticos = ["Apendicitis Aguda", "Hernia Umbilical / Inguinal", "Hipertrofia Amigdalina", "Cuerpo Extraño", "Fractura / Traumatismo", "Otro (Especificar)"]
-                    lista_procedimientos = ["Apendicectomía", "Hernioplastia", "Amigdalectomía", "Extracción de Cuerpo Extraño", "Reducción y Fijación (RAFI)", "Otro (Especificar)"]
-            elif edad >= 60:
-                if sexo == "Masculino":
-                    lista_diagnosticos = ["Hipertrofia Prostática Benigna (HPB)", "Hernia Inguinal", "Artrosis Severa (Cadera/Rodilla)", "Cataratas", "Neoplasia (Urológica/Digestiva)", "Colelitiasis", "Otro (Especificar)"]
-                    lista_procedimientos = ["Resección Transuretral de Próstata (RTUP)", "Hernioplastia", "Artroplastia (Reemplazo Articular)", "Facoemulsificación", "Resección Oncológica", "Colecistectomía Laparoscópica", "Otro (Especificar)"]
-                else:
-                    lista_diagnosticos = ["Fractura de Cadera / Fémur", "Colelitiasis / Colecistitis", "Artrosis Severa (Cadera/Rodilla)", "Prolapso de Órganos Pélvicos", "Cataratas", "Neoplasia", "Otro (Especificar)"]
-                    lista_procedimientos = ["Osteosíntesis / Artroplastia", "Colecistectomía Laparoscópica", "Reemplazo Articular", "Colporrafia / Histerectomía Vaginal", "Facoemulsificación", "Resección Oncológica", "Otro (Especificar)"]
+            # =====================================================================
+            # MOTOR DE MAPEO: DIAGNÓSTICOS Y PROCEDIMIENTOS POR ESPECIALIDAD (ÚNICO)
+            # =====================================================================
+            if especialidad_cx == "Cirugía General":
+                lista_diagnosticos = ["Colelitiasis / Colecistitis Aguda", "Apendicitis Aguda", "Hernia Inguinal / Umbilical / Crural", "Obstrucción Intestinal", "Neoplasia Gástrica / de Colon", "Hemorroides / Fístula Perianal", "Otro (Especificar)"]
+                lista_procedimientos = ["Colecistectomía Laparoscópica / Abierta", "Apendicectomía", "Hernioplastia con Malla", "Laparotomía Exploradora + Resección Intestinal", "Hemorroidectomía / Fistulectomía", "Otro (Especificar)"]
+
+            elif especialidad_cx == "Cirugía Pediátrica":
+                lista_diagnosticos = ["Apendicitis Aguda Pediátrica", "Fimosis / Parafimosis", "Criptorquidia / Testículo No Descendido", "Hernia Inguinal / Umbilical Congénita", "Hipertrofia Amigdalina / Adenoiditis", "Estenosis Hipertrófica del Píloro", "Otro (Especificar)"]
+                lista_procedimientos = ["Apendicectomía Pediátrica", "Circuncisión / Plastia de Prepucio", "Orquidopexia Unilateral / Bilateral", "Hernioplastia Pediátrica", "Amigdalectomía + Adenoidectomía", "Piloromiotomía", "Otro (Especificar)"]
+
+            elif especialidad_cx == "Ginecología y Obstetricia":
+                lista_diagnosticos = ["Embarazo a Término / Trabajo de Parto", "Pre-eclampsia / Eclampsia", "Miomatosis Uterina Sintomática", "Quiste / Tumoración de Ovario", "Embarazo Ectópico Roto / No Roto", "Hemorragia Uterina Anómala", "Otro (Especificar)"]
+                lista_procedimientos = ["Cesárea Segmentaria Transversa", "Parto Vaginal Dirigido", "Histerectomía Total Abdominal / Laparoscópica", "Quistectomía de Ovario / Salpingooforectomía", "Legrado Uterino Instrumental (LUI) / AMEU", "Otro (Especificar)"]
+
+            elif especialidad_cx == "Traumatología y Ortopedia":
+                lista_diagnosticos = ["Fractura de Cadera / Cuello Femoral", "Fractura de Huesos Largos (Fémur/Tibia/Humero)", "Artrosis Severa de Rodilla / Cadera", "Lesión Ligamentaria / Meniscal de Rodilla", "Osteomielitis / Infección de Material", "Otro (Especificar)"]
+                lista_procedimientos = ["Reducción Abierta y Fijación Interna (RAFI) con Placa/Clavo", "Artroplastia Total (Reemplazo de Rodilla / Cadera)", "Artroscopia Terapéutica / Reconstrucción de Ligamentos", "Retiro de Material de Osteosíntesis (RMO)", "Limpieza Quirúrgica + Secuestrectomía", "Otro (Especificar)"]
+
+            elif especialidad_cx == "Neurocirugía":
+                lista_diagnosticos = ["Neoplasia / Tumor Cerebral", "Hematoma Subdural / Epidural Agudo o Crónico", "Hernia Discal Lumbar / Cervical con Radiculopatía", "Hidrocefalia Obstructiva / Normotensiva", "Aneurisma Cerebral Sacular", "Otro (Especificar)"]
+                lista_procedimientos = ["Craneotomía + Resección de Tumor / Evacuación de Hematoma", "Discectomía / Microdiscectomía Laminectomía", "Colocación de Válvula de Derivación Ventriculoperitoneal (DVP)", "Clipaje de Aneurisma por Craneotomía", "Otro (Especificar)"]
+
+            elif especialidad_cx == "Urología":
+                lista_diagnosticos = ["Hipertrofia Prostática Benigna (HPB)", "Litiasis Renoureteral Obstructiva", "Neoplasia de Vejiga / Próstata", "Hidrocele / Varicocele Sintomático", "Estenosis de Uretra", "Otro (Especificar)"]
+                lista_procedimientos = ["Resección Transuretral de Próstata (RTU-P) o Enucleación", "Ureterolitotripsia Láser / Nefrolitotomía Percutánea", "Prostatectomía Radical / Cistectomía", "Hidrocelectomía / Varicocelectomía Unilateral", "Uretropatía / Dilatación Uretra", "Otro (Especificar)"]
+
+            elif especialidad_cx == "Cirugía Cardiovascular y Torácica":
+                lista_diagnosticos = ["Cardiopatía Isquémica / Insuficiencia Valvular Aórtica-Mitral", "Aneurisma de Aorta Ascendente / Abdominal", "Derrame Pleural Masivo / Neumotórax Retenido", "Neoplasia Pulmonar / Masa Mediastínica", "Otro (Especificar)"]
+                lista_procedimientos = ["Revascularización Miocárdica (By-pass Coronario)", "Cambio Valvular Mecánico o Biológico", "Toracotomía / Toracoscopia (VATS) + Lobectomía", "Colocación de Tubo Torácico / Ventana Pericárdica", "Otro (Especificar)"]
+
+            elif especialidad_cx == "Otorrinolaringología y Oftalmología":
+                lista_diagnosticos = ["Catarata Senil / Capsular", "Desviación Septal / Hipertrofia de Cornetes Severa", "Otitis Media Crónica / Perforación Timpánica", "Hipertrofia de Amígdalas en Adulto", "Otro (Especificar)"]
+                lista_procedimientos = ["Facoemulsificación + Colocación de Lente Intraocular (LIO)", "Septoplastia / Turbinoplastia Endoscópica", "Timpanoplastia / Mastoidectomía", "Amigdalectomía Adultos", "Otro (Especificar)"]
+
+            elif especialidad_cx == "Cirugía Plástica y Maxilofacial":
+                lista_diagnosticos = ["Secuela de Quemadura / Cicatriz Retráctil", "Fractura Mandibular / Malar / Complejo Orbitozigomático", "Lipodistrofia Abdominal / Ptosis Mamaria", "Fisura Labiopalatina (Labio Leporino)", "Otro (Especificar)"]
+                lista_procedimientos = ["Escarectomía / Resección de Cicatriz + Injerto / Colgajo de Piel", "Reducción y Fijación Rígida Maxilofacial", "Abdominoplastia / Mastopexia / Liposucción", "Palatoplastia / Queiloplastia", "Otro (Especificar)"]
+
             else:
-                if sexo == "Masculino":
-                    lista_diagnosticos = ["Colelitiasis / Colecistitis", "Hernia Inguinal / Umbilical", "Apendicitis Aguda", "Fractura / Traumatismo", "Enfermedad Hemorroidal", "Varicocele", "Otro (Especificar)"]
-                    lista_procedimientos = ["Colecistectomía Laparoscópica", "Hernioplastia", "Apendicectomía", "Reducción Abierta y Fijación Interna (RAFI)", "Hemorroidectomía", "Varicocelectomía", "Otro (Especificar)"]
-                else:
-                    lista_diagnosticos = ["Colelitiasis / Colecistitis", "Miomatosis Uterina", "Quiste Ovárico", "Apendicitis Aguda", "Patología Mamaria", "Hernia Umbilical", "Otro (Especificar)"]
-                    lista_procedimientos = ["Colecistectomía Laparoscópica", "Histerectomía (Lap/Abierta)", "Quistectomía / Ooforectomía", "Apendicectomía", "Mastectomía / Resección Local", "Hernioplastia", "Otro (Especificar)"]
+                lista_diagnosticos = ["Otro (Especificar)"]
+                lista_procedimientos = ["Procedimiento Menor / Biopsia", "Procedimiento Mayor Especializado", "Otro (Especificar)"]
+
 
             diag_base = c_cx3.selectbox("Diagnóstico Principal", lista_diagnosticos, key="mod1_diag_base")
             diagnostico_final = c_cx3.text_input("Especifique el diagnóstico", key="mod1_diag_txt") if diag_base == "Otro (Especificar)" else diag_base
