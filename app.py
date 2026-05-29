@@ -152,8 +152,20 @@ with col_izquierda:
             ], key="mod1_riesgo")
             
             st.divider()
-            
             # Fila 4: Diagnóstico y Procedimiento Dinámico
+            especialidad_cx = st.selectbox("Especialidad Quirúrgica", [
+                "Cirugía General / Digestiva",
+                "Traumatología y Ortopedia",
+                "Ginecología y Obstetricia",
+                "Cirugía Pediátrica",
+                "Cirugía Cardiovascular y Torácica",
+                "Neurocirugía",
+                "Urología",
+                "Otorrinolaringología y Oftalmología",
+                "Cirugía Plástica y Maxilofacial",
+                "Otra Especialidad"
+            ], key="mod1_especialidad")
+       
             c_cx3, c_cx4 = st.columns(2)
             
             if es_obstetrico:
@@ -593,6 +605,7 @@ with col_derecha:
             frac_calc = tipo_fractura_cx if 'tipo_fractura_cx' in locals() else "No aplica"
             proc_calc = procedimiento_final if 'procedimiento_final' in locals() else "No definido"
             anestesia_calc = tipo_anestesia if 'tipo_anestesia' in locals() else "No definido"
+            especialidad_calc = especialidad_cx if 'especialidad_cx' in locals() else "Cirugía General"
 
             if peso_calc > 0 and talla_raw > 0:
                 # --- SUBSECCIÓN A: METABOLISMO Y VOLÚMENES (BIFURCACIÓN PEDIATRÍA/ADULTO) ---
@@ -698,6 +711,7 @@ with col_derecha:
                 
 # --- SUBSECCIÓN C: DUPLICACIÓN DE CONTEXTO QUIRÚRGICO Y PLAN ---
                 st.markdown("##### 🏥 Contexto Quirúrgico y Planificación")
+                st.markdown(f"**Especialidad Quirúrgica:** *{especialidad_calc}*")
                 st.markdown(f"**Clasificación ASA:** **{asa_calc}**")
                 st.markdown(f"**Carácter Quirúrgico:** *{caracter_calc}*")
                 st.markdown(f"**Riesgo Quirúrgico (AHA/ACC):** *{riesgo_calc}*")
