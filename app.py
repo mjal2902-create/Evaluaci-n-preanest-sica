@@ -495,7 +495,9 @@ with col_izquierda:
                 fevi_disponible = c_card4.checkbox("¿Cuenta con reporte de Ecocardiograma?", key="mod4_check_fevi")
                 if fevi_disponible: fevi_valor = c_card4.number_input("Fracción de Eyección (FEVI %)", min_value=10.0, max_value=85.0, value=60.0, step=1.0, key="mod4_fevi_val")
 
-                factor_cirugia_riesgo = 1 if (riesgo_cx and "Alto" in riesgo_cx) else 0
+                # Extracción segura desde el session_state para evitar NameError
+                riesgo_actual = st.session_state.get("mod1_riesgo", "")
+                factor_cirugia_riesgo = 1 if (riesgo_actual and "Alto" in riesgo_actual) else 0
                 factor_cardiopatia_isq = 1 if (not sin_antecedentes and any("Isquémica" in p or "IAM" in p for p in antecedentes_seleccionados)) or cardio_angina else 0
                 factor_insuf_cardiaca = 1 if (not sin_antecedentes and "Insuficiencia Cardíaca" in lista_patologias) or cardio_edema or cardio_disnea else 0
                 factor_acv = 1 if (not sin_antecedentes and any("ACV" in p or "Isquemia" in p for p in antecedentes_seleccionados)) else 0
