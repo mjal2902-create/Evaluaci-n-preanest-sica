@@ -3,6 +3,17 @@ import math
 
 st.set_page_config(layout="wide", page_title="Asistente Anestésico", page_icon="🩺")
 
+# =============================================================================
+# 🛠️ FUNCIONES UTALITARIAS GLOBALES (ACCESIBLES DESDE CUALQUIER MÓDULO)
+# =============================================================================
+def formatear_lista(lista_original, texto_extra):
+    lista = [x for x in lista_original if x != "Ninguno"] if len(lista_original) > 1 else list(lista_original)
+    if "Otros (Especificar)" in lista:
+        lista.remove("Otros (Especificar)")
+        if texto_extra.strip() != "":
+            lista.append(f"*{texto_extra.strip()}*")
+    return lista
+
 # --- TÍTULO PRINCIPAL ---
 st.title("🩺 Asistente de Evaluación Anestésica")
 st.caption("Desarrollado para optimización clínica intraoperatoria y seguridad del paciente.")
@@ -879,7 +890,7 @@ with col_derecha:
                 st.markdown(f"**Procedimiento Quirúrgico:** **{proc_calc}**")
                 st.divider()
                 st.success(f"💉 **Estrategia Anestésica:** **{anestesia_calc}**")
-                
+
                 # =====================================================================
                 # PESTAÑA 1 - SECCIÓN 2: SEGURIDAD, ALERGIAS Y ANTECEDENTES (MÓDULO 2)
                 # =====================================================================
@@ -899,11 +910,11 @@ with col_derecha:
                 txt_meds = notas_medicacion_txt if 'notas_medicacion_txt' in locals() else ""
                 habitos_negados = sin_habitos if 'sin_habitos' in locals() else True
                 
+                # Aquí se ejecutan las líneas limpiamente usando la función del tope del archivo
                 al_med_list = formatear_lista(al_med_raw, txt_al_med)
                 al_ali_list = formatear_lista(al_ali_raw, txt_al_ali)
                 app_list = formatear_lista(app_raw, txt_app)
                 meds_list = formatear_lista(meds_raw, txt_meds)
-                
                 if alergias_negadas:
                     st.success("✅ **Alergias:** Negadas por el paciente.")
                 else:
