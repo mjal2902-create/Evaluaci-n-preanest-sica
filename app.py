@@ -15,15 +15,36 @@ def formatear_lista(lista_original, texto_extra):
             lista.append(f"*{texto_extra.strip()}*")
     return lista
 
+# --- MOTOR DE INTELIGENCIA ANTROPOMÉTRICA ---
+def actualizar_antropometria():
+    if 'mod1_edad' not in st.session_state or 'mod1_sexo' not in st.session_state:
+        return
+        
+    e = st.session_state.mod1_edad
+    s = st.session_state.mod1_sexo
+    
+    if e == 0: 
+        p, t = 5.0, 60.0
+    elif 1 <= e <= 5: 
+        p, t = (e * 2.0) + 8.0, (e * 6.0) + 77.0
+    elif 6 <= e <= 12: 
+        p, t = (e * 3.0) + 7.0, (e * 6.0) + 77.0
+    elif 13 <= e <= 17:
+        if s == "Masculino": p, t = 50.0 + (e - 12.0) * 4.0, 155.0 + (e - 12.0) * 5.0
+        else: p, t = 45.0 + (e - 12.0) * 3.0, 150.0 + (e - 12.0) * 2.0
+    else:
+        if s == "Masculino": p, t = 70.0, 170.0
+        else: p, t = 60.0, 158.0
+            
+    st.session_state.mod1_peso = float(p)
+    st.session_state.mod1_talla = float(t)
+
 # --- TÍTULO PRINCIPAL ---
 st.title("🩺 Asistente de Evaluación Anestésica")
 st.caption("Sistema de validación perioperatoria y seguridad del paciente.")
 st.caption("**Autor:** Dr. Marcos Aviles")
 st.markdown("---")
 
-# =============================================================================
-# 1. INICIALIZACIÓN UNIFICADA DE LAS COLUMNAS PRINCIPALES
-# =============================================================================
 col_izquierda, col_derecha = st.columns([1.3, 1])
 
 # =============================================================================
@@ -72,22 +93,6 @@ with col_izquierda:
             if 'mod1_edad' not in st.session_state: st.session_state['mod1_edad'] = 50
             if 'mod1_peso' not in st.session_state: st.session_state['mod1_peso'] = 70.0
             if 'mod1_talla' not in st.session_state: st.session_state['mod1_talla'] = 170.0
-
-            def actualizar_antropometria():
-                if 'mod1_edad' not in st.session_state or 'mod1_sexo' not in st.session_state: return
-                e = st.session_state.mod1_edad
-                s = st.session_state.mod1_sexo
-                if e == 0: p, t = 5.0, 60.0
-                elif 1 <= e <= 5: p, t = (e * 2.0) + 8.0, (e * 6.0) + 77.0
-                elif 6 <= e <= 12: p, t = (e * 3.0) + 7.0, (e * 6.0) + 77.0
-                elif 13 <= e <= 17:
-                    if s == "Masculino": p, t = 50.0 + (e - 12.0) * 4.0, 155.0 + (e - 12.0) * 5.0
-                    else: p, t = 45.0 + (e - 12.0) * 3.0, 150.0 + (e - 12.0) * 2.0
-                else:
-                    if s == "Masculino": p, t = 70.0, 170.0
-                    else: p, t = 60.0, 158.0
-                st.session_state.mod1_peso = float(p)
-                st.session_state.mod1_talla = float(t)
 
             c_demo1, c_demo2, c_demo3 = st.columns(3)
             sexo = c_demo1.radio("Sexo", ["Masculino", "Femenino"], key="mod1_sexo", on_change=actualizar_antropometria)
@@ -157,6 +162,7 @@ with col_izquierda:
             especialidad_cx = st.selectbox("Especialidad Quirúrgica", lista_especialidades, key="mod1_especialidad")
             c_cx3, c_cx4 = st.columns(2)
             
+            # --- MOTOR RELACIONAL: DIAGNÓSTICOS -> PROCEDIMIENTOS ---
             mapa_cx = {
                 "Cirugía General": {
                     "Colelitiasis / Colecistitis Aguda": ["Colecistectomía Laparoscópica", "Colecistectomía Abierta"],
@@ -230,6 +236,7 @@ with col_izquierda:
             diccionario_actual = mapa_cx.get(especialidad_cx, {})
             lista_diagnosticos = list(diccionario_actual.keys())
             
+            # --- INYECCIÓN UNIVERSAL DE CÁNCER ---
             if especialidad_cx != "Cirugía Oncológica" and "Cáncer / Neoplasia Oncológica" not in lista_diagnosticos:
                 lista_diagnosticos.append("Cáncer / Neoplasia Oncológica")
                 diccionario_actual["Cáncer / Neoplasia Oncológica"] = ["Resección Tumoral Mayor", "Biopsia Escisional / Incisional", "Cirugía Paliativa / Derivativa"]
@@ -248,17 +255,34 @@ with col_izquierda:
             tiempo_fractura_cx = "No aplica"
             tipo_fractura_cx = "No aplica"
             if "Fractura" in diagnostico_final:
-                tiempo_fractura_cx = c_cx3.radio("⏱️ Tiempo de Evolución de la Fractura:", ["Menor a un mes", "Mayor a un mes", "Mayor a un año"], key="mod1_tiempo_fractura")
+                tiempo_fractura_cx = c_cx3.radio(
+                    "⏱️ Tiempo de Evolución de la Fractura:",
+                    ["Menor a un mes", "Mayor a un mes", "Mayor a un año"],
+                    key="mod1_tiempo_fractura",
+                    help="Clave para la estratificación de riesgo trombótico en la escala de Caprini."
+                )
                 st.caption("⚠️ Detalle de Traumatología Quirúrgica detectado:")
-                tipo_fractura_cx = st.selectbox("🦴 Tipo / Localización de la Fractura a intervenir", ["Fractura de Cadera (Fémur Proximal) [Riesgo Caprini Extremo]", "Fractura de Pelvis o Acetábulo [Riesgo Caprini Extremo]", "Fractura de Miembro Inferior (Diáfisis de Fémur, Tibia, Peroné) [Riesgo Caprini Extremo]", "Fractura de Miembro Superior (Húmero, Radio, Cúbito, Clavícula)", "Fractura Vertebral / Columna (Compromiso medular / Estabilización)", "Fractura Conminuta de Tobillo / Retropié", "Fractura Maxilofacial / Mandibular Compleja"], key="mod1_tipo_fractura")
+                tipo_fractura_cx = st.selectbox(
+                    "🦴 Tipo / Localización de la Fractura a intervenir",
+                    [
+                        "Fractura de Cadera (Fémur Proximal) [Riesgo Caprini Extremo]",
+                        "Fractura de Pelvis o Acetábulo [Riesgo Caprini Extremo]",
+                        "Fractura de Miembro Inferior (Diáfisis de Fémur, Tibia, Peroné) [Riesgo Caprini Extremo]",
+                        "Fractura de Miembro Superior (Húmero, Radio, Cúbito, Clavícula)",
+                        "Fractura Vertebral / Columna (Compromiso medular / Estabilización)",
+                        "Fractura Conminuta de Tobillo / Retropié",
+                        "Fractura Maxilofacial / Mandibular Compleja"
+                    ], key="mod1_tipo_fractura"
+                )
                 
             c_ane1, c_ane2 = st.columns(2)
             tipo_anestesia = c_ane1.selectbox("Técnica Anestésica Propuesta", ["Anestesia General (Balanceada / TIVA)", "Anestesia Regional (Neuroeje: Raquídea / Epidural)", "Bloqueo de Nervio Periférico + Sedación", "Cuidado Anestésico Monitorizado (MAC) / Sedación", "Anestesia Local"], key="mod1_tecnica")
+            
             st.markdown("<br>", unsafe_allow_html=True) 
             req_sangre = c_ane2.checkbox("🩸 **Previsión de sangrado mayor (>500ml) / Requiere reserva de sangre cruzada**", key="mod1_sangre")
 
         # ---------------------------------------------------------
-        # MÓDULO 2: SEGURIDAD Y ANTECEDENTES
+        # MÓDULO 2: SEGURIDAD Y ANTECEDENTES (Con Motor Predictivo)
         # ---------------------------------------------------------
         with st.expander("2. Seguridad, Alergias y Antecedentes Patológicos", expanded=True):
             st.markdown("#### 🚨 Alergias y Sensibilidades")
@@ -309,17 +333,28 @@ with col_izquierda:
                 if "Otros (Especificar)" in antecedentes_seleccionados: 
                     otros_antecedentes_txt = c_unif1.text_input("🔍 Especifique otros antecedentes:", key="mod2_ant_otros_txt")
                 
+                # --- MOTOR PREDICTIVO DE MEDICACIÓN ---
                 meds_dinamicos = set(["Analgésicos comunes (Paracetamol/AINEs)", "Protectores gástricos (IBP/Ranitidina)", "Vitaminas / Suplementos"])
+                
                 for app in antecedentes_seleccionados:
-                    if any(x in app for x in ["Hipertensión", "HTA", "Preeclampsia"]): meds_dinamicos.update(["Antihipertensivos (IECA/ARA II/BCC)", "Beta-bloqueadores", "Diuréticos"])
-                    if "Diabetes" in app: meds_dinamicos.update(["Metformina / Hipoglucemiantes orales", "Insulina"])
-                    if "Hipotiroidismo" in app: meds_dinamicos.add("Levotiroxina")
-                    if any(x in app for x in ["Asma", "EPOC", "Hiperreactividad", "Rinitis"]): meds_dinamicos.update(["Inhaladores (SABA/LAMA/Corticoides)", "Antihistamínicos"])
-                    if any(x in app for x in ["Cardiopatía", "Arritmia", "ACV", "Isquemia", "IAM", "Insuficiencia"]): meds_dinamicos.update(["Antiagregantes (Aspirina/Clopidogrel)", "Anticoagulantes (Warfarina/DOACs)", "Estatinas", "Antiarrítmicos / Digoxina"])
-                    if any(x in app for x in ["Epilepsia", "Convulsiones", "Psiquiátrico"]): meds_dinamicos.update(["Anticonvulsivantes", "Antidepresivos / Ansiolíticos"])
-                    if "Cáncer" in app: meds_dinamicos.update(["Medicación Oncológica (Quimioterapia / Inmunoterapia)", "Corticoides sistémicos", "Analgésicos Opioides"])
-                    if any(x in app for x in ["Autoinmune", "LES"]): meds_dinamicos.update(["Inmunosupresores / Biológicos", "Corticoides sistémicos"])
-                    if "Dislipidemia" in app: meds_dinamicos.add("Estatinas / Fibratos")
+                    if any(x in app for x in ["Hipertensión", "HTA", "Preeclampsia"]):
+                        meds_dinamicos.update(["Antihipertensivos (IECA/ARA II/BCC)", "Beta-bloqueadores", "Diuréticos"])
+                    if "Diabetes" in app:
+                        meds_dinamicos.update(["Metformina / Hipoglucemiantes orales", "Insulina"])
+                    if "Hipotiroidismo" in app:
+                        meds_dinamicos.add("Levotiroxina")
+                    if any(x in app for x in ["Asma", "EPOC", "Hiperreactividad", "Rinitis"]):
+                        meds_dinamicos.update(["Inhaladores (SABA/LAMA/Corticoides)", "Antihistamínicos"])
+                    if any(x in app for x in ["Cardiopatía", "Arritmia", "ACV", "Isquemia", "IAM", "Insuficiencia"]):
+                        meds_dinamicos.update(["Antiagregantes (Aspirina/Clopidogrel)", "Anticoagulantes (Warfarina/DOACs)", "Estatinas", "Antiarrítmicos / Digoxina"])
+                    if any(x in app for x in ["Epilepsia", "Convulsiones", "Psiquiátrico"]):
+                        meds_dinamicos.update(["Anticonvulsivantes", "Antidepresivos / Ansiolíticos"])
+                    if "Cáncer" in app:
+                        meds_dinamicos.update(["Medicación Oncológica (Quimioterapia / Inmunoterapia)", "Corticoides sistémicos", "Analgésicos Opioides"])
+                    if any(x in app for x in ["Autoinmune", "LES"]):
+                        meds_dinamicos.update(["Inmunosupresores / Biológicos", "Corticoides sistémicos"])
+                    if "Dislipidemia" in app:
+                        meds_dinamicos.add("Estatinas / Fibratos")
 
                 lista_medicamentos = sorted(list(meds_dinamicos))
                 lista_medicamentos.insert(0, "Ninguno")
@@ -437,14 +472,15 @@ with col_izquierda:
             with c_aris2: ariscat_infeccion_reciente = st.checkbox("🔸 Infección de vías respiratorias (altas o bajas) en el último mes", key="mod3_ariscat_inf")
 
         # ---------------------------------------------------------
-        # MÓDULO 4: EVALUACIÓN CARDIOVASCULAR
+        # MÓDULO 4: EVALUACIÓN CARDIOVASCULAR Y CAPACIDAD FUNCIONAL
         # ---------------------------------------------------------
         with st.expander("4. Evaluación Cardiovascular y Capacidad Funcional", expanded=True):
             capacidad_funcional = "No aplica (Pediátrico)"; clase_nyha = "No aplica (Pediátrico)"; cardio_angina = False; cardio_disnea = False; cardio_palpitaciones = False; cardio_edema = False; cardio_soplo = False; ecg_hallazgo = "No disponible / No solicitado"; fevi_valor = 60.0; fevi_disponible = False
             clase_ross = "Clase I"; complejidad_cc = "Leve"; tiene_marcapasos = False
+            es_pediatrico = edad < 18
             mostrar_cardio_completo = True
 
-            if es_pediatrico_va:
+            if es_pediatrico:
                 sin_cardiopatia_ped = st.checkbox("✅ Paciente pediátrico sin patologías cardíacas conocidas", value=True, key="mod4_ped_sano")
                 if sin_cardiopatia_ped:
                     mostrar_cardio_completo = False
@@ -603,103 +639,146 @@ with col_derecha:
         """, unsafe_allow_html=True)
         
         st.markdown("<h3 id='panel-de-control-perioperatorio'>📊 PANEL DE CONTROL PERIOPERATORIO</h3>", unsafe_allow_html=True)
-        tab1, tab2 = st.tabs(["🔢 Cálculos y Escalas", "📄 Reporte Final"])
         
-        # Declaraciones de variables de entorno global
+        # ---------------------------------------------------------------------
+        # 🧠 BLOQUE DE PROCESAMIENTO CENTRALIZADO (ESTABILIDAD DE VARIABLES)
+        # ---------------------------------------------------------------------
+        # Se calculan TODOS los scores antes de renderizar pestañas para evitar errores de referencia cruzada.
+        
         peso_calc = peso_real; talla_raw = talla_cm; talla_m = talla_raw / 100.0; imc_control = peso_calc / (talla_m ** 2) if talla_m > 0 else 0
         sexo_calc = sexo; edad_calc = edad; es_ped = edad_calc < 18; gs_calc = grupo_sangre; obs_calc = es_obstetrico
         caracter_calc = caracter_cx; riesgo_calc = riesgo_cx; asa_calc = asa_ps
         diag_calc = diagnostico_final; frac_calc = tiempo_fractura_cx; localizacion_frac_calc = tipo_fractura_cx
         proc_calc = procedimiento_final; anestesia_calc = tipo_anestesia; especialidad_calc = especialidad_cx; req_sangre_calc = req_sangre
         
-        # --- CÁLCULO DE SCORE INVISIBLE PARA EL RADAR CHART ---
-        # Cardio (Lee)
+        # --- ASA FINAL ---
+        asa_final = asa_calc
+        if caracter_calc in ["Urgencia", "Emergencia"] and "E" not in asa_final:
+            asa_final += " - 'E' (Emergencia)"
+
+        # --- SCORE CARDIOVASCULAR (LEE) ---
+        desglose_lee = []
         lee_val = 0
-        if "Alto" in riesgo_calc: lee_val += 1
-        if (not sin_antecedentes and any("Isquémica" in p or "IAM" in p for p in antecedentes_seleccionados)) or cardio_angina: lee_val += 1
-        if (not sin_antecedentes and any(x in p for p in antecedentes_seleccionados for x in ["Insuficiencia", "Falla Cardíaca"])) or cardio_edema or cardio_disnea: lee_val += 1
-        if (not sin_antecedentes and any("ACV" in p or "Isquemia" in p for p in antecedentes_seleccionados)): lee_val += 1
-        if (not sin_antecedentes and "Insulina" in medicacion_actual): lee_val += 1
-        if creatinina_val > 2.0: lee_val += 1
-            
-        # Vía Aérea (Arné / Pediátrico / OBESE / STOP)
-        score_arne = 0; score_obese_total = 0; score_stop_bang_total = 0
+        if "Alto" in riesgo_calc: desglose_lee.append("Cirugía de Alto Riesgo (+1 pt)"); lee_val += 1
+        factor_cardiopatia_isq = 1 if (not sin_antecedentes and any("Isquémica" in p or "IAM" in p for p in antecedentes_seleccionados)) or cardio_angina else 0
+        if factor_cardiopatia_isq > 0: desglose_lee.append("Cardiopatía Isquémica (+1 pt)"); lee_val += 1
+        factor_insuf_cardiaca = 1 if (not sin_antecedentes and any(x in p for p in antecedentes_seleccionados for x in ["Insuficiencia", "Falla Cardíaca"])) or cardio_edema or cardio_disnea else 0
+        if factor_insuf_cardiaca > 0: desglose_lee.append("Insuficiencia Cardíaca (+1 pt)"); lee_val += 1
+        factor_acv = 1 if (not sin_antecedentes and any("ACV" in p or "Isquemia" in p for p in antecedentes_seleccionados)) else 0
+        if factor_acv > 0: desglose_lee.append("Historia de ACV / AIT (+1 pt)"); lee_val += 1
+        factor_insulina = 1 if (not sin_antecedentes and "Insulina" in medicacion_actual) else 0
+        if factor_insulina > 0: desglose_lee.append("Diabetes insulinodependiente (+1 pt)"); lee_val += 1
+        if creatinina_val > 2.0: desglose_lee.append("Creatinina > 2.0 mg/dL (+1 pt)"); lee_val += 1
+
+        # --- SCORE VÍA AÉREA (ARNÉ) ---
+        desglose_arne = []
+        score_arne = 0
         if es_ped:
-            if ped_vad_previo: score_arne += 12
-            if ped_retrognatia: score_arne += 6
-            if ped_macroglosia: score_arne += 6
-            if ped_cuello_corto: score_arne += 6
+            if ped_vad_previo: desglose_arne.append("Intubación previa difícil (+12 pts)"); score_arne += 12
+            if ped_retrognatia: desglose_arne.append("Micrognatia/Retrognatia (+6 pts)"); score_arne += 6
+            if ped_macroglosia: desglose_arne.append("Macroglosia evidente (+6 pts)"); score_arne += 6
+            if ped_cuello_corto: desglose_arne.append("Cuello corto/Inmóvil (+6 pts)"); score_arne += 6
         else:
-            if arne_historia: score_arne += 10
-            if arne_patologia: score_arne += 5
-            if any(x in mallampati for x in ["Clase III", "Clase IV"]): score_arne += 5
-            if "Clase III" in dtm: score_arne += 4
-            if "Clase III" in apertura_bucal: score_arne += 3
-            if "Normal" not in mov_cervical_arne: score_arne += 5
+            if arne_historia: desglose_arne.append("Antecedente Intubación Difícil (+10 pts)"); score_arne += 10
+            if arne_patologia: desglose_arne.append("Patología de VAD (+5 pts)"); score_arne += 5
+            if any(x in mallampati for x in ["Clase III", "Clase IV"]): desglose_arne.append(f"{mallampati.split(':')[0]} (+5 pts)"); score_arne += 5
+            if "Clase III" in dtm: desglose_arne.append("DTM < 6.0 cm (+4 pts)"); score_arne += 4
+            if "Clase III" in apertura_bucal: desglose_arne.append("Apertura Bucal Severa (+3 pts)"); score_arne += 3
+            if "Normal" not in mov_cervical_arne: desglose_arne.append("Movilidad Limitada (+5 pts)"); score_arne += 5
 
-            if imc_control > 26.0: score_obese_total += 1
-            if vmd_barba: score_obese_total += 1
-            if vmd_edentulo: score_obese_total += 1
-            if sb_s: score_obese_total += 1
-            if edad_calc > 55: score_obese_total += 1
+        # --- SCORE VENTILACIÓN (OBESE) ---
+        desglose_obese = []
+        score_obese_total = 0
+        if not es_ped:
+            if imc_control > 26.0: desglose_obese.append("IMC > 26 kg/m² (+1 pt)"); score_obese_total += 1
+            if vmd_barba: desglose_obese.append("Presencia de Barba (+1 pt)"); score_obese_total += 1
+            if vmd_edentulo: desglose_obese.append("Edéntulo (+1 pt)"); score_obese_total += 1
+            if sb_s: desglose_obese.append("Ronquido Fuerte (+1 pt)"); score_obese_total += 1
+            if edad_calc > 55: desglose_obese.append("Edad > 55 años (+1 pt)"); score_obese_total += 1
 
-            if sb_s: score_stop_bang_total += 1
-            if sb_t: score_stop_bang_total += 1
-            if sb_o: score_stop_bang_total += 1
-            if not sin_antecedentes and any(x in str(antecedentes_seleccionados) for x in ["Hipertensión", "HTA"]): score_stop_bang_total += 1
-            if imc_control > 35.0: score_stop_bang_total += 1
-            if edad_calc > 50: score_stop_bang_total += 1
-            if "Mayor a 40 cm" in cuello_cat: score_stop_bang_total += 1
-            if sexo_calc == "Masculino": score_stop_bang_total += 1
+        # --- SCORE AOS (STOP-BANG) ---
+        desglose_sb = []
+        score_stop_bang_total = 0
+        if not es_ped:
+            if sb_s: desglose_sb.append("Ronquido Fuerte (S) (+1 pt)"); score_stop_bang_total += 1
+            if sb_t: desglose_sb.append("Cansancio/Fatiga (T) (+1 pt)"); score_stop_bang_total += 1
+            if sb_o: desglose_sb.append("Apnea Observada (O) (+1 pt)"); score_stop_bang_total += 1
+            if not sin_antecedentes and any(x in str(antecedentes_seleccionados) for x in ["Hipertensión", "HTA"]): desglose_sb.append("Hipertensión (P) (+1 pt)"); score_stop_bang_total += 1
+            if imc_control > 35.0: desglose_sb.append("IMC > 35 kg/m² (B) (+1 pt)"); score_stop_bang_total += 1
+            if edad_calc > 50: desglose_sb.append("Edad > 50 años (A) (+1 pt)"); score_stop_bang_total += 1
+            if "Mayor a 40 cm" in cuello_cat: desglose_sb.append("Cuello > 40 cm (N) (+1 pt)"); score_stop_bang_total += 1
+            if sexo_calc == "Masculino": desglose_sb.append("Sexo Masculino (G) (+1 pt)"); score_stop_bang_total += 1
 
-        # Pulmonar (ARISCAT)
+        # --- SCORE PULMONAR POSTOPERATORIO (ARISCAT) ---
+        desglose_ariscat = []
         score_ariscat_total = 0
-        if ariscat_infeccion_reciente: score_ariscat_total += 17
-        if ariscat_enfermedad_pulmonar: score_ariscat_total += 4
-        if 51 <= edad_calc <= 80: score_ariscat_total += 3
-        elif edad_calc > 80: score_ariscat_total += 16
-        if hb_val <= 10.0: score_ariscat_total += 11
-        if caracter_calc in ["Urgencia", "Emergencia"]: score_ariscat_total += 8
-        proc_upper = proc_calc.upper()
-        if any(x in proc_upper for x in ["TORAC", "PULMON", "VATS", "LOBECTOMIA"]): score_ariscat_total += 24
-        elif any(x in proc_upper for x in ["COLECIST", "GASTRO", "LAPAROTOM", "HEMICOLECTOMIA", "RESECCION INTESTINAL", "NEFRECTOMIA", "HISTERECTOM", "PROSTATECTOMIA"]): score_ariscat_total += 15
-        if "Alto" in riesgo_calc: score_ariscat_total += 6
+        if not es_ped:
+            if ariscat_infeccion_reciente: desglose_ariscat.append("Infección Respiratoria < 1 mes (+17 pts)"); score_ariscat_total += 17
+            if ariscat_enfermedad_pulmonar: desglose_ariscat.append("EPOC / Asma / Neumopatía (+4 pts)"); score_ariscat_total += 4
+            if 51 <= edad_calc <= 80: desglose_ariscat.append("Edad 51-80 años (+3 pts)"); score_ariscat_total += 3
+            elif edad_calc > 80: desglose_ariscat.append("Edad > 80 años (+16 pts)"); score_ariscat_total += 16
+            if hb_val <= 10.0: desglose_ariscat.append("Hemoglobina ≤ 10 g/dL (+11 pts)"); score_ariscat_total += 11
+            if caracter_calc in ["Urgencia", "Emergencia"]: desglose_ariscat.append("Cirugía de Urgencia/Emergencia (+8 pts)"); score_ariscat_total += 8
+            proc_upper = proc_calc.upper()
+            if any(x in proc_upper for x in ["TORAC", "PULMON", "VATS", "LOBECTOMIA"]):
+                desglose_ariscat.append("Incisión Torácica (+24 pts)"); score_ariscat_total += 24
+            elif any(x in proc_upper for x in ["COLECIST", "GASTRO", "LAPAROTOM", "HEMICOLECTOMIA", "RESECCION INTESTINAL", "NEFRECTOMIA", "HISTERECTOM", "PROSTATECTOMIA"]):
+                desglose_ariscat.append("Incisión Abdomen Superior (+15 pts)"); score_ariscat_total += 15
+            if "Alto" in riesgo_calc: desglose_ariscat.append("Procedimiento de Alto Riesgo (+6 pts)"); score_ariscat_total += 6
 
-        # Apfel
-        pts_apfel = sum([apfel_historia, apfel_opioides])
-        if sexo_calc == "Femenino": pts_apfel += 1
-        if sin_habitos or not hab_cigarrillo: pts_apfel += 1
+        # --- SCORE NVPO (APFEL) ---
+        desglose_apfel = []
+        pts_apfel = 0
+        if apfel_historia: desglose_apfel.append("Cinetosis / NVPO previa (+1 pt)"); pts_apfel += 1
+        if apfel_opioides: desglose_apfel.append("Uso de opioides postop (+1 pt)"); pts_apfel += 1
+        if sexo_calc == "Femenino": desglose_apfel.append("Sexo Femenino (+1 pt)"); pts_apfel += 1
+        if sin_habitos or not hab_cigarrillo: desglose_apfel.append("No fumador (+1 pt)"); pts_apfel += 1
 
-        # Caprini
+        # --- SCORE TROMBOEMBÓLICO (CAPRINI) ---
+        desglose_caprini = []
         score_caprini = 0
-        if tipo_fractura_ant == "Menor a un mes" or frac_calc == "Menor a un mes": score_caprini += 5
-        elif localizacion_frac_calc != "No aplica": score_caprini += 5 if "Riesgo Caprini Extremo" in localizacion_frac_calc else 2
-        if 41 <= edad_calc <= 60: score_caprini += 1
-        elif 61 <= edad_calc <= 74: score_caprini += 2
-        elif edad_calc >= 75: score_caprini += 3
-        if imc_control > 25.0: score_caprini += 1
-        if obs_calc: score_caprini += 1
-        if "Alto" in riesgo_cx or "Intermedio" in riesgo_cx: score_caprini += 2
-        else: score_caprini += 1
-        if cardio_edema: score_caprini += 1
-        for f in caprini_clinicos: score_caprini += 1 if "(+1)" in f else 2
+        if tipo_fractura_ant == "Menor a un mes" or frac_calc == "Menor a un mes": 
+            desglose_caprini.append("Fractura / Trauma mayor < 1 mes (+5 pts)"); score_caprini += 5
+        elif localizacion_frac_calc != "No aplica":
+            pts = 5 if "Riesgo Caprini Extremo" in localizacion_frac_calc else 2
+            desglose_caprini.append(f"Cirugía Ortopédica Mayor / Fractura (+{pts} pts)"); score_caprini += pts
+
+        if 41 <= edad_calc <= 60: desglose_caprini.append("Edad 41-60 años (+1 pt)"); score_caprini += 1
+        elif 61 <= edad_calc <= 74: desglose_caprini.append("Edad 61-74 años (+2 pts)"); score_caprini += 2
+        elif edad_calc >= 75: desglose_caprini.append("Edad ≥ 75 años (+3 pts)"); score_caprini += 3
+
+        if imc_control > 25.0: desglose_caprini.append("IMC > 25 kg/m² (+1 pt)"); score_caprini += 1
+        if obs_calc: desglose_caprini.append("Embarazo o postparto (+1 pt)"); score_caprini += 1
+        if "Alto" in riesgo_cx or "Intermedio" in riesgo_cx: desglose_caprini.append("Cirugía Mayor (>45min) (+2 pts)"); score_caprini += 2
+        else: desglose_caprini.append("Cirugía Menor (<45min) (+1 pt)"); score_caprini += 1
+        if cardio_edema: desglose_caprini.append("Edema de miembros inferiores (+1 pt)"); score_caprini += 1
+
+        for f in caprini_clinicos: 
+            v = 1 if "(+1)" in f else 2
+            desglose_caprini.append(f"{f.rsplit('(', 1)[0].strip()} (+{v} pts)"); score_caprini += v
         for f in caprini_quirurgicos: 
-            if "(+2)" in f: score_caprini += 2
-        for f in caprini_altoriesgo: score_caprini += 3 if "(+3)" in f else 5
+            v = 2 if "(+2)" in f else 0
+            if v > 0: desglose_caprini.append(f"{f.rsplit('(', 1)[0].strip()} (+{v} pts)"); score_caprini += v
+        for f in caprini_altoriesgo: 
+            v = 3 if "(+3)" in f else 5
+            desglose_caprini.append(f"{f.rsplit('(', 1)[0].strip()} (+{v} pts)"); score_caprini += v
 
-        # --- CONSTRUCCIÓN DEL GRÁFICO DE RADAR ---
-        # Normalización a escala de 1 a 5
-        r_cardio = min(lee_val + 1, 5)
-        r_pulm = 1 if score_ariscat_total < 26 else (3 if score_ariscat_total < 45 else 5)
-        r_tromb = 1 if score_caprini == 0 else (2 if score_caprini <= 2 else (3 if score_caprini <= 4 else (4 if score_caprini <= 8 else 5)))
-        r_nvpo = 1 if pts_apfel <= 1 else (3 if pts_apfel == 2 else 5)
-        r_va = 1
-        if score_arne > 10: r_va = 5
-        elif score_stop_bang_total >= 5 or score_obese_total >= 2: r_va = 4
-        elif score_stop_bang_total >= 3: r_va = 3
-
+        # =====================================================================
+        # 📈 RENDERIZADO VISUAL DEL MONITOR (Pestañas)
+        # =====================================================================
+        tab1, tab2 = st.tabs(["🔢 Cálculos y Escalas", "📄 Reporte Final"])
+        
         with tab1:
             st.markdown("##### 🕸️ Vistazo de Riesgo Perioperatorio")
+            r_cardio = min(lee_val + 1, 5)
+            r_pulm = 1 if score_ariscat_total < 26 else (3 if score_ariscat_total < 45 else 5)
+            r_tromb = 1 if score_caprini == 0 else (2 if score_caprini <= 2 else (3 if score_caprini <= 4 else (4 if score_caprini <= 8 else 5)))
+            r_nvpo = 1 if pts_apfel <= 1 else (3 if pts_apfel == 2 else 5)
+            r_va = 1
+            if score_arne > 10: r_va = 5
+            elif score_stop_bang_total >= 5 or score_obese_total >= 2: r_va = 4
+            elif score_stop_bang_total >= 3: r_va = 3
+
             fig = go.Figure()
             fig.add_trace(go.Scatterpolar(
                 r=[r_cardio, r_pulm, r_va, r_nvpo, r_tromb, r_cardio],
@@ -721,7 +800,6 @@ with col_derecha:
 
             st.subheader("🧮 Espejo Clínico y Volúmenes")
             
-            # --- INSIGNIAS (BADGES) EN LUGAR DE TEXTO PLANO ---
             asa_base = asa_final.split(":")[0].strip()
             if "I" in asa_base and "II" not in asa_base and "V" not in asa_base: color_asa = "badge-green"
             elif "II" in asa_base and "III" not in asa_base: color_asa = "badge-yellow"
@@ -739,16 +817,13 @@ with col_derecha:
             st.markdown(badge_html, unsafe_allow_html=True)
             
             if peso_calc > 0 and talla_raw > 0:
-                bsa_calc = math.sqrt((peso_calc * talla_raw) / 3600.0)
-                
                 if es_ped:
                     if edad_calc == 0: peso_esperado = 7.5; talla_esperada = 65.0
                     elif 1 <= edad_calc <= 5: peso_esperado = (edad_calc * 2) + 8; talla_esperada = (edad_calc * 6) + 77
                     elif 6 <= edad_calc <= 12: peso_esperado = (edad_calc * 3) + 7; talla_esperada = (edad_calc * 6) + 77
                     else:  
                         if talla_raw >= 152.4:
-                            if sexo_calc == "Masculino": peso_esperado = 50.0 + 2.3 * ((talla_raw / 2.54) - 60.0)
-                            else: peso_esperado = 45.5 + 2.3 * ((talla_raw / 2.54) - 60.0)
+                            peso_esperado = 50.0 + 2.3 * ((talla_raw / 2.54) - 60.0) if sexo_calc == "Masculino" else 45.5 + 2.3 * ((talla_raw / 2.54) - 60.0)
                         else: peso_esperado = (edad_calc * 3.3) + 5  
                         talla_esperada = 162.0 if sexo_calc == "Femenino" else 173.0
 
@@ -765,13 +840,11 @@ with col_derecha:
                         st.metric(label="Peso Esperado p/Edad", value=f"{peso_esperado:.1f} kg")
                     with m_col2:
                         st.metric(label="Superficie Corporal (BSA)", value=f"{bsa_calc:.2f} m²")
-                        if edad_calc <= 12: st.metric(label="Talla Esperada p/Edad", value=f"{talla_esperada:.1f} cm")
-                        else: st.metric(label="Talla Objetivo Est.", value=f"{talla_esperada:.0f} cm")
+                        st.metric(label="Talla Esperada p/Edad", value=f"{talla_esperada:.1f} cm")
 
                 else:
                     if talla_raw < 152.4:
-                        peso_ideal = peso_calc
-                        peso_predicho = peso_calc
+                        peso_ideal = peso_calc; peso_predicho = peso_calc
                         st.info("ℹ️ **Nota:** Talla < 152.4 cm. Fórmulas de peso ideal omitidas por margen de error matemático.")
                     else:
                         if sexo_calc == "Masculino":
@@ -807,36 +880,28 @@ with col_derecha:
                 st.markdown(f"**Carácter Quirúrgico:** *{caracter_calc}*")
                 st.markdown(f"**Riesgo Quirúrgico (AHA/ACC):** *{riesgo_calc}*")
                 
-                if "Quirófano / Emergencia" in ambito_atencion:
-                    horas_calc = horas_ayuno
-                    tipo_ayuno_calc = tipo_ayuno
-                    st.markdown(f"**Estatus NPO:** {horas_calc} horas de ayuno para *{tipo_ayuno_calc}*")
-                    
-                    if obs_calc:
-                        st.markdown(f"**Edad Gestacional Activa:** **{semanas_eg} semanas**")
+                if "Quirófano" in ambito_atencion:
+                    st.markdown(f"**Estatus NPO:** {horas_ayuno} horas de ayuno para *{tipo_ayuno}*")
+                    if obs_calc: st.markdown(f"**Edad Gestacional Activa:** **{semanas_eg} semanas**")
                     
                     ayuno_insuficiente = False
-                    if "Sólidos" in tipo_ayuno_calc and horas_calc < 8: ayuno_insuficiente = True
-                    elif "formula" in tipo_ayuno_calc and horas_calc < 6: ayuno_insuficiente = True
-                    elif "materna" in tipo_ayuno_calc and horas_calc < 4: ayuno_insuficiente = True
-                    elif "Líquidos claros" in tipo_ayuno_calc and horas_calc < 2: ayuno_insuficiente = True
+                    if "Sólidos" in tipo_ayuno and horas_ayuno < 8: ayuno_insuficiente = True
+                    elif "formula" in tipo_ayuno and horas_ayuno < 6: ayuno_insuficiente = True
+                    elif "materna" in tipo_ayuno and horas_ayuno < 4: ayuno_insuficiente = True
+                    elif "Líquidos claros" in tipo_ayuno and horas_ayuno < 2: ayuno_insuficiente = True
                     
                     if ayuno_insuficiente or (obs_calc and semanas_eg > 12) or caracter_calc == "Emergencia":
                         st.error("🚨 **ALERTA: RIESGO DE ESTÓMAGO LLENO:** Alto riesgo de broncoaspiración activa. Se exige **Inducción de Secuencia Rápida (ISR)**.")
-                    else:
-                        st.success("🟢 **Seguridad de Vía Aérea:** Tiempos de ayuno conformes a directrices formales ASA.")
-                        
-                    if obs_calc and semanas_eg >= 20:
-                        st.warning(f"⚠️ **ALERTA DE COMPRESIÓN AORTOCAVA ({semanas_eg} semanas):** Aplique obligatoriamente un **desplazamiento uterino a la izquierda de 15 grados** para prevenir hipotensión materna severa.")
+                    else: st.success("🟢 **Seguridad de Vía Aérea:** Tiempos de ayuno conformes a directrices formales ASA.")
+                    if obs_calc and semanas_eg >= 20: st.warning(f"⚠️ **ALERTA COMPRESIÓN AORTOCAVA:** Desplazamiento uterino a la izquierda de 15°.")
                 
                 st.markdown(f"**Diagnóstico Principal:** **{diag_calc}**")
-                if localizacion_frac_calc != "No aplica": st.markdown(f"**Detalle de Traumatología:** 🦴 *{localizacion_frac_calc}*")
+                if localizacion_frac_calc != "No aplica": st.markdown(f"**Detalle Trauma:** 🦴 *{localizacion_frac_calc}*")
                 st.markdown(f"**Procedimiento Quirúrgico:** **{proc_calc}**")
                 st.divider()
                 st.success(f"💉 **Estrategia Anestésica:** **{anestesia_calc}**")
                 
-                if req_sangre_calc:
-                    st.error("🩸 **REQUERIMIENTO TRANSFUSIONAL ACTIVO:** Se exige verificación de pruebas cruzadas y reserva de hemoderivados en banco de sangre.")
+                if req_sangre_calc: st.error("🩸 **REQUERIMIENTO TRANSFUSIONAL ACTIVO:** Verificar pruebas cruzadas.")
 
                 # =====================================================================
                 # PESTAÑA 1 - SECCIÓN 2: SEGURIDAD, ALERGIAS Y ANTECEDENTES
@@ -856,10 +921,8 @@ with col_derecha:
                 else:
                     if app_list and app_list != ["Ninguno"]:
                         st.markdown(f"**🩺 Patologías (APP):** {', '.join(app_list)}")
-                        if "Cirrosis Hepática" in app_list:
-                            st.caption(f"🟡 *Parámetros Hepáticos activos: Ascitis {child_ascitis} | Encefalopatía {child_encefalo}*")
-                    else:
-                        st.markdown("**🩺 Patologías (APP):** Ninguna reportada.")
+                        if "Cirrosis Hepática" in app_list: st.caption(f"🟡 *Child-Pugh Ascitis {child_ascitis} | Encefalopatía {child_encefalo}*")
+                    else: st.markdown("**🩺 Patologías (APP):** Ninguna reportada.")
 
                     if meds_list and meds_list != ["Ninguno"]: st.markdown(f"**💊 Medicación Habitual:** {', '.join(meds_list)}")
                     else: st.markdown("**💊 Medicación Habitual:** Ninguna reportada.")
@@ -872,10 +935,8 @@ with col_derecha:
                     if hab_drogas: 
                         habitos_activos.append(f"💊 Sustancias ({int_drogas})")
                         if txt_drogas.strip() != "": habitos_activos[-1] += f" *({txt_drogas.strip()})*"
-                    
                     if habitos_activos: st.markdown(f"**🚬 Hábitos:** {' | '.join(habitos_activos)}")
-                else:
-                    st.success("✅ **Hábitos de Riesgo:** Negados / Estilo de vida saludable.")
+                else: st.success("✅ **Hábitos de Riesgo:** Negados / Estilo de vida saludable.")
                         
                 st.divider()
 
@@ -885,12 +946,6 @@ with col_derecha:
                 st.subheader("🫁 Vía Aérea y Predictores Dinámicos (Módulo 3)")
                 
                 if es_ped:
-                    desglose_arne_ped = []
-                    if ped_vad_previo: desglose_arne_ped.append("Intubación previa difícil (+12 pts)")
-                    if ped_retrognatia: desglose_arne_ped.append("Micrognatia/Retrognatia (+6 pts)")
-                    if ped_macroglosia: desglose_arne_ped.append("Macroglosia evidente (+6 pts)")
-                    if ped_cuello_corto: desglose_arne_ped.append("Cuello corto/Inmóvil (+6 pts)")
-
                     desglose_pulm_ped = []
                     score_pulmonar_ped = 0
                     if ped_ivra: desglose_pulm_ped.append("IVRA reciente (< 2 sem) (+1 pt)"); score_pulmonar_ped += 1
@@ -900,9 +955,9 @@ with col_derecha:
                     m3_col1, m3_col2 = st.columns(2)
                     with m3_col1: 
                         st.metric(label="Riesgo de VAD Estructural", value=f"{score_arne} pts")
-                        if desglose_arne_ped:
+                        if desglose_arne:
                             with st.expander("🔍 Ver desglose de puntos"):
-                                for item in desglose_arne_ped: st.markdown(f"- {item}")
+                                for item in desglose_arne: st.markdown(f"- {item}")
                     with m3_col2:
                         st.metric(label="Criterios de Hiperreactividad", value=f"{score_pulmonar_ped} / 3")
                         if desglose_pulm_ped:
@@ -919,48 +974,8 @@ with col_derecha:
                     else: st.success("🟢 **Riesgo Resonador/Reflejo:** Vía aérea reactiva basal estable.")
                 
                 else:
-                    desglose_arne = []
-                    if arne_historia: desglose_arne.append("Antecedente Intubación Difícil (+10 pts)")
-                    if arne_patologia: desglose_arne.append("Patología de VAD (+5 pts)")
-                    if any(x in mallampati for x in ["Clase III", "Clase IV"]): desglose_arne.append(f"{mallampati.split(':')[0]} (+5 pts)")
-                    if "Clase III" in dtm: desglose_arne.append("DTM < 6.0 cm (+4 pts)")
-                    if "Clase III" in apertura_bucal: desglose_arne.append("Apertura Bucal Severa (+3 pts)")
-                    if "Normal" not in mov_cervical_arne: desglose_arne.append("Movilidad Limitada (+5 pts)")
-
-                    desglose_obese = []
-                    if imc_control > 26.0: desglose_obese.append("IMC > 26 kg/m² (+1 pt)")
-                    if vmd_barba: desglose_obese.append("Presencia de Barba (+1 pt)")
-                    if vmd_edentulo: desglose_obese.append("Edéntulo (+1 pt)")
-                    if sb_s: desglose_obese.append("Ronquido Fuerte (+1 pt)")
-                    if edad_calc > 55: desglose_obese.append("Edad > 55 años (+1 pt)")
                     estrato_obese = "Riesgo Alto de Ventilación 🚨" if score_obese_total >= 2 else "Riesgo Bajo de Ventilación"
-
-                    desglose_sb = []
-                    if sb_s: desglose_sb.append("Ronquido Fuerte (S) (+1 pt)")
-                    if sb_t: desglose_sb.append("Cansancio/Fatiga (T) (+1 pt)")
-                    if sb_o: desglose_sb.append("Apnea Observada (O) (+1 pt)")
-                    if not sin_antecedentes and any(x in str(antecedentes_seleccionados) for x in ["Hipertensión", "HTA"]): desglose_sb.append("Hipertensión (P) (+1 pt)")
-                    if imc_control > 35.0: desglose_sb.append("IMC > 35 kg/m² (B) (+1 pt)")
-                    if edad_calc > 50: desglose_sb.append("Edad > 50 años (A) (+1 pt)")
-                    if "Mayor a 40 cm" in cuello_cat: desglose_sb.append("Cuello > 40 cm (N) (+1 pt)")
-                    if sexo_calc == "Masculino": desglose_sb.append("Sexo Masculino (G) (+1 pt)")
                     estrato_sb = "Riesgo Alto para AOS 🚨" if score_stop_bang_total >= 5 else ("Riesgo Intermedio para AOS" if score_stop_bang_total >= 3 else "Riesgo Bajo para AOS")
-
-                    desglose_ariscat = []
-                    if ariscat_infeccion_reciente: desglose_ariscat.append("Infección Respiratoria < 1 mes (+17 pts)")
-                    if ariscat_enfermedad_pulmonar: desglose_ariscat.append("EPOC / Asma / Neumopatía (+4 pts)")
-                    if 51 <= edad_calc <= 80: desglose_ariscat.append("Edad 51-80 años (+3 pts)")
-                    elif edad_calc > 80: desglose_ariscat.append("Edad > 80 años (+16 pts)")
-                    if hb_val <= 10.0: desglose_ariscat.append("Hemoglobina ≤ 10 g/dL (+11 pts)")
-                    if caracter_calc in ["Urgencia", "Emergencia"]: desglose_ariscat.append("Cirugía de Urgencia/Emergencia (+8 pts)")
-                    
-                    proc_upper = proc_calc.upper()
-                    if any(x in proc_upper for x in ["TORAC", "PULMON", "VATS", "LOBECTOMIA"]):
-                        desglose_ariscat.append("Incisión Torácica (+24 pts)")
-                    elif any(x in proc_upper for x in ["COLECIST", "GASTRO", "LAPAROTOM", "HEMICOLECTOMIA", "RESECCION INTESTINAL", "NEFRECTOMIA", "HISTERECTOM", "PROSTATECTOMIA"]):
-                        desglose_ariscat.append("Incisión Abdomen Superior (+15 pts)")
-                            
-                    if "Alto" in riesgo_calc: desglose_ariscat.append("Procedimiento de Alto Riesgo (+6 pts)")
                     estrato_ariscat = "Riesgo Alto (~42.1% RCP) 🚨" if score_ariscat_total >= 45 else ("Riesgo Moderado (~13.3% RCP)" if score_ariscat_total >= 26 else "Riesgo Bajo (~1.6% RCP)")
 
                     row1_col1, row1_col2 = st.columns(2)
@@ -1017,19 +1032,9 @@ with col_derecha:
                         m4_col1, m4_col2 = st.columns(2)
                         with m4_col1: st.metric(label="Clase Funcional (Ross)", value=clase_nyha)
                         with m4_col2: st.metric(label="Complejidad de la CC", value=capacidad_funcional)
-                        
                         if "Severa" in capacidad_funcional or "IV" in clase_nyha: st.error("🚨 **ALERTA CC COMPLEJA:** Alto riesgo de inestabilidad hemodinámica intraoperatoria.")
                         else: st.warning("⚠️ **Riesgo Intermedio Pediátrico:** Cardiopatía congénita moderada/leve.")
-                
                 else:
-                    desglose_lee = []
-                    if "Alto" in riesgo_calc: desglose_lee.append("Cirugía de Alto Riesgo (+1 pt)")
-                    if (not sin_antecedentes and any("Isquémica" in p or "IAM" in p for p in antecedentes_seleccionados)) or cardio_angina: desglose_lee.append("Cardiopatía Isquémica (+1 pt)")
-                    if (not sin_antecedentes and any(x in p for p in antecedentes_seleccionados for x in ["Insuficiencia", "Falla Cardíaca"])) or cardio_edema or cardio_disnea: desglose_lee.append("Insuficiencia Cardíaca (+1 pt)")
-                    if (not sin_antecedentes and any("ACV" in p or "Isquemia" in p for p in antecedentes_seleccionados)): desglose_lee.append("Historia de ACV / AIT (+1 pt)")
-                    if (not sin_antecedentes and "Insulina" in medicacion_actual): desglose_lee.append("Diabetes insulinodependiente (+1 pt)")
-                    if creatinina_val > 2.0: desglose_lee.append("Creatinina > 2.0 mg/dL (+1 pt)")
-                        
                     if lee_val == 0: clase_lee = "Clase I (Riesgo Bajo ~0.4%)"; color_lee = "normal"
                     elif lee_val == 1: clase_lee = "Clase II (Riesgo Moderado ~0.9%)"; color_lee = "normal"
                     elif lee_val == 2: clase_lee = "Clase III (Riesgo Alto ~6.6%) ⚠️"; color_lee = "inverse"
@@ -1177,43 +1182,10 @@ with col_derecha:
                 # =====================================================================
                 st.subheader("🤢 Emetogénesis y Trombofilia (Módulo 6)")
                 
-                desglose_apfel = []
-                if apfel_historia: desglose_apfel.append("Cinetosis / NVPO previa (+1 pt)")
-                if apfel_opioides: desglose_apfel.append("Uso de opioides postop (+1 pt)")
-                if sexo_calc == "Femenino": desglose_apfel.append("Sexo Femenino (+1 pt)")
-                if sin_habitos or not hab_cigarrillo: desglose_apfel.append("No fumador (+1 pt)")
-
                 if pts_apfel <= 1: estrato_apfel = "Riesgo Bajo (~10-20%)"; color_apfel = "normal"
                 elif pts_apfel == 2: estrato_apfel = "Riesgo Moderado (~40%)"; color_apfel = "normal"
                 else: estrato_apfel = "Riesgo Alto (~60-80%) 🚨"; color_apfel = "inverse"
                     
-                desglose_caprini = []
-                
-                if tipo_fractura_ant == "Menor a un mes" or frac_calc == "Menor a un mes": desglose_caprini.append("Fractura / Trauma mayor < 1 mes (+5 pts)")
-                elif localizacion_frac_calc != "No aplica":
-                    pts = 5 if "Riesgo Caprini Extremo" in localizacion_frac_calc else 2
-                    desglose_caprini.append(f"Cirugía Ortopédica Mayor / Fractura (+{pts} pts)")
-
-                if 41 <= edad_calc <= 60: desglose_caprini.append("Edad 41-60 años (+1 pt)")
-                elif 61 <= edad_calc <= 74: desglose_caprini.append("Edad 61-74 años (+2 pts)")
-                elif edad_calc >= 75: desglose_caprini.append("Edad ≥ 75 años (+3 pts)")
-
-                if imc_control > 25.0: desglose_caprini.append("IMC > 25 kg/m² (+1 pt)")
-                if obs_calc: desglose_caprini.append("Embarazo o postparto (+1 pt)")
-                if "Alto" in riesgo_calc or "Intermedio" in riesgo_calc: desglose_caprini.append("Cirugía Mayor (>45min) (+2 pts)")
-                else: desglose_caprini.append("Cirugía Menor (<45min) (+1 pt)")
-                if cardio_edema: desglose_caprini.append("Edema de miembros inferiores (+1 pt)")
-
-                for f in caprini_clinicos: 
-                    v = 1 if "(+1)" in f else 2
-                    desglose_caprini.append(f"{f.split('(')[0].strip()} (+{v} pts)")
-                for f in caprini_quirurgicos: 
-                    v = 2 if "(+2)" in f else 0
-                    if v>0: desglose_caprini.append(f"{f.split('(')[0].strip()} (+{v} pts)")
-                for f in caprini_altoriesgo: 
-                    v = 3 if "(+3)" in f else 5
-                    desglose_caprini.append(f"{f.split('(')[0].strip()} (+{v} pts)")
-
                 if score_caprini == 0: estrato_caprini = "Riesgo Mínimo (<0.5%)"; color_caprini = "normal"
                 elif 1 <= score_caprini <= 2: estrato_caprini = "Riesgo Bajo (~1.5%)"; color_caprini = "normal"
                 elif 3 <= score_caprini <= 4: estrato_caprini = "Riesgo Moderado (~3.0%) ⚠️"; color_caprini = "off"
@@ -1341,7 +1313,7 @@ Estatus de Validación: Certificado por Sistema Experto Perioperatorio
 ---------------------------------------------------------------------
 • Manejo Antiemético (Apfel): {'EXIGE Profilaxis Multimodal Combinada (Dexametasona + Ondansetrón).' if pts_apfel >= 3 else ('Profilaxis estándar (Ondansetrón IV).' if pts_apfel == 2 else 'Manejo sintomático según demanda.')}
 • Manejo Antitrombótico (Caprini): {'EXIGE Profilaxis Combinada: Mecánica + Farmacológica (HBPM Enoxaparina).' if score_caprini >= 5 else ('Profilaxis farmacológica o mecánica precoz.' if score_caprini >= 2 else 'Solo deambulación temprana activa.')}
-• Consideraciones de Vía Aérea: {f'ALERTA: Vía Aérea Difícil Predictiva.' if (not es_ped and score_arne > 10) or (es_ped and ped_vad_previo) else 'Vía aérea con predictores anatómicos estables de intubación.'}
+• Consideraciones de Vía Aérea: {f'ALERTA: Vía Aérea Difícil Predictiva.' if score_arne > 10 else 'Vía aérea con predictores anatómicos estables de intubación.'}
 • Observación Especial Pediátrica: {f"Riesgo de Hiperreactividad Laríngea activo. CONSIDERAR ADICIÓN DE LIDOCAÍNA IV PROTOCOLO DE TESIS." if es_ped and (ped_ivra or ped_estridor) else ("Estable sin criterios especiales." if es_ped else "No aplica (Paciente adulto).")}
 
 =====================================================================
