@@ -14,6 +14,31 @@ def formatear_lista(lista_original, texto_extra):
             lista.append(f"*{texto_extra.strip()}*")
     return lista
 
+# --- MOTOR DE INTELIGENCIA ANTROPOMÉTRICA ---
+def actualizar_antropometria():
+    if 'mod1_edad' not in st.session_state or 'mod1_sexo' not in st.session_state:
+        return
+        
+    e = st.session_state.mod1_edad
+    s = st.session_state.mod1_sexo
+    
+    # Fórmulas de estimación pediátrica (APLS) y proyección adulta
+    if e == 0: 
+        p, t = 5.0, 60.0
+    elif 1 <= e <= 5: 
+        p, t = (e * 2.0) + 8.0, (e * 6.0) + 77.0
+    elif 6 <= e <= 12: 
+        p, t = (e * 3.0) + 7.0, (e * 6.0) + 77.0
+    elif 13 <= e <= 17:
+        if s == "Masculino": p, t = 50.0 + (e - 12.0) * 4.0, 155.0 + (e - 12.0) * 5.0
+        else: p, t = 45.0 + (e - 12.0) * 3.0, 150.0 + (e - 12.0) * 2.0
+    else: # Adultos
+        if s == "Masculino": p, t = 70.0, 170.0
+        else: p, t = 60.0, 158.0
+            
+    st.session_state.mod1_peso = float(p)
+    st.session_state.mod1_talla = float(t)
+
 # --- TÍTULO PRINCIPAL ---
 st.title("🩺 Asistente de Evaluación Anestésica")
 st.caption("Sistema de validación perioperatoria y seguridad del paciente.")
@@ -65,14 +90,20 @@ with col_izquierda:
             ambito_atencion = st.radio("Seleccione el entorno actual del paciente:", ["Quirófano / Emergencia 🏥", "Consulta Externa Preanestésica 📑"], horizontal=True, key="mod1_ambito_atencion")
             st.divider()
 
+            # Precarga de variables en Session State para evitar errores en recargas
+            if 'mod1_edad' not in st.session_state: st.session_state['mod1_edad'] = 50
+            if 'mod1_peso' not in st.session_state: st.session_state['mod1_peso'] = 70.0
+            if 'mod1_talla' not in st.session_state: st.session_state['mod1_talla'] = 170.0
+
             c_demo1, c_demo2, c_demo3 = st.columns(3)
-            sexo = c_demo1.radio("Sexo", ["Masculino", "Femenino"], key="mod1_sexo")
-            edad = c_demo2.number_input("Edad (años)", min_value=0, max_value=120, value=30 if sexo == "Femenino" else 50, key="mod1_edad")
+            sexo = c_demo1.radio("Sexo", ["Masculino", "Femenino"], key="mod1_sexo", on_change=actualizar_antropometria)
+            edad = c_demo2.number_input("Edad (años)", min_value=0, max_value=120, key="mod1_edad", on_change=actualizar_antropometria)
             grupo_sangre = c_demo3.selectbox("Grupo y Rh", ["Desconocido", "O+", "O-", "A+", "A-", "B+", "B-", "AB+", "AB-"], key="mod1_gs")
             
+            st.caption("✨ *El peso y talla se autoajustan según percentil al cambiar la edad (pueden ser modificados manualmente).*")
             c_ant1, c_ant2 = st.columns(2)
-            peso_real = c_ant1.number_input("Peso Real (kg)", min_value=1.0, max_value=300.0, value=70.0, step=0.1, key="mod1_peso")
-            talla_cm = c_ant2.number_input("Talla (cm)", min_value=30.0, max_value=250.0, value=165.0, step=1.0, key="mod1_talla")
+            peso_real = c_ant1.number_input("Peso Real (kg)", min_value=1.0, max_value=300.0, step=0.1, key="mod1_peso")
+            talla_cm = c_ant2.number_input("Talla (cm)", min_value=30.0, max_value=250.0, step=1.0, key="mod1_talla")
             
             imc = peso_real / ((talla_cm / 100) ** 2) if talla_cm > 0 else 0
             
@@ -207,43 +238,67 @@ with col_izquierda:
             diccionario_actual = mapa_cx.get(especialidad_cx, {})
             lista_diagnosticos = list(diccionario_actual.keys())
             
+            # --- INYECCIÓN UNIVERSAL DE CÁNCER ---
             if especialidad_cx != "Cirugía Oncológica" and "Cáncer / Neoplasia Oncológica" not in lista_diagnosticos:
                 lista_diagnosticos.append("Cáncer / Neoplasia Oncológica")
                 diccionario_actual["Cáncer / Neoplasia Oncológica"] = ["Resección Tumoral Mayor", "Biopsia Escisional / Incisional", "Cirugía Paliativa / Derivativa"]
-            lista_diagnosticos.append("Otro (Especificar)")
             
+            lista_diagnosticos.append("Otro (Especificar)")
             diag_base = c_cx3.selectbox("Diagnóstico Principal", lista_diagnosticos, key="mod1_diag_base")
             diagnostico_final = c_cx3.text_input("Especifique el diagnóstico", key="mod1_diag_txt") if diag_base == "Otro (Especificar)" else diag_base
             
             lista_procedimientos = diccionario_actual.get(diag_base, ["Procedimiento Menor / Biopsia", "Procedimiento Mayor Especializado"])
-            if "Otro (Especificar)" not in lista_procedimientos: lista_procedimientos.append("Otro (Especificar)")
+            if "Otro (Especificar)" not in lista_procedimientos:
+                lista_procedimientos.append("Otro (Especificar)")
+            
             proc_base = c_cx4.selectbox("Procedimiento Propuesto", lista_procedimientos, key="mod1_proc_base")
             procedimiento_final = c_cx4.text_input("Especifique el procedimiento", key="mod1_proc_txt") if proc_base == "Otro (Especificar)" else proc_base
             
-            tiempo_fractura_cx = "No aplica"; tipo_fractura_cx = "No aplica"
+            tiempo_fractura_cx = "No aplica"
             if "Fractura" in diagnostico_final:
-                tiempo_fractura_cx = c_cx3.radio("⏱️ Tiempo de Evolución de la Fractura:", ["Menor a un mes", "Mayor a un mes", "Mayor a un año"], key="mod1_tiempo_fractura")
+                tiempo_fractura_cx = c_cx3.radio(
+                    "⏱️ Tiempo de Evolución de la Fractura:",
+                    ["Menor a un mes", "Mayor a un mes", "Mayor a un año"],
+                    key="mod1_tiempo_fractura",
+                    help="Clave para la estratificación de riesgo trombótico en la escala de Caprini."
+                )
+            
+            tipo_fractura_cx = "No aplica"
+            if "Fractura" in diagnostico_final:
                 st.caption("⚠️ Detalle de Traumatología Quirúrgica detectado:")
-                tipo_fractura_cx = st.selectbox("🦴 Tipo / Localización de la Fractura a intervenir", ["Fractura de Cadera (Fémur Proximal) [Riesgo Caprini Extremo]", "Fractura de Pelvis o Acetábulo [Riesgo Caprini Extremo]", "Fractura de Miembro Inferior (Diáfisis de Fémur, Tibia, Peroné) [Riesgo Caprini Extremo]", "Fractura de Miembro Superior (Húmero, Radio, Cúbito, Clavícula)", "Fractura Vertebral / Columna (Compromiso medular / Estabilización)", "Fractura Conminuta de Tobillo / Retropié", "Fractura Maxilofacial / Mandibular Compleja"], key="mod1_tipo_fractura")
+                tipo_fractura_cx = st.selectbox(
+                    "🦴 Tipo / Localización de la Fractura a intervenir",
+                    [
+                        "Fractura de Cadera (Fémur Proximal) [Riesgo Caprini Extremo]",
+                        "Fractura de Pelvis o Acetábulo [Riesgo Caprini Extremo]",
+                        "Fractura de Miembro Inferior (Diáfisis de Fémur, Tibia, Peroné) [Riesgo Caprini Extremo]",
+                        "Fractura de Miembro Superior (Húmero, Radio, Cúbito, Clavícula)",
+                        "Fractura Vertebral / Columna (Compromiso medular / Estabilización)",
+                        "Fractura Conminuta de Tobillo / Retropié",
+                        "Fractura Maxilofacial / Mandibular Compleja"
+                    ], key="mod1_tipo_fractura"
+                )
                 
             c_ane1, c_ane2 = st.columns(2)
             tipo_anestesia = c_ane1.selectbox("Técnica Anestésica Propuesta", ["Anestesia General (Balanceada / TIVA)", "Anestesia Regional (Neuroeje: Raquídea / Epidural)", "Bloqueo de Nervio Periférico + Sedación", "Cuidado Anestésico Monitorizado (MAC) / Sedación", "Anestesia Local"], key="mod1_tecnica")
+            
             st.markdown("<br>", unsafe_allow_html=True) 
-            req_sangre = c_ane2.checkbox("🩸 **Previsión de sangrado mayor (>500ml) / Requiere reserva de sangre**", key="mod1_sangre")
+            req_sangre = c_ane2.checkbox("🩸 **Previsión de sangrado mayor (>500ml) / Requiere reserva de sangre cruzada**", key="mod1_sangre")
 
         # ---------------------------------------------------------
-        # MÓDULO 2: SEGURIDAD, ALERGIAS Y ANTECEDENTES
+        # MÓDULO 2: SEGURIDAD Y ANTECEDENTES (Con Motor Predictivo)
         # ---------------------------------------------------------
         with st.expander("2. Seguridad, Alergias y Antecedentes Patológicos", expanded=True):
             st.markdown("#### 🚨 Alergias y Sensibilidades")
             sin_alergias = st.checkbox("✅ No refiere alergias", value=True, key="mod2_sin_alergias")
+            
             alergias_med = []; otras_alergias_med_txt = ""; alergias_alim = []; otras_alergias_ali_txt = ""
             if not sin_alergias:
                 c_al1, c_al2 = st.columns(2)
-                alergias_med = c_al1.multiselect("Farmacológicas", ["Penicilinas / Betalactámicos", "AINEs", "Látex", "Opioides", "Relajantes Musculares", "Anestésicos Locales", "Medios de Contraste", "Otros (Especificar)"], key="mod2_al_med")
-                if "Otros (Especificar)" in alergias_med: otras_alergias_med_txt = c_al1.text_input("💊 Especifique:", key="mod2_al_med_txt")
-                alergias_alim = c_al2.multiselect("Alimentarias", ["Huevo", "Soya", "Mariscos / Yodo", "Frutos secos", "Lácteos", "Gluten", "Otros (Especificar)"], key="mod2_al_ali")
-                if "Otros (Especificar)" in alergias_alim: otras_alergias_ali_txt = c_al2.text_input("🥚 Especifique:", key="mod2_al_ali_txt")
+                alergias_med = c_al1.multiselect("Farmacológicas / Sustancias", options=["Penicilinas / Betalactámicos", "AINEs", "Látex", "Opioides", "Relajantes Musculares", "Anestésicos Locales", "Medios de Contraste", "Otros (Especificar)"], key="mod2_al_med")
+                if "Otros (Especificar)" in alergias_med: otras_alergias_med_txt = c_al1.text_input("💊 Especifique otras alergias farmacológicas:", key="mod2_al_med_txt")
+                alergias_alim = c_al2.multiselect("Alimentarias", options=["Huevo", "Soya", "Mariscos / Yodo", "Frutos secos", "Lácteos", "Gluten", "Otros (Especificar)"], key="mod2_al_ali")
+                if "Otros (Especificar)" in alergias_alim: otras_alergias_ali_txt = c_al2.text_input("🥚 Especifique otras alergias alimentarias:", key="mod2_al_ali_txt")
 
             st.divider()
             st.markdown("#### 📋 Antecedentes Patológicos y Medicación Habitual")
@@ -270,35 +325,47 @@ with col_izquierda:
                 antecedentes_seleccionados = c_unif1.multiselect("Patologías Clínicas (APP)", options=lista_patologias, key="mod2_antecedentes")
 
                 if "Cirrosis Hepática" in antecedentes_seleccionados:
-                    st.caption("🟡 Severidad Hepática (Child-Pugh):")
+                    st.caption("🟡 Evaluación de Severidad Hepática (Child-Pugh):")
                     c_hep1, c_hep2 = st.columns(2)
                     child_ascitis = c_hep1.selectbox("Ascitis", ["Ausente", "Leve / Moderada (Controlada)", "Tensa / Grave (Refractaria)"], key="mod2_ascitis")
                     child_encefalo = c_hep2.selectbox("Encefalopatía", ["Ausente", "Grado I - II (Leve)", "Grado III - IV (Grave)"], key="mod2_encefalo")
 
                 if "Fractura / Traumatismo Mayor" in antecedentes_seleccionados:
-                    tipo_fractura_app = c_unif1.selectbox("🛹 Tipo de Fractura", ["Fractura de Cadera (Fémur Proximal) [Riesgo Caprini Alto]", "Fractura de Pelvis o Acetábulo [Riesgo Caprini Alto]", "Fractura de Miembro Inferior (Diáfisis de Fémur, Tibia, Peroné)", "Otro Traumatismo Mayor"])
-                    tipo_fractura_ant = c_unif1.radio("⏱️ Tiempo desde la fractura:", ["Menor a un mes", "Mayor a un mes", "Mayor a un año"], key="mod2_tiempo_frac_ant")
-                if "Otros (Especificar)" in antecedentes_seleccionados: otros_antecedentes_txt = c_unif1.text_input("🔍 Especifique otros:", key="mod2_ant_otros_txt")
+                    tipo_fractura_app = c_unif1.selectbox("🛹 Tipo / Localización de la Fractura", ["Fractura de Cadera (Fémur Proximal) [Riesgo Caprini Alto]", "Fractura de Pelvis o Acetábulo [Riesgo Caprini Alto]", "Fractura de Miembro Inferior (Diáfisis de Fémur, Tibia, Peroné)", "Otro Traumatismo Mayor"])
+                    tipo_fractura_ant = c_unif1.radio("⏱️ Tiempo desde el antecedente de la fractura:", ["Menor a un mes", "Mayor a un mes", "Mayor a un año"], key="mod2_tiempo_frac_ant")
+                
+                if "Otros (Especificar)" in antecedentes_seleccionados: 
+                    otros_antecedentes_txt = c_unif1.text_input("🔍 Especifique otros antecedentes:", key="mod2_ant_otros_txt")
                 
                 # --- MOTOR PREDICTIVO DE MEDICACIÓN ---
                 meds_dinamicos = set(["Analgésicos comunes (Paracetamol/AINEs)", "Protectores gástricos (IBP/Ranitidina)", "Vitaminas / Suplementos"])
+                
                 for app in antecedentes_seleccionados:
-                    if any(x in app for x in ["Hipertensión", "HTA", "Preeclampsia"]): meds_dinamicos.update(["Antihipertensivos (IECA/ARA II/BCC)", "Beta-bloqueadores", "Diuréticos"])
-                    if "Diabetes" in app: meds_dinamicos.update(["Metformina / Hipoglucemiantes orales", "Insulina"])
-                    if "Hipotiroidismo" in app: meds_dinamicos.add("Levotiroxina")
-                    if any(x in app for x in ["Asma", "EPOC", "Hiperreactividad", "Rinitis"]): meds_dinamicos.update(["Inhaladores (SABA/LAMA/Corticoides)", "Antihistamínicos"])
-                    if any(x in app for x in ["Cardiopatía", "Arritmia", "ACV", "Isquemia", "IAM", "Insuficiencia"]): meds_dinamicos.update(["Antiagregantes (Aspirina/Clopidogrel)", "Anticoagulantes (Warfarina/DOACs)", "Estatinas", "Antiarrítmicos / Digoxina"])
-                    if any(x in app for x in ["Epilepsia", "Convulsiones", "Psiquiátrico"]): meds_dinamicos.update(["Anticonvulsivantes", "Antidepresivos / Ansiolíticos"])
-                    if "Cáncer" in app: meds_dinamicos.update(["Medicación Oncológica (Quimioterapia / Inmunoterapia)", "Corticoides sistémicos", "Analgésicos Opioides"])
-                    if any(x in app for x in ["Autoinmune", "LES"]): meds_dinamicos.update(["Inmunosupresores / Biológicos", "Corticoides sistémicos"])
-                    if "Dislipidemia" in app: meds_dinamicos.add("Estatinas / Fibratos")
+                    if any(x in app for x in ["Hipertensión", "HTA", "Preeclampsia"]):
+                        meds_dinamicos.update(["Antihipertensivos (IECA/ARA II/BCC)", "Beta-bloqueadores", "Diuréticos"])
+                    if "Diabetes" in app:
+                        meds_dinamicos.update(["Metformina / Hipoglucemiantes orales", "Insulina"])
+                    if "Hipotiroidismo" in app:
+                        meds_dinamicos.add("Levotiroxina")
+                    if any(x in app for x in ["Asma", "EPOC", "Hiperreactividad", "Rinitis"]):
+                        meds_dinamicos.update(["Inhaladores (SABA/LAMA/Corticoides)", "Antihistamínicos"])
+                    if any(x in app for x in ["Cardiopatía", "Arritmia", "ACV", "Isquemia", "IAM", "Insuficiencia"]):
+                        meds_dinamicos.update(["Antiagregantes (Aspirina/Clopidogrel)", "Anticoagulantes (Warfarina/DOACs)", "Estatinas", "Antiarrítmicos / Digoxina"])
+                    if any(x in app for x in ["Epilepsia", "Convulsiones", "Psiquiátrico"]):
+                        meds_dinamicos.update(["Anticonvulsivantes", "Antidepresivos / Ansiolíticos"])
+                    if "Cáncer" in app:
+                        meds_dinamicos.update(["Medicación Oncológica (Quimioterapia / Inmunoterapia)", "Corticoides sistémicos", "Analgésicos Opioides"])
+                    if any(x in app for x in ["Autoinmune", "LES"]):
+                        meds_dinamicos.update(["Inmunosupresores / Biológicos", "Corticoides sistémicos"])
+                    if "Dislipidemia" in app:
+                        meds_dinamicos.add("Estatinas / Fibratos")
 
                 lista_medicamentos = sorted(list(meds_dinamicos))
                 lista_medicamentos.insert(0, "Ninguno")
                 lista_medicamentos.append("Otros (Especificar)")
                 
-                medicacion_actual = c_unif2.multiselect("Fármacos de Uso Continuo (Predictivo)", options=lista_medicamentos, key="mod2_medicacion")
-                if "Otros (Especificar)" in medicacion_actual: notas_medicacion_txt = c_unif2.text_input("📝 Especifique fármaco/dosis:", key="mod2_med_notas_txt")
+                medicacion_actual = c_unif2.multiselect("Fármacos Predictivos", options=lista_medicamentos, key="mod2_medicacion")
+                if "Otros (Especificar)" in medicacion_actual: notas_medicacion_txt = c_unif2.text_input("📝 Especifique dosis o frecuencias:", key="mod2_med_notas_txt")
 
             st.divider()
             st.markdown("#### 🚬 Hábitos y Estilo de Vida")
@@ -315,9 +382,9 @@ with col_izquierda:
                 hab_cigarrillo = c_cig1.checkbox("Tabaquismo (Cigarrillos)", key="mod2_hab_cig")
                 int_cigarrillo = c_cig2.selectbox("Intensidad Cigarrillo", ["+", "++", "+++"], key="mod2_int_cig", disabled=not hab_cigarrillo, label_visibility="collapsed")
                 
-                c_caf1, c_caf2 = st.columns([3, 1])
-                hab_cafe = c_caf1.checkbox("Consumo de Café", key="mod2_hab_caf")
-                int_cafe = c_caf2.selectbox("Intensidad Café", ["+", "++", "+++"], key="mod2_int_caf", disabled=not hab_cafe, label_visibility="collapsed")
+                c_cafe1, c_cafe2 = st.columns([3, 1])
+                hab_cafe = c_cafe1.checkbox("Consumo de Café", key="mod2_hab_caf")
+                int_cafe = c_cafe2.selectbox("Intensidad Café", ["+", "++", "+++"], key="mod2_int_caf", disabled=not hab_cafe, label_visibility="collapsed")
                 
                 c_dro1, c_dro2 = st.columns([3, 1])
                 hab_drogas = c_dro1.checkbox("Sustancias / Drogas de Abuso", key="mod2_hab_dro")
@@ -569,9 +636,10 @@ with col_derecha:
         st.markdown("### 📊 PANEL DE CONTROL PERIOPERATORIO")
         tab1, tab2 = st.tabs(["🔢 Cálculos y Escalas", "📄 Reporte Final"])
         
-        # Declaraciones globales de seguridad para evitar NameError
-        score_obese_total = 0; score_stop_bang_total = 0; score_ariscat_total = 0; lee_val = 0; pts_apfel = 0; score_caprini = 0; pafi = 428.0; score_arne = 0
+        # Declaraciones globales de seguridad para evitar NameError cruzados
+        score_obese_total = 0; score_stop_bang_total = 0; score_ariscat_total = 0; lee_val = 0; pts_apfel = 0; score_caprini = 0
         es_ped = edad < 18
+        pafi = 428.0 
         
         with tab1:
             st.subheader("🧮 Espejo Clínico y Volúmenes (Módulo 1)")
@@ -1283,3 +1351,5 @@ FIN DEL REPORTE - FIRMA REGISTRADA ELECTRÓNICAMENTE
 =====================================================================
 """
             st.code(reporte_medico_texto, language="text")
+
+```
