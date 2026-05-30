@@ -1,6 +1,7 @@
 import streamlit as st
 import math
 import plotly.graph_objects as go
+import streamlit.components.v1 as components 
 
 st.set_page_config(layout="wide", page_title="Asistente Anestésico", page_icon="🩺")
 
@@ -46,7 +47,31 @@ st.caption("Sistema de validación perioperatoria y seguridad del paciente.")
 st.caption("**Autor:** Dr. Marcos Aviles")
 st.markdown("---")
 
+# --- BLOQUEO DE TECLADO MÓVIL PARA MENÚS DESPLEGABLES ---
+components.html(
+    """
+    <script>
+    const doc = window.parent.document;
+    const observer = new MutationObserver(function(mutations) {
+        // Apunta exclusivamente a los inputs dentro de los selectbox
+        const selectInputs = doc.querySelectorAll('div[data-baseweb="select"] input');
+        selectInputs.forEach(function(input) {
+            // El atributo 'none' le dice al celular que NO abra el teclado
+            input.setAttribute('inputmode', 'none');
+        });
+    });
+    // Mantiene el script observando incluso si cambias de pestaña
+    observer.observe(doc, { childList: true, subtree: true });
+    </script>
+    """,
+    height=0,
+    width=0,
+)
+
 col_izquierda, col_derecha = st.columns([1.3, 1])
+
+# =============================================================================
+# COLUMNA IZQUIERDA: MÓDULOS DE EVALUACIÓN CLÍNICA
 
 # =============================================================================
 # COLUMNA IZQUIERDA: MÓDULOS DE EVALUACIÓN CLÍNICA
