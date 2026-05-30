@@ -70,9 +70,25 @@ with col_izquierda:
             if 'mod1_peso' not in st.session_state: st.session_state['mod1_peso'] = 70.0
             if 'mod1_talla' not in st.session_state: st.session_state['mod1_talla'] = 170.0
 
+            def actualizar_antropometria():
+                if 'mod1_edad' not in st.session_state or 'mod1_sexo' not in st.session_state: return
+                e = st.session_state.mod1_edad
+                s = st.session_state.mod1_sexo
+                if e == 0: p, t = 5.0, 60.0
+                elif 1 <= e <= 5: p, t = (e * 2.0) + 8.0, (e * 6.0) + 77.0
+                elif 6 <= e <= 12: p, t = (e * 3.0) + 7.0, (e * 6.0) + 77.0
+                elif 13 <= e <= 17:
+                    if s == "Masculino": p, t = 50.0 + (e - 12.0) * 4.0, 155.0 + (e - 12.0) * 5.0
+                    else: p, t = 45.0 + (e - 12.0) * 3.0, 150.0 + (e - 12.0) * 2.0
+                else:
+                    if s == "Masculino": p, t = 70.0, 170.0
+                    else: p, t = 60.0, 158.0
+                st.session_state.mod1_peso = float(p)
+                st.session_state.mod1_talla = float(t)
+
             c_demo1, c_demo2, c_demo3 = st.columns(3)
-            sexo = c_demo1.radio("Sexo", ["Masculino", "Femenino"], key="mod1_sexo")
-            edad = c_demo2.number_input("Edad (años)", min_value=0, max_value=120, key="mod1_edad")
+            sexo = c_demo1.radio("Sexo", ["Masculino", "Femenino"], key="mod1_sexo", on_change=actualizar_antropometria)
+            edad = c_demo2.number_input("Edad (años)", min_value=0, max_value=120, key="mod1_edad", on_change=actualizar_antropometria)
             grupo_sangre = c_demo3.selectbox("Grupo y Rh", ["Desconocido", "O+", "O-", "A+", "A-", "B+", "B-", "AB+", "AB-"], key="mod1_gs")
             
             st.caption("✨ *El peso y talla se autoajustan según percentil al cambiar la edad (pueden ser modificados manualmente).*")
@@ -238,6 +254,7 @@ with col_izquierda:
                 
             c_ane1, c_ane2 = st.columns(2)
             tipo_anestesia = c_ane1.selectbox("Técnica Anestésica Propuesta", ["Anestesia General (Balanceada / TIVA)", "Anestesia Regional (Neuroeje: Raquídea / Epidural)", "Bloqueo de Nervio Periférico + Sedación", "Cuidado Anestésico Monitorizado (MAC) / Sedación", "Anestesia Local"], key="mod1_tecnica")
+            
             st.markdown("<br>", unsafe_allow_html=True) 
             req_sangre = c_ane2.checkbox("🩸 **Previsión de sangrado mayor (>500ml) / Requiere reserva de sangre cruzada**", key="mod1_sangre")
 
@@ -293,8 +310,8 @@ with col_izquierda:
                 if "Otros (Especificar)" in antecedentes_seleccionados: 
                     otros_antecedentes_txt = c_unif1.text_input("🔍 Especifique otros antecedentes:", key="mod2_ant_otros_txt")
                 
-                # --- MOTOR PREDICTIVO DE MEDICACIÓN ---
                 meds_dinamicos = set(["Analgésicos comunes (Paracetamol/AINEs)", "Protectores gástricos (IBP/Ranitidina)", "Vitaminas / Suplementos"])
+                
                 for app in antecedentes_seleccionados:
                     if any(x in app for x in ["Hipertensión", "HTA", "Preeclampsia"]): meds_dinamicos.update(["Antihipertensivos (IECA/ARA II/BCC)", "Beta-bloqueadores", "Diuréticos"])
                     if "Diabetes" in app: meds_dinamicos.update(["Metformina / Hipoglucemiantes orales", "Insulina"])
@@ -1307,7 +1324,7 @@ Estatus de Validación: Certificado por Sistema Experto Perioperatorio
 
 4. SCREENING PREDICTIVO Y ESTRATIFICACIÓN DE RIESGO
 ---------------------------------------------------------------------
-• Índice de Intubación Difícil (Arné): {score_arne if not es_ped else score_arne_ped} puntos
+• Índice de Intubación Difícil (Arné): {score_arne} puntos
 • Riesgo de Ventilación (OBESE): {score_obese_total if not es_ped else 'N/A'} puntos
 • Tamizaje de Apnea del Sueño (STOP-Bang): {score_stop_bang_total if not es_ped else 'N/A'} puntos
 • Riesgo Pulmonar Postoperatorio (ARISCAT): {score_ariscat_total if not es_ped else 'N/A'} puntos
