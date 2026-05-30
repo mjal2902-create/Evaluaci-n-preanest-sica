@@ -32,7 +32,7 @@ with col_izquierda:
     st.header("📋 Datos de Entrada")
     
     # ---------------------------------------------------------
-    # GATEKEEPER: REGISTRO INSTITUCIONAL (Bloqueo Estricto)
+    # GATEKEEPER: REGISTRO INSTITUCIONAL
     # ---------------------------------------------------------
     st.markdown("### 🏥 Registro Institucional")
     
@@ -95,7 +95,6 @@ with col_izquierda:
         hospital_final = st.text_input("Escriba el nombre de la Clínica o Centro Médico:", key="mod_inst_otro_txt")
         if hospital_final.strip() != "": hospital_valido = True
 
-    # --- APLICACIÓN DEL CANDADO DE SEGURIDAD ---
     if not hospital_valido:
         st.info("🔒 Por favor, complete la selección de la institución arriba para desbloquear la evaluación.")
         
@@ -104,14 +103,11 @@ with col_izquierda:
         st.divider()
         
         # ---------------------------------------------------------
-        # MÓDULO 1: DATOS DEMOGRÁFICOS Y CONTEXTO QUIRÚRGICO (ADAPTATIVO)
+        # MÓDULO 1: DATOS DEMOGRÁFICOS Y CONTEXTO QUIRÚRGICO
         # ---------------------------------------------------------
         with st.expander("1. Datos Demográficos y Contexto Quirúrgico", expanded=True):
             st.divider() 
             
-            # =====================================================================
-            # 🩺 BIFURCACIÓN DE ENTORNO: QUIRÓFANO VS CONSULTA EXTERNA
-            # =====================================================================
             st.markdown("### 🏢 Ámbito de la Evaluación Anestésica")
             ambito_atencion = st.radio(
                 "Seleccione el entorno actual del paciente:",
@@ -121,19 +117,16 @@ with col_izquierda:
             )
             st.divider()
 
-            # --- FILA 1: DATOS DEMOGRÁFICOS BASALES ---
             c_demo1, c_demo2, c_demo3 = st.columns(3)
             sexo = c_demo1.radio("Sexo", ["Masculino", "Femenino"], key="mod1_sexo")
             edad_default = 30 if sexo == "Femenino" else 50
             edad = c_demo2.number_input("Edad (años)", min_value=0, max_value=120, value=edad_default, key="mod1_edad")
             grupo_sangre = c_demo3.selectbox("Grupo y Rh", ["Desconocido", "O+", "O-", "A+", "A-", "B+", "B-", "AB+", "AB-"], key="mod1_gs")
             
-            # --- FILA 2: ANTROPOMETRÍA ---
             c_ant1, c_ant2 = st.columns(2)
             peso_real = c_ant1.number_input("Peso Real (kg)", min_value=1.0, max_value=300.0, value=70.0, step=0.1, key="mod1_peso")
             talla_cm = c_ant2.number_input("Talla (cm)", min_value=30.0, max_value=250.0, value=165.0, step=1.0, key="mod1_talla")
             
-            # --- PROCESAMIENTO SILENCIOSO DEL IMC ---
             imc = 0.0
             cat_imc = "No calculado"
             if talla_cm > 0:
@@ -145,7 +138,6 @@ with col_izquierda:
             
             st.divider()
             
-            # --- CENTINELA DE TRANSICIÓN DE ESTADO (ANTI-BUG DE RETENCIÓN) ---
             def conmutar_modulo_obstetrico():
                 if st.session_state.get("mod1_es_obstetrico"):
                     st.session_state["mod1_especialidad"] = "Ginecología y Obstetricia"
@@ -153,7 +145,6 @@ with col_izquierda:
                     if st.session_state.get("mod1_especialidad") == "Ginecología y Obstetricia":
                         st.session_state["mod1_especialidad"] = "Cirugía General"
 
-            # --- CONDICIONAMIENTO BIOLÓGICO Y CRONOLÓGICO DE PACIENTE OBSTÉTRICA ---
             es_obstetrico = False
             if sexo == "Femenino" and 12 <= edad <= 45:
                 es_obstetrico = st.checkbox(
@@ -164,9 +155,6 @@ with col_izquierda:
 
             st.markdown("**Contexto Quirúrgico y Clasificación**")
 
-            # =====================================================================
-            # DESPLIEGUE DINÁMICO SEGÚN EL ÁMBITO SELECCIONADO
-            # =====================================================================
             semanas_eg = 0
             horas_ayuno = 8
             tipo_ayuno = "No aplica"
@@ -186,7 +174,6 @@ with col_izquierda:
                     "ASA VI: Muerte cerebral (Donante)"
                 ], key="mod1_asa")
 
-                # --- SUB-MÓDULO: EDAD GESTACIONAL ---
                 if es_obstetrico:
                     st.markdown("🤰 **Datos Obstétricos de Emergencia**")
                     semanas_eg = st.number_input(
@@ -195,7 +182,6 @@ with col_izquierda:
                         key="mod1_semanas_eg"
                     )
 
-                # --- SUB-MÓDULO: CONTROL DE AYUNO REAL ---
                 st.markdown("⏱️ **Control de Ayuno Activo (Estatus NPO)**")
                 c_npo1, c_npo2 = st.columns(2)
                 tipo_ayuno = c_npo1.selectbox("Última ingesta de:", ["Sólidos pesados / Grasas", "Comida ligera / Leche de fórmula", "Leche materna", "Líquidos claros (Agua, té, café negro)"], key="mod1_tipo_ayuno")
@@ -233,7 +219,6 @@ with col_izquierda:
                     key="mod1_ce_interconsultas"
                 )
 
-            # --- LIBERACIÓN DE CAMPOS UNIVERSALES (EXENTOS DE LA BIFURCACIÓN) ---
             riesgo_cx = st.selectbox("Riesgo Quirúrgico Intrínseco (AHA/ACC)", [
                 "Bajo (<1%) - Ej: Superficial, Endoscópica, Catarata", 
                 "Intermedio (1-5%) - Ej: Intraperitoneal, Ortopédica mayor", 
@@ -242,8 +227,8 @@ with col_izquierda:
             
             st.divider()
 
-            # 1. Construcción dinámica de la lista de especialidades
-            lista_especialidades = ["Cirugía General"]
+            # --- AUTOMATIZACIÓN DE ESPECIALIDAD ---
+            lista_especialidades = ["Cirugía General", "Cirugía Oncológica"]
             if edad < 15:
                 lista_especialidades.append("Cirugía Pediátrica")
             if sexo == "Femenino":
@@ -259,7 +244,6 @@ with col_izquierda:
                 "Otra Especialidad"
             ])
 
-            # --- AUTOMATIZACIÓN EN BASE A LA EDAD (SINCRONIZACIÓN ETARIA) ---
             if "mod1_especialidad" in st.session_state:
                 current_spec = st.session_state["mod1_especialidad"]
                 if edad < 15 and current_spec == "Cirugía General":
@@ -278,50 +262,101 @@ with col_izquierda:
             c_cx3, c_cx4 = st.columns(2)
             
             # =====================================================================
-            # MOTOR DE MAPEO: DIAGNÓSTICOS Y PROCEDIMIENTOS POR ESPECIALIDAD (ÚNICO)
+            # 🧠 MOTOR RELACIONAL: DIAGNÓSTICOS -> PROCEDIMIENTOS
             # =====================================================================
-            if especialidad_cx == "Cirugía General":
-                lista_diagnosticos = ["Colelitiasis / Colecistitis Aguda", "Apendicitis Aguda", "Hernia Inguinal / Umbilical / Crural", "Obstrucción Intestinal", "Neoplasia Gástrica / de Colon", "Hemorroides / Fístula Perianal", "Otro (Especificar)"]
-                lista_procedimientos = ["Colecistectomía Laparoscópica / Abierta", "Apendicectomía", "Hernioplastia con Malla", "Laparotomía Exploradora + Resección Intestinal", "Hemorroidectomía / Fistulectomía", "Otro (Especificar)"]
+            mapa_cx = {
+                "Cirugía General": {
+                    "Colelitiasis / Colecistitis Aguda": ["Colecistectomía Laparoscópica", "Colecistectomía Abierta"],
+                    "Apendicitis Aguda": ["Apendicectomía Laparoscópica", "Apendicectomía Convencional"],
+                    "Hernia Inguinal / Umbilical / Crural": ["Hernioplastia con Malla (Laparoscópica)", "Hernioplastia Abierta"],
+                    "Obstrucción Intestinal / Abdomen Agudo": ["Laparotomía Exploradora", "Resección Intestinal + Anastomosis / Estoma"],
+                    "Patología Orificial": ["Hemorroidectomía", "Fistulectomía / Drenaje de Absceso"],
+                },
+                "Cirugía Oncológica": {
+                    "Neoplasia de Mama": ["Mastectomía Radical Modificada", "Cuadrantectomía + Ganglio Centinela", "Reconstrucción Mamaria Inmediata"],
+                    "Neoplasia Gastrointestinal (Colon/Estómago)": ["Hemicolectomía Radical", "Gastrectomía Total/Subtotal con Linfadenectomía", "Resección Anterior de Recto"],
+                    "Neoplasia Ginecológica (Cérvix/Ovario/Útero)": ["Histerectomía Radical (Wertheim-Meigs)", "Cirugía Citorreductora (Ovario) + Omentectomía"],
+                    "Neoplasia Urológica (Próstata/Riñón)": ["Prostatectomía Radical", "Nefrectomía Radical / Parcial"],
+                    "Neoplasia de Cabeza y Cuello": ["Tiroidectomía Total/Parcial + Vaciamiento Cervical", "Glosectomía", "Parotidectomía"],
+                    "Neoplasia de Piel y Partes Blandas": ["Resección Amplia de Sarcoma / Melanoma", "Amputación Mayor Oncológica"]
+                },
+                "Cirugía Pediátrica": {
+                    "Apendicitis Aguda Pediátrica": ["Apendicectomía Laparoscópica Pediátrica", "Apendicectomía Abierta"],
+                    "Fimosis / Parafimosis": ["Circuncisión / Plastia de Prepucio"],
+                    "Criptorquidia / Testículo No Descendido": ["Orquidopexia Unilateral / Bilateral"],
+                    "Hernia Inguinal / Umbilical Congénita": ["Hernioplastia Pediátrica"],
+                    "Estenosis Hipertrófica del Píloro": ["Piloromiotomía"]
+                },
+                "Ginecología y Obstetricia": {
+                    "Embarazo a Término / Trabajo de Parto": ["Cesárea Segmentaria Transversa", "Parto Vaginal Dirigido"],
+                    "Miomatosis Uterina Sintomática": ["Histerectomía Total Abdominal / Laparoscópica", "Miomectomía"],
+                    "Quiste / Tumoración Benigna de Ovario": ["Quistectomía de Ovario", "Salpingooforectomía"],
+                    "Embarazo Ectópico": ["Laparotomía Exploradora", "Salpingectomía Laparoscópica"],
+                    "Hemorragia Uterina Anómala": ["Legrado Uterino Instrumental (LUI) / AMEU", "Histeroscopia"]
+                },
+                "Traumatología y Ortopedia": {
+                    "Fractura de Cadera / Cuello Femoral": ["Reemplazo Articular (Prótesis)", "Fijación con Clavo Cefalomedular / DHS"],
+                    "Fractura de Huesos Largos (Fémur/Tibia/Humero)": ["Reducción Abierta y Fijación Interna (RAFI) con Placa/Clavo"],
+                    "Artrosis Severa de Rodilla / Cadera": ["Artroplastia Total (Reemplazo Articular)"],
+                    "Lesión Ligamentaria / Meniscal de Rodilla": ["Artroscopia Terapéutica / Reconstrucción de Ligamentos"],
+                    "Osteomielitis / Infección de Material": ["Retiro de Material de Osteosíntesis (RMO)", "Limpieza Quirúrgica + Secuestrectomía"]
+                },
+                "Neurocirugía": {
+                    "Neoplasia / Tumor Cerebral": ["Craneotomía + Resección de Tumor"],
+                    "Hematoma Subdural / Epidural": ["Evacuación de Hematoma", "Craniectomía Descompresiva"],
+                    "Hernia Discal Lumbar / Cervical": ["Discectomía / Microdiscectomía", "Laminectomía"],
+                    "Hidrocefalia": ["Colocación de Válvula de Derivación Ventriculoperitoneal (DVP)"],
+                    "Aneurisma Cerebral": ["Clipaje de Aneurisma por Craneotomía"]
+                },
+                "Urología": {
+                    "Hipertrofia Prostática Benigna (HPB)": ["Resección Transuretral de Próstata (RTU-P)", "Enucleación Prostática Láser / Abierta"],
+                    "Litiasis Renoureteral Obstructiva": ["Ureterolitotripsia Láser", "Nefrolitotomía Percutánea"],
+                    "Hidrocele / Varicocele Sintomático": ["Hidrocelectomía", "Varicocelectomía Unilateral/Bilateral"],
+                    "Estenosis de Uretra": ["Uretrotomía Óptica Interna / Dilatación Uretral"]
+                },
+                "Cirugía Cardiovascular y Torácica": {
+                    "Cardiopatía Isquémica": ["Revascularización Miocárdica (CABG / By-pass Coronario)"],
+                    "Valvulopatía (Aórtica/Mitral)": ["Cambio Valvular Mecánico / Biológico", "Plastia Valvular"],
+                    "Derrame Pleural / Neumotórax": ["Toracoscopia Asistida (VATS)", "Colocación de Tubo Torácico / Ventana Pericárdica"],
+                    "Aneurisma de Aorta": ["Reemplazo Aórtico con Tubo Valvulado", "Reparación Endovascular (TEVAR/EVAR)"]
+                },
+                "Otorrinolaringología y Oftalmología": {
+                    "Catarata Senil / Capsular": ["Facoemulsificación + Colocación de Lente Intraocular (LIO)"],
+                    "Desviación Septal / Hipertrofia de Cornetes": ["Septoplastia / Turbinoplastia Endoscópica"],
+                    "Otitis Media Crónica": ["Timpanoplastia / Mastoidectomía"],
+                    "Hipertrofia de Amígdalas / Adenoides": ["Amigdalectomía / Adenoidectomía"]
+                },
+                "Cirugía Plástica y Maxilofacial": {
+                    "Secuela de Quemadura / Cicatriz": ["Escarectomía + Injerto de Piel", "Colgajo Reconstructivo"],
+                    "Fractura Maxilofacial": ["Reducción y Fijación Rígida Maxilofacial"],
+                    "Lipodistrofia / Ptosis Mamaria": ["Abdominoplastia", "Mastopexia / Mamoplastia", "Liposucción"],
+                    "Fisura Labiopalatina": ["Queiloplastia", "Palatoplastia"]
+                }
+            }
 
-            elif especialidad_cx == "Cirugía Pediátrica":
-                lista_diagnosticos = ["Apendicitis Aguda Pediátrica", "Fimosis / Parafimosis", "Criptorquidia / Testículo No Descendido", "Hernia Inguinal / Umbilical Congénita", "Hipertrofia Amigdalina / Adenoiditis", "Estenosis Hipertrófica del Píloro", "Otro (Especificar)"]
-                lista_procedimientos = ["Apendicectomía Pediátrica", "Circuncisión / Plastia de Prepucio", "Orquidopexia Unilateral / Bilateral", "Hernioplastia Pediátrica", "Amigdalectomía + Adenoidectomía", "Piloromiotomía", "Otro (Especificar)"]
+            # Extracción del diccionario según la especialidad
+            diccionario_actual = mapa_cx.get(especialidad_cx, {})
+            lista_diagnosticos = list(diccionario_actual.keys())
+            
+            # --- INYECCIÓN UNIVERSAL DE CÁNCER ---
+            if especialidad_cx != "Cirugía Oncológica" and "Cáncer / Neoplasia Oncológica" not in lista_diagnosticos:
+                lista_diagnosticos.append("Cáncer / Neoplasia Oncológica")
+                diccionario_actual["Cáncer / Neoplasia Oncológica"] = ["Resección Tumoral Mayor", "Biopsia Escisional / Incisional", "Cirugía Paliativa / Derivativa"]
+            
+            lista_diagnosticos.append("Otro (Especificar)")
 
-            elif especialidad_cx == "Ginecología y Obstetricia":
-                lista_diagnosticos = ["Embarazo a Término / Trabajo de Parto", "Pre-eclampsia / Eclampsia", "Miomatosis Uterina Sintomática", "Quiste / Tumoración de Ovario", "Embarazo Ectópico Roto / No Roto", "Hemorragia Uterina Anómala", "Otro (Especificar)"]
-                lista_procedimientos = ["Cesárea Segmentaria Transversa", "Parto Vaginal Dirigido", "Histerectomía Total Abdominal / Laparoscópica", "Quistectomía de Ovario / Salpingooforectomía", "Legrado Uterino Instrumental (LUI) / AMEU", "Otro (Especificar)"]
-
-            elif especialidad_cx == "Traumatología y Ortopedia":
-                lista_diagnosticos = ["Fractura de Cadera / Cuello Femoral", "Fractura de Huesos Largos (Fémur/Tibia/Humero)", "Artrosis Severa de Rodilla / Cadera", "Lesión Ligamentaria / Meniscal de Rodilla", "Osteomielitis / Infección de Material", "Otro (Especificar)"]
-                lista_procedimientos = ["Reducción Abierta y Fijación Interna (RAFI) con Placa/Clavo", "Artroplastia Total (Reemplazo de Rodilla / Cadera)", "Artroscopia Terapéutica / Reconstrucción de Ligamentos", "Retiro de Material de Osteosíntesis (RMO)", "Limpieza Quirúrgica + Secuestrectomía", "Otro (Especificar)"]
-
-            elif especialidad_cx == "Neurocirugía":
-                lista_diagnosticos = ["Neoplasia / Tumor Cerebral", "Hematoma Subdural / Epidural Agudo o Crónico", "Hernia Discal Lumbar / Cervical con Radiculopatía", "Hidrocefalia Obstructiva / Normotensiva", "Aneurisma Cerebral Sacular", "Otro (Especificar)"]
-                lista_procedimientos = ["Craneotomía + Resección de Tumor / Evacuación de Hematoma", "Discectomía / Microdiscectomía Laminectomía", "Colocación de Válvula de Derivación Ventriculoperitoneal (DVP)", "Clipaje de Aneurisma por Craneotomía", "Otro (Especificar)"]
-
-            elif especialidad_cx == "Urología":
-                lista_diagnosticos = ["Hipertrofia Prostática Benigna (HPB)", "Litiasis Renoureteral Obstructiva", "Neoplasia de Vejiga / Próstata", "Hidrocele / Varicocele Sintomático", "Estenosis de Uretra", "Otro (Especificar)"]
-                lista_procedimientos = ["Resección Transuretral de Próstata (RTU-P) o Enucleación", "Ureterolitotripsia Láser / Nefrolitotomía Percutánea", "Prostatectomía Radical / Cistectomía", "Hidrocelectomía / Varicocelectomía Unilateral", "Uretropatía / Dilatación Uretra", "Otro (Especificar)"]
-
-            elif especialidad_cx == "Cirugía Cardiovascular y Torácica":
-                lista_diagnosticos = ["Cardiopatía Isquémica / Insuficiencia Valvular Aórtica-Mitral", "Aneurisma de Aorta Ascendente / Abdominal", "Derrame Pleural Masivo / Neumotórax Retenido", "Neoplasia Pulmonar / Masa Mediastínica", "Otro (Especificar)"]
-                lista_procedimientos = ["Revascularización Miocárdica (By-pass Coronario)", "Cambio Valvular Mecánico o Biológico", "Toracotomía / Toracoscopia (VATS) + Lobectomía", "Colocación de Tubo Torácico / Ventana Pericárdica", "Otro (Especificar)"]
-
-            elif especialidad_cx == "Otorrinolaringología y Oftalmología":
-                lista_diagnosticos = ["Catarata Senil / Capsular", "Desviación Septal / Hipertrofia de Cornetes Severa", "Otitis Media Crónica / Perforación Timpánica", "Hipertrofia de Amígdalas en Adulto", "Otro (Especificar)"]
-                lista_procedimientos = ["Facoemulsificación + Colocación de Lente Intraocular (LIO)", "Septoplastia / Turbinoplastia Endoscópica", "Timpanoplastia / Mastoidectomía", "Amigdalectomía Adultos", "Otro (Especificar)"]
-
-            elif especialidad_cx == "Cirugía Plástica y Maxilofacial":
-                lista_diagnosticos = ["Secuela de Quemadura / Cicatriz Retráctil", "Fractura Mandibular / Malar / Complejo Orbitozigomático", "Lipodistrofia Abdominal / Ptosis Mamaria", "Fisura Labiopalatina (Labio Leporino)", "Otro (Especificar)"]
-                lista_procedimientos = ["Escarectomía / Resección de Cicatriz + Injerto / Colgajo de Piel", "Reducción y Fijación Rígida Maxilofacial", "Abdominoplastia / Mastopexia / Liposucción", "Palatoplastia / Queiloplastia", "Otro (Especificar)"]
-
-            else:
-                lista_diagnosticos = ["Otro (Especificar)"]
-                lista_procedimientos = ["Procedimiento Menor / Biopsia", "Procedimiento Mayor Especializado", "Otro (Especificar)"]
-
+            # Selector de Diagnóstico
             diag_base = c_cx3.selectbox("Diagnóstico Principal", lista_diagnosticos, key="mod1_diag_base")
             diagnostico_final = c_cx3.text_input("Especifique el diagnóstico", key="mod1_diag_txt") if diag_base == "Otro (Especificar)" else diag_base
+            
+            # Extracción reactiva de Procedimientos
+            lista_procedimientos = diccionario_actual.get(diag_base, ["Procedimiento Menor / Biopsia", "Procedimiento Mayor Especializado"])
+            if "Otro (Especificar)" not in lista_procedimientos:
+                lista_procedimientos.append("Otro (Especificar)")
+            
+            # Selector de Procedimiento
+            proc_base = c_cx4.selectbox("Procedimiento Propuesto", lista_procedimientos, key="mod1_proc_base")
+            procedimiento_final = c_cx4.text_input("Especifique el procedimiento", key="mod1_proc_txt") if proc_base == "Otro (Especificar)" else proc_base
             
             # --- CONTROL DE TIEMPO DE EVOLUCIÓN PARA CAPRINI ---
             tiempo_fractura_cx = "No aplica"
@@ -349,14 +384,10 @@ with col_izquierda:
                     ], key="mod1_tipo_fractura"
                 )
                 
-            proc_base = c_cx4.selectbox("Procedimiento Propuesto", lista_procedimientos, key="mod1_proc_base")
-            procedimiento_final = c_cx4.text_input("Especifique el procedimiento", key="mod1_proc_txt") if proc_base == "Otro (Especificar)" else proc_base
-                
             c_ane1, c_ane2 = st.columns(2)
             tipo_anestesia = c_ane1.selectbox("Técnica Anestésica Propuesta", ["Anestesia General (Balanceada / TIVA)", "Anestesia Regional (Neuroeje: Raquídea / Epidural)", "Bloqueo de Nervio Periférico + Sedación", "Cuidado Anestésico Monitorizado (MAC) / Sedación", "Anestesia Local"], key="mod1_tecnica")
             
-            # NUEVO: Control de Hemoderivados
-            st.markdown("<br>", unsafe_allow_html=True) # Espaciador
+            st.markdown("<br>", unsafe_allow_html=True) 
             req_sangre = c_ane2.checkbox("🩸 **Previsión de sangrado mayor (>500ml) / Requiere reserva de sangre cruzada**", key="mod1_sangre")
 
         # ---------------------------------------------------------
@@ -393,9 +424,8 @@ with col_izquierda:
                     idx = lista_patologias.index("Otros (Especificar)")
                     lista_patologias.insert(idx, "Fractura / Traumatismo Mayor")
                     lista_patologias.insert(idx, "Cirrosis Hepática")
+                    lista_patologias.insert(idx, "Cáncer activo o en tratamiento")
 
-                lista_medicamentos = ["Antihipertensivos (IECA/ARA II/BCC)", "Beta-bloqueadores", "Diuréticos", "Metformina / Hipoglucemiantes orales", "Insulina", "Antiagregantes (Aspirina/Clopidogrel)", "Anticoagulantes (Warfarina/DOACs)", "Levotiroxina", "Inhaladores (SABA/Corticoides)", "Anticonvulsivantes", "Ninguno", "Otros (Especificar)"]
-                
                 c_unif1, c_unif2 = st.columns(2)
                 antecedentes_seleccionados = c_unif1.multiselect("Patologías Clínicas (APP)", options=lista_patologias, key="mod2_antecedentes")
 
@@ -413,7 +443,37 @@ with col_izquierda:
                         key="mod2_tiempo_frac_ant"
                     )
                 if "Otros (Especificar)" in antecedentes_seleccionados: otros_antecedentes_txt = c_unif1.text_input("🔍 Especifique otros antecedentes:", key="mod2_ant_otros_txt")
-                medicacion_actual = c_unif2.multiselect("Fármacos de Uso Continuo", options=lista_medicamentos, key="mod2_medicacion")
+                
+                # =====================================================================
+                # 🧠 MOTOR INTELIGENTE PREDICTIVO DE MEDICAMENTOS SEGÚN APPs
+                # =====================================================================
+                meds_dinamicos = set(["Analgésicos comunes (Paracetamol/AINEs)", "Protectores gástricos (IBP/Ranitidina)", "Vitaminas / Suplementos"])
+                
+                for app in antecedentes_seleccionados:
+                    if any(x in app for x in ["Hipertensión", "HTA", "Preeclampsia"]):
+                        meds_dinamicos.update(["Antihipertensivos (IECA/ARA II/BCC)", "Beta-bloqueadores", "Diuréticos"])
+                    if "Diabetes" in app:
+                        meds_dinamicos.update(["Metformina / Hipoglucemiantes orales", "Insulina"])
+                    if "Hipotiroidismo" in app:
+                        meds_dinamicos.add("Levotiroxina")
+                    if any(x in app for x in ["Asma", "EPOC", "Hiperreactividad", "Rinitis"]):
+                        meds_dinamicos.update(["Inhaladores (SABA/LAMA/Corticoides)", "Antihistamínicos"])
+                    if any(x in app for x in ["Cardiopatía", "Arritmia", "ACV", "Isquemia", "IAM", "Insuficiencia"]):
+                        meds_dinamicos.update(["Antiagregantes (Aspirina/Clopidogrel)", "Anticoagulantes (Warfarina/DOACs)", "Estatinas", "Antiarrítmicos / Digoxina"])
+                    if "Epilepsia" in app or "Convulsiones" in app or "Psiquiátrico" in app:
+                        meds_dinamicos.update(["Anticonvulsivantes", "Antidepresivos / Ansiolíticos"])
+                    if "Cáncer" in app:
+                        meds_dinamicos.update(["Medicación Oncológica (Quimioterapia / Inmunoterapia)", "Corticoides sistémicos", "Analgésicos Opioides"])
+                    if "Autoinmune" in app or "LES" in app:
+                        meds_dinamicos.update(["Inmunosupresores / Biológicos", "Corticoides sistémicos"])
+                    if "Dislipidemia" in app:
+                        meds_dinamicos.add("Estatinas / Fibratos")
+
+                lista_medicamentos = sorted(list(meds_dinamicos))
+                lista_medicamentos.insert(0, "Ninguno")
+                lista_medicamentos.append("Otros (Especificar)")
+                
+                medicacion_actual = c_unif2.multiselect("Fármacos de Uso Continuo (Autocompletado predictivo)", options=lista_medicamentos, key="mod2_medicacion")
                 if "Otros (Especificar)" in medicacion_actual: notas_medicacion_txt = c_unif2.text_input("📝 Especifique dosis o frecuencias:", key="mod2_med_notas_txt")
 
             st.divider()
@@ -587,12 +647,11 @@ with col_izquierda:
                 fevi_disponible = c_card4.checkbox("¿Cuenta con reporte de Ecocardiograma?", key="mod4_check_fevi")
                 if fevi_disponible: fevi_valor = c_card4.number_input("Fracción de Eyección (FEVI %)", min_value=10.0, max_value=85.0, value=60.0, step=1.0, key="mod4_fevi_val")
 
-                # Extracción segura desde el session_state para evitar NameError
                 riesgo_actual = st.session_state.get("mod1_riesgo", "")
                 factor_cirugia_riesgo = 1 if (riesgo_actual and "Alto" in riesgo_actual) else 0
                 factor_cardiopatia_isq = 1 if (not sin_antecedentes and any("Isquémica" in p or "IAM" in p for p in antecedentes_seleccionados)) or cardio_angina else 0
                 
-                factor_insuf_cardiaca = 1 if (not sin_antecedentes and "Insuficiencia Cardíaca" in antecedentes_seleccionados) or cardio_edema or cardio_disnea else 0
+                factor_insuf_cardiaca = 1 if (not sin_antecedentes and any(x in p for p in antecedentes_seleccionados for x in ["Insuficiencia", "Falla Cardíaca"])) or cardio_edema or cardio_disnea else 0
                 factor_acv = 1 if (not sin_antecedentes and any("ACV" in p or "Isquemia" in p for p in antecedentes_seleccionados)) else 0
                 factor_insulina = 1 if (not sin_antecedentes and "Insulina" in medicacion_actual) else 0
                 score_lee = factor_cirugia_riesgo + factor_cardiopatia_isq + factor_insuf_cardiaca + factor_acv + factor_insulina
@@ -856,7 +915,6 @@ with col_derecha:
                 st.markdown(f"**Ámbito de Atención:** *{ambito_atencion}*")
                 st.markdown(f"**Especialidad Quirúrgica:** *{especialidad_calc}*")
                 
-                # Ajuste del modificador ASA "E" para urgencias/emergencias
                 asa_final = asa_calc
                 if caracter_calc in ["Urgencia", "Emergencia"] and "E" not in asa_final:
                     asa_final += " - 'E' (Emergencia)"
@@ -865,7 +923,6 @@ with col_derecha:
                 st.markdown(f"**Carácter Quirúrgico:** *{caracter_calc}*")
                 st.markdown(f"**Riesgo Quirúrgico (AHA/ACC):** *{riesgo_calc}*")
                 
-                # Despliegue dinámico de Ayuno / Obstetricia en el Espejo
                 if "Quirófano / Emergencia" in ambito_atencion:
                     horas_calc = horas_ayuno if 'horas_ayuno' in locals() else 8
                     tipo_ayuno_calc = tipo_ayuno if 'tipo_ayuno' in locals() else "Sólidos pesados"
@@ -875,10 +932,8 @@ with col_derecha:
                         eg_calc = semanas_eg if 'semanas_eg' in locals() else 0
                         st.markdown(f"**Edad Gestacional Activa:** **{eg_calc} semanas**")
                     
-                    # --- MOTOR DE ALERTAS DE SEGURIDAD EN QUIRÓFANO ---
                     st.markdown("##### 🔍 Alertas de Seguridad en Quirófano:")
                     
-                    # 1. Alerta de Ayuno Insuficiente (Guía ASA)
                     ayuno_insuficiente = False
                     if "Sólidos" in tipo_ayuno_calc and horas_calc < 8: ayuno_insuficiente = True
                     elif "formula" in tipo_ayuno_calc and horas_calc < 6: ayuno_insuficiente = True
@@ -890,11 +945,9 @@ with col_derecha:
                     else:
                         st.success("🟢 **Seguridad de Vía Aérea:** Tiempos de ayuno conformes a directrices formales ASA.")
                         
-                    # 2. Alerta de Compresión Aortocava Obstétrica
                     if obs_calc and semanas_eg >= 20:
                         st.warning(f"⚠️ **ALERTA DE COMPRESIÓN AORTOCAVA ({semanas_eg} semanas):** El útero grávido compromete críticamente el retorno venoso. Al posicionar a la paciente en la mesa quirúrgica, aplique obligatoriamente un **desplazamiento uterino a la izquierda de 15 grados** para prevenir hipotensión materna severa.")
                 
-                # Campos universales de diagnóstico y procedimiento
                 st.markdown(f"**Diagnóstico Principal:** **{diag_calc}**")
                 if localizacion_frac_calc != "No aplica":
                     st.markdown(f"**Detalle de Traumatología:** 🦴 *{localizacion_frac_calc}*")
@@ -902,7 +955,6 @@ with col_derecha:
                 st.divider()
                 st.success(f"💉 **Estrategia Anestésica:** **{anestesia_calc}**")
                 
-                # Alerta de Previsión de Hemoderivados
                 if req_sangre_calc:
                     st.error("🩸 **REQUERIMIENTO TRANSFUSIONAL ACTIVO:** Procedimiento con previsión de sangrado mayor. Se exige verificación de pruebas cruzadas y reserva de hemoderivados en banco de sangre previo a la inducción.")
 
@@ -1014,7 +1066,6 @@ with col_derecha:
                         st.success("🟢 **Riesgo Resonador/Reflejo:** Vía aérea reactiva basal estable.")
                 
                 else:
-                    # --- MOTOR OBESE ADULTOS ---
                     score_obese_total = 0
                     if 'imc_control' in locals() and imc_control >= 30.0: score_obese_total += 1
                     if vmd_barba_calc: score_obese_total += 1
@@ -1023,7 +1074,6 @@ with col_derecha:
                     if 'edad_calc' in locals() and edad_calc > 55: score_obese_total += 1
                     estrato_obese = "Riesgo Alto de Ventilación 🚨" if score_obese_total >= 2 else "Riesgo Bajo de Ventilación"
 
-                    # --- MOTOR STOP-BANG ADULTOS ---
                     score_stop_bang_total = sum([sb_s_calc, sb_t_calc, sb_o_calc])
                     if 'edad_calc' in locals() and edad_calc > 50: score_stop_bang_total += 1
                     if 'sexo_calc' in locals() and sexo_calc == "Masculino": score_stop_bang_total += 1
@@ -1032,7 +1082,6 @@ with col_derecha:
                     if 'app_raw' in locals() and "Hipertensión Arterial (HTA)" in app_raw: score_stop_bang_total += 1
                     estrato_sb = "Riesgo Alto para AOS 🚨" if score_stop_bang_total >= 5 else ("Riesgo Intermedio para AOS" if score_stop_bang_total >= 3 else "Riesgo Bajo para AOS")
 
-                    # --- MOTOR ARISCAT ADULTOS ---
                     score_ariscat_total = 0
                     aris_epoc = ariscat_enfermedad_pulmonar if 'ariscat_enfermedad_pulmonar' in locals() else False
                     aris_inf = ariscat_infeccion_reciente if 'ariscat_infeccion_reciente' in locals() else False
