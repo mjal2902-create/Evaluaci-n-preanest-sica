@@ -1262,8 +1262,6 @@ with col_derecha:
 🏥 NOTA DE EVALUACIÓN PREANESTÉSICA CONSOLIDADA
 =====================================================================
 Centro Institucional: {hospital_final}
-Responsable: Dr. Marcos Aviles
-Estatus de Validación: Certificado por Sistema Experto Perioperatorio
 
 1. FILIACIÓN Y ANTROPOMETRÍA
 ---------------------------------------------------------------------
