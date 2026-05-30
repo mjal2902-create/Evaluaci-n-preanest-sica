@@ -4,7 +4,7 @@ import math
 st.set_page_config(layout="wide", page_title="Asistente Anestésico", page_icon="🩺")
 
 # =============================================================================
-# 🛠️ FUNCIONES UTILITARIAS GLOBALES (ACCESIBLES DESDE CUALQUIER MÓDULO)
+# 🛠️ FUNCIONES UTILITARIAS GLOBALES
 # =============================================================================
 def formatear_lista(lista_original, texto_extra):
     lista = [x for x in lista_original if x != "Ninguno"] if len(lista_original) > 1 else list(lista_original)
@@ -16,264 +16,124 @@ def formatear_lista(lista_original, texto_extra):
 
 # --- TÍTULO PRINCIPAL ---
 st.title("🩺 Asistente de Evaluación Anestésica")
-st.caption("Desarrollado para optimización clínica intraoperatoria y seguridad del paciente.")
+st.caption("Sistema de validación perioperatoria y seguridad del paciente.")
 st.caption("**Autor:** Dr. Marcos Aviles")
 st.markdown("---")
 
-# =============================================================================
-# 1. INICIALIZACIÓN UNIFICADA DE LAS COLUMNAS PRINCIPALES
-# =============================================================================
 col_izquierda, col_derecha = st.columns([1.3, 1])
 
 # =============================================================================
-# COLUMNA IZQUIERDA: MÓDULOS DE EVALUACIÓN CLÍNICA (ENTRADA DE DATOS)
+# COLUMNA IZQUIERDA: MÓDULOS DE EVALUACIÓN CLÍNICA
 # =============================================================================
 with col_izquierda:
     st.header("📋 Datos de Entrada")
     
-    # ---------------------------------------------------------
-    # GATEKEEPER: REGISTRO INSTITUCIONAL (Bloqueo Estricto)
-    # ---------------------------------------------------------
     st.markdown("### 🏥 Registro Institucional")
-    
-    tipo_institucion = st.selectbox(
-        "Clasificación Institucional",
-        ["👈 Seleccione el Sector...", "Red Pública (MSP / IESS)", "Sector Privado / JBG", "Otro Centro / Práctica Privada"],
-        key="mod_inst_tipo"
-    )
-    
-    hospital_final = ""
-    hospital_valido = False
+    tipo_institucion = st.selectbox("Clasificación Institucional", ["👈 Seleccione el Sector...", "Red Pública (MSP / IESS)", "Sector Privado / JBG", "Otro Centro / Práctica Privada"], key="mod_inst_tipo")
+    hospital_final = ""; hospital_valido = False
     
     if tipo_institucion == "Red Pública (MSP / IESS)":
-        lista_publicos = [
-            "👈 Seleccione un hospital público...", 
-            "Hospital de Especialidades Abel Gilbert Pontón (MSP)",
-            "Hospital General del Norte de Guayaquil Los Ceibos (IESS)",
-            "Hospital de Especialidades Teodoro Maldonado Carbo (IESS)",
-            "Hospital General del Guasmo Sur (MSP)",
-            "Hospital General Dr. Enrique Ortega Moreira (MSP)",
-            "Hospital General Monte Sinaí (MSP)",
-            "Hospital Universitario de Guayaquil (MSP)",
-            "Otro Hospital Público (Especificar)"
-        ]
+        lista_publicos = ["👈 Seleccione un hospital público...", "Hospital de Especialidades Abel Gilbert Pontón (MSP)", "Hospital General del Norte de Guayaquil Los Ceibos (IESS)", "Hospital de Especialidades Teodoro Maldonado Carbo (IESS)", "Hospital General del Guasmo Sur (MSP)", "Hospital General Dr. Enrique Ortega Moreira (MSP)", "Hospital General Monte Sinaí (MSP)", "Hospital Universitario de Guayaquil (MSP)", "Otro Hospital Público (Especificar)"]
         hosp_sel = st.selectbox("📍 Seleccione el Hospital Público", lista_publicos, key="mod_inst_pub")
-        
-        if hosp_sel == "👈 Seleccione un hospital público...":
-            hospital_valido = False
-        elif hosp_sel == "Otro Hospital Público (Especificar)":
-            hospital_final = st.text_input("Escriba el nombre del hospital público:", key="mod_inst_pub_txt")
-            if hospital_final.strip() != "": hospital_valido = True
-        else:
-            hospital_final = hosp_sel
+        if hosp_sel != "👈 Seleccione un hospital público...":
             hospital_valido = True
+            hospital_final = st.text_input("Nombre del hospital:", key="mod_inst_pub_txt") if hosp_sel == "Otro Hospital Público (Especificar)" else hosp_sel
             
     elif tipo_institucion == "Sector Privado / JBG":
-        lista_privados = [
-            "👈 Seleccione un centro...", 
-            "Hospital de Niños Dr. Roberto Gilbert Elizalde (JBG)",
-            "Hospital Gineco-Obstétrico Alfredo G. Paulson (JBG)",
-            "Omni Hospital",
-            "Hospital Clínica Kennedy (Policentro / Alborada / Samborondón)",
-            "Hospital Alcívar",
-            "Interhospital",
-            "Hospital Clínica Panamericana",
-            "Otro Centro Privado (Especificar)"
-        ]
-        hosp_sel = st.selectbox("📍 Seleccione el Centro Privado / JBG", lista_privados, key="mod_inst_priv")
-        
-        if hosp_sel == "👈 Seleccione un centro...":
-            hospital_valido = False
-        elif hosp_sel == "Otro Centro Privado (Especificar)":
-            hospital_final = st.text_input("Escriba el nombre del centro privado:", key="mod_inst_priv_txt")
-            if hospital_final.strip() != "": hospital_valido = True
-        else:
-            hospital_final = hosp_sel
+        lista_privados = ["👈 Seleccione un centro...", "Hospital de Niños Dr. Roberto Gilbert Elizalde (JBG)", "Hospital Gineco-Obstétrico Alfredo G. Paulson (JBG)", "Omni Hospital", "Hospital Clínica Kennedy", "Hospital Alcívar", "Interhospital", "Hospital Clínica Panamericana", "Otro Centro Privado (Especificar)"]
+        hosp_sel = st.selectbox("📍 Seleccione el Centro Privado", lista_privados, key="mod_inst_priv")
+        if hosp_sel != "👈 Seleccione un centro...":
             hospital_valido = True
+            hospital_final = st.text_input("Nombre del centro:", key="mod_inst_priv_txt") if hosp_sel == "Otro Centro Privado (Especificar)" else hosp_sel
             
     elif tipo_institucion == "Otro Centro / Práctica Privada":
         hospital_final = st.text_input("Escriba el nombre de la Clínica o Centro Médico:", key="mod_inst_otro_txt")
         if hospital_final.strip() != "": hospital_valido = True
 
-    # --- APLICACIÓN DEL CANDADO DE SEGURIDAD ---
     if not hospital_valido:
-        st.info("🔒 Por favor, complete la selección de la institución arriba para desbloquear la evaluación.")
-        
+        st.info("🔒 Complete el registro institucional arriba para desbloquear la evaluación.")
     else: 
         st.success(f"✅ Centro registrado: **{hospital_final}**")
         st.divider()
         
         # ---------------------------------------------------------
-        # MÓDULO 1: DATOS DEMOGRÁFICOS Y CONTEXTO QUIRÚRGICO
+        # MÓDULO 1: DEMOGRÁFICOS Y CONTEXTO QUIRÚRGICO
         # ---------------------------------------------------------
         with st.expander("1. Datos Demográficos y Contexto Quirúrgico", expanded=True):
             st.divider() 
-            
-            # =====================================================================
-            # 🩺 BIFURCACIÓN DE ENTORNO: QUIRÓFANO VS CONSULTA EXTERNA
-            # =====================================================================
             st.markdown("### 🏢 Ámbito de la Evaluación Anestésica")
-            ambito_atencion = st.radio(
-                "Seleccione el entorno actual del paciente:",
-                ["Quirófano / Emergencia 🏥", "Consulta Externa Preanestésica 📑"],
-                horizontal=True,
-                key="mod1_ambito_atencion"
-            )
+            ambito_atencion = st.radio("Seleccione el entorno actual del paciente:", ["Quirófano / Emergencia 🏥", "Consulta Externa Preanestésica 📑"], horizontal=True, key="mod1_ambito_atencion")
             st.divider()
 
-            # --- FILA 1: DATOS DEMOGRÁFICOS BASALES ---
             c_demo1, c_demo2, c_demo3 = st.columns(3)
             sexo = c_demo1.radio("Sexo", ["Masculino", "Femenino"], key="mod1_sexo")
-            edad_default = 30 if sexo == "Femenino" else 50
-            edad = c_demo2.number_input("Edad (años)", min_value=0, max_value=120, value=edad_default, key="mod1_edad")
+            edad = c_demo2.number_input("Edad (años)", min_value=0, max_value=120, value=30 if sexo == "Femenino" else 50, key="mod1_edad")
             grupo_sangre = c_demo3.selectbox("Grupo y Rh", ["Desconocido", "O+", "O-", "A+", "A-", "B+", "B-", "AB+", "AB-"], key="mod1_gs")
             
-            # --- FILA 2: ANTROPOMETRÍA ---
             c_ant1, c_ant2 = st.columns(2)
             peso_real = c_ant1.number_input("Peso Real (kg)", min_value=1.0, max_value=300.0, value=70.0, step=0.1, key="mod1_peso")
             talla_cm = c_ant2.number_input("Talla (cm)", min_value=30.0, max_value=250.0, value=165.0, step=1.0, key="mod1_talla")
             
-            # --- PROCESAMIENTO SILENCIOSO DEL IMC ---
-            imc = 0.0
-            cat_imc = "No calculado"
-            if talla_cm > 0:
-                imc = peso_real / ((talla_cm / 100) ** 2)
-                if imc < 18.5: cat_imc = "Bajo Peso ⚠️"
-                elif imc < 25.0: cat_imc = "Normal ✅"
-                elif imc < 30.0: cat_imc = "Sobrepeso ⚠️"
-                else: cat_imc = "Obesidad 🚨"
+            imc = peso_real / ((talla_cm / 100) ** 2) if talla_cm > 0 else 0
             
             st.divider()
             
-            # --- CENTINELA DE TRANSICIÓN DE ESTADO ---
             def conmutar_modulo_obstetrico():
-                if st.session_state.get("mod1_es_obstetrico"):
-                    st.session_state["mod1_especialidad"] = "Ginecología y Obstetricia"
-                else:
-                    if st.session_state.get("mod1_especialidad") == "Ginecología y Obstetricia":
-                        st.session_state["mod1_especialidad"] = "Cirugía General"
+                if st.session_state.get("mod1_es_obstetrico"): st.session_state["mod1_especialidad"] = "Ginecología y Obstetricia"
+                elif st.session_state.get("mod1_especialidad") == "Ginecología y Obstetricia": st.session_state["mod1_especialidad"] = "Cirugía General"
 
-            # --- CONDICIONAMIENTO BIOLÓGICO PACIENTE OBSTÉTRICA ---
             es_obstetrico = False
             if sexo == "Femenino" and 12 <= edad <= 45:
-                es_obstetrico = st.checkbox(
-                    "🤰 Paciente Obstétrica (Cambia diagnósticos y procedimientos)", 
-                    key="mod1_es_obstetrico",
-                    on_change=conmutar_modulo_obstetrico
-                )
+                es_obstetrico = st.checkbox("🤰 Paciente Obstétrica (Cambia diagnósticos y procedimientos)", key="mod1_es_obstetrico", on_change=conmutar_modulo_obstetrico)
 
             st.markdown("**Contexto Quirúrgico y Clasificación**")
 
-            # Inicialización de seguridad de variables adaptativas
-            semanas_eg = 0
-            horas_ayuno = 8
-            tipo_ayuno = "No aplica"
-            plan_suspension_meds = []
-            interconsultas_req = []
+            # Inicialización de seguridad global para Módulo 1
+            semanas_eg = 0; horas_ayuno = 8; tipo_ayuno = "No aplica"; plan_suspension_meds = []; interconsultas_req = []
 
-            if "Quirófano / Emergencia" in ambito_atencion:
+            if "Quirófano" in ambito_atencion:
                 c_cx1, c_asa = st.columns(2)
-                caracter_cx = c_cx1.selectbox("Carácter de la Intervención", ["Electiva", "Urgencia", "Emergencia"], key="mod1_caracter")
-                
-                asa_ps = c_asa.selectbox("Clasificación ASA", [
-                    "ASA I: Paciente sano normal",
-                    "ASA II: Enfermedad sistémica leve",
-                    "ASA III: Enfermedad sistémica grave",
-                    "ASA IV: Enf. sistémica grave con amenaza vital",
-                    "ASA V: Paciente moribundo",
-                    "ASA VI: Muerte cerebral (Donante)"
-                ], key="mod1_asa")
+                caracter_cx = c_cx1.selectbox("Carácter", ["Electiva", "Urgencia", "Emergencia"], key="mod1_caracter")
+                asa_ps = c_asa.selectbox("Clasificación ASA", ["ASA I: Paciente sano normal", "ASA II: Enfermedad sistémica leve", "ASA III: Enfermedad sistémica grave", "ASA IV: Enf. sistémica grave con amenaza vital", "ASA V: Paciente moribundo", "ASA VI: Muerte cerebral (Donante)"], key="mod1_asa")
 
                 if es_obstetrico:
                     st.markdown("🤰 **Datos Obstétricos de Emergencia**")
-                    semanas_eg = st.number_input(
-                        "Semanas de Gestación Actual (EG):", 
-                        min_value=4, max_value=42, value=38, step=1, 
-                        key="mod1_semanas_eg"
-                    )
+                    semanas_eg = st.number_input("Semanas de Gestación Actual (EG):", min_value=4, max_value=42, value=38, step=1, key="mod1_semanas_eg")
 
                 st.markdown("⏱️ **Control de Ayuno Activo (Estatus NPO)**")
                 c_npo1, c_npo2 = st.columns(2)
                 tipo_ayuno = c_npo1.selectbox("Última ingesta de:", ["Sólidos pesados / Grasas", "Comida ligera / Leche de fórmula", "Leche materna", "Líquidos claros (Agua, té, café negro)"], key="mod1_tipo_ayuno")
                 horas_ayuno = c_npo2.number_input("Horas de ayuno cumplidas:", min_value=0, max_value=48, value=8, step=1, key="mod1_horas_ayuno")
-
             else:
                 caracter_cx = "Electiva"
                 c_cx1, c_asa = st.columns(2)
                 c_cx1.info("📋 **Carácter Quirúrgico:** Fijado automáticamente como **Electiva**.")
-                
-                asa_ps = c_asa.selectbox("Clasificación ASA Proyectada", [
-                    "ASA I: Paciente sano normal",
-                    "ASA II: Enfermedad sistémica leve",
-                    "ASA III: Enfermedad sistémica grave",
-                    "ASA IV: Enf. sistémica grave con amenaza vital"
-                ], key="mod1_asa")
+                asa_ps = c_asa.selectbox("Clasificación ASA Proyectada", ["ASA I: Paciente sano normal", "ASA II: Enfermedad sistémica leve", "ASA III: Enfermedad sistémica grave", "ASA IV: Enf. sistémica grave con amenaza vital"], key="mod1_asa")
 
                 st.markdown("📑 **Planificación y Optimización de Consulta Externa**")
                 c_ce1, c_ce2 = st.columns(2)
-                plan_suspension_meds = c_ce1.multiselect(
-                    "🛑 Plan de Suspensión de Fármacos Críticos:",
-                    ["Suspender Antiagregantes (Aspirina/Clopidogrel) 5-7 días antes", 
-                     "Suspender Anticoagulantes Orales (Warfarina/DOACs) según protocolo", 
-                     "Suspender Metformina 24 horas antes del procedimiento", 
-                     "Continuar Beta-bloqueadores de forma habitual el día de la cirugía", 
-                     "No requiere suspensiones de tratamiento continuo"],
-                    key="mod1_ce_suspensiones"
-                )
-                interconsultas_req = c_ce2.multiselect(
-                    "🩺 Interconsultas de Optimización Solicitadas:",
-                    ["Valoración por Cardiología (Riesgo Quirúrgico)", 
-                     "Valoración por Neumología (Espirometría / EPOC)", 
-                     "Valoración por Endocrinología (Control metabólico HbA1c)", 
-                     "Ninguna interconsulta adicional requerida"],
-                    key="mod1_ce_interconsultas"
-                )
+                plan_suspension_meds = c_ce1.multiselect("🛑 Plan de Suspensión de Fármacos Críticos:", ["Suspender Antiagregantes (Aspirina/Clopidogrel) 5-7 días antes", "Suspender Anticoagulantes Orales (Warfarina/DOACs) según protocolo", "Suspender Metformina 24 horas antes del procedimiento", "Continuar Beta-bloqueadores de forma habitual el día de la cirugía", "No requiere suspensiones de tratamiento continuo"], key="mod1_ce_suspensiones")
+                interconsultas_req = c_ce2.multiselect("🩺 Interconsultas de Optimización Solicitadas:", ["Valoración por Cardiología (Riesgo Quirúrgico)", "Valoración por Neumología (Espirometría / EPOC)", "Valoración por Endocrinología (Control metabólico HbA1c)", "Ninguna interconsulta adicional requerida"], key="mod1_ce_interconsultas")
 
-            riesgo_cx = st.selectbox("Riesgo Quirúrgico Intrínseco (AHA/ACC)", [
-                "Bajo (<1%) - Ej: Superficial, Endoscópica, Catarata", 
-                "Intermedio (1-5%) - Ej: Intraperitoneal, Ortopédica mayor", 
-                "Alto (>5%) - Ej: Vascular mayor, Torácica, Aórtica"
-            ], key="mod1_riesgo")
-            
+            riesgo_cx = st.selectbox("Riesgo Quirúrgico Intrínseco (AHA/ACC)", ["Bajo (<1%) - Ej: Superficial, Endoscópica, Catarata", "Intermedio (1-5%) - Ej: Intraperitoneal, Ortopédica mayor", "Alto (>5%) - Ej: Vascular mayor, Torácica, Aórtica"], key="mod1_riesgo")
             st.divider()
 
-            # --- CONSTRUCCIÓN DINÁMICA DE ESPECIALIDADES Quirúrgicas ---
             lista_especialidades = ["Cirugía General", "Cirugía Oncológica"]
-            if edad < 15:
-                lista_especialidades.append("Cirugía Pediátrica")
-            if sexo == "Femenino":
-                lista_especialidades.append("Ginecología y Obstetricia")
-                
-            lista_especialidades.extend([
-                "Traumatología y Ortopedia",
-                "Cirugía Cardiovascular y Torácica",
-                "Neurocirugía",
-                "Urología",
-                "Otorrinolaringología y Oftalmología",
-                "Cirugía Plástica y Maxilofacial",
-                "Otra Especialidad"
-            ])
+            if edad < 15: lista_especialidades.append("Cirugía Pediátrica")
+            if sexo == "Femenino": lista_especialidades.append("Ginecología y Obstetricia")
+            lista_especialidades.extend(["Traumatología y Ortopedia", "Cirugía Cardiovascular y Torácica", "Neurocirugía", "Urología", "Otorrinolaringología y Oftalmología", "Cirugía Plástica y Maxilofacial", "Otra Especialidad"])
 
             if "mod1_especialidad" in st.session_state:
                 current_spec = st.session_state["mod1_especialidad"]
-                if edad < 15 and current_spec == "Cirugía General":
-                    st.session_state["mod1_especialidad"] = "Cirugía Pediátrica"
-                elif edad >= 15 and current_spec == "Cirugía Pediátrica":
-                    st.session_state["mod1_especialidad"] = "Cirugía General"
+                if edad < 15 and current_spec == "Cirugía General": st.session_state["mod1_especialidad"] = "Cirugía Pediátrica"
+                elif edad >= 15 and current_spec == "Cirugía Pediátrica": st.session_state["mod1_especialidad"] = "Cirugía General"
             else:
                 st.session_state["mod1_especialidad"] = "Cirugía Pediátrica" if edad < 15 else "Cirugía General"
 
-            especialidad_cx = st.selectbox(
-                "Especialidad Quirúrgica", 
-                lista_especialidades, 
-                key="mod1_especialidad"
-            )
-       
+            especialidad_cx = st.selectbox("Especialidad Quirúrgica", lista_especialidades, key="mod1_especialidad")
             c_cx3, c_cx4 = st.columns(2)
             
-            # =====================================================================
-            # 🧠 MOTOR RELACIONAL: DIAGNÓSTICOS -> PROCEDIMIENTOS
-            # =====================================================================
+            # --- MOTOR RELACIONAL: DIAGNÓSTICOS -> PROCEDIMIENTOS ---
             mapa_cx = {
                 "Cirugía General": {
                     "Colelitiasis / Colecistitis Aguda": ["Colecistectomía Laparoscópica", "Colecistectomía Abierta"],
@@ -347,67 +207,43 @@ with col_izquierda:
             diccionario_actual = mapa_cx.get(especialidad_cx, {})
             lista_diagnosticos = list(diccionario_actual.keys())
             
-            # --- INYECCIÓN UNIVERSAL DE CÁNCER ---
             if especialidad_cx != "Cirugía Oncológica" and "Cáncer / Neoplasia Oncológica" not in lista_diagnosticos:
                 lista_diagnosticos.append("Cáncer / Neoplasia Oncológica")
                 diccionario_actual["Cáncer / Neoplasia Oncológica"] = ["Resección Tumoral Mayor", "Biopsia Escisional / Incisional", "Cirugía Paliativa / Derivativa"]
-            
             lista_diagnosticos.append("Otro (Especificar)")
+            
             diag_base = c_cx3.selectbox("Diagnóstico Principal", lista_diagnosticos, key="mod1_diag_base")
             diagnostico_final = c_cx3.text_input("Especifique el diagnóstico", key="mod1_diag_txt") if diag_base == "Otro (Especificar)" else diag_base
             
             lista_procedimientos = diccionario_actual.get(diag_base, ["Procedimiento Menor / Biopsia", "Procedimiento Mayor Especializado"])
-            if "Otro (Especificar)" not in lista_procedimientos:
-                lista_procedimientos.append("Otro (Especificar)")
-            
+            if "Otro (Especificar)" not in lista_procedimientos: lista_procedimientos.append("Otro (Especificar)")
             proc_base = c_cx4.selectbox("Procedimiento Propuesto", lista_procedimientos, key="mod1_proc_base")
             procedimiento_final = c_cx4.text_input("Especifique el procedimiento", key="mod1_proc_txt") if proc_base == "Otro (Especificar)" else proc_base
             
-            tiempo_fractura_cx = "No aplica"
+            tiempo_fractura_cx = "No aplica"; tipo_fractura_cx = "No aplica"
             if "Fractura" in diagnostico_final:
-                tiempo_fractura_cx = c_cx3.radio(
-                    "⏱️ Tiempo de Evolución de la Fractura:",
-                    ["Menor a un mes", "Mayor a un mes", "Mayor a un año"],
-                    key="mod1_tiempo_fractura",
-                    help="Clave para la estratificación de riesgo trombótico en la escala de Caprini."
-                )
-            
-            tipo_fractura_cx = "No aplica"
-            if "Fractura" in diagnostico_final:
+                tiempo_fractura_cx = c_cx3.radio("⏱️ Tiempo de Evolución de la Fractura:", ["Menor a un mes", "Mayor a un mes", "Mayor a un año"], key="mod1_tiempo_fractura")
                 st.caption("⚠️ Detalle de Traumatología Quirúrgica detectado:")
-                tipo_fractura_cx = st.selectbox(
-                    "🦴 Tipo / Localización de la Fractura a intervenir",
-                    [
-                        "Fractura de Cadera (Fémur Proximal) [Riesgo Caprini Extremo]",
-                        "Fractura de Pelvis o Acetábulo [Riesgo Caprini Extremo]",
-                        "Fractura de Miembro Inferior (Diáfisis de Fémur, Tibia, Peroné) [Riesgo Caprini Extremo]",
-                        "Fractura de Miembro Superior (Húmero, Radio, Cúbito, Clavícula)",
-                        "Fractura Vertebral / Columna (Compromiso medular / Estabilización)",
-                        "Fractura Conminuta de Tobillo / Retropié",
-                        "Fractura Maxilofacial / Mandibular Compleja"
-                    ], key="mod1_tipo_fractura"
-                )
+                tipo_fractura_cx = st.selectbox("🦴 Tipo / Localización de la Fractura a intervenir", ["Fractura de Cadera (Fémur Proximal) [Riesgo Caprini Extremo]", "Fractura de Pelvis o Acetábulo [Riesgo Caprini Extremo]", "Fractura de Miembro Inferior (Diáfisis de Fémur, Tibia, Peroné) [Riesgo Caprini Extremo]", "Fractura de Miembro Superior (Húmero, Radio, Cúbito, Clavícula)", "Fractura Vertebral / Columna (Compromiso medular / Estabilización)", "Fractura Conminuta de Tobillo / Retropié", "Fractura Maxilofacial / Mandibular Compleja"], key="mod1_tipo_fractura")
                 
             c_ane1, c_ane2 = st.columns(2)
             tipo_anestesia = c_ane1.selectbox("Técnica Anestésica Propuesta", ["Anestesia General (Balanceada / TIVA)", "Anestesia Regional (Neuroeje: Raquídea / Epidural)", "Bloqueo de Nervio Periférico + Sedación", "Cuidado Anestésico Monitorizado (MAC) / Sedación", "Anestesia Local"], key="mod1_tecnica")
-            
             st.markdown("<br>", unsafe_allow_html=True) 
-            req_sangre = c_ane2.checkbox("🩸 **Previsión de sangrado mayor (>500ml) / Requiere reserva de sangre cruzada**", key="mod1_sangre")
+            req_sangre = c_ane2.checkbox("🩸 **Previsión de sangrado mayor (>500ml) / Requiere reserva de sangre**", key="mod1_sangre")
 
         # ---------------------------------------------------------
-        # MÓDULO 2: SEGURIDAD Y ANTECEDENTES (Con Motor Predictivo)
+        # MÓDULO 2: SEGURIDAD, ALERGIAS Y ANTECEDENTES
         # ---------------------------------------------------------
         with st.expander("2. Seguridad, Alergias y Antecedentes Patológicos", expanded=True):
             st.markdown("#### 🚨 Alergias y Sensibilidades")
             sin_alergias = st.checkbox("✅ No refiere alergias", value=True, key="mod2_sin_alergias")
-            
             alergias_med = []; otras_alergias_med_txt = ""; alergias_alim = []; otras_alergias_ali_txt = ""
             if not sin_alergias:
                 c_al1, c_al2 = st.columns(2)
-                alergias_med = c_al1.multiselect("Farmacológicas / Sustancias", options=["Penicilinas / Betalactámicos", "AINEs", "Látex", "Opioides", "Relajantes Musculares", "Anestésicos Locales", "Medios de Contraste", "Otros (Especificar)"], key="mod2_al_med")
-                if "Otros (Especificar)" in alergias_med: otras_alergias_med_txt = c_al1.text_input("💊 Especifique otras alergias farmacológicas:", key="mod2_al_med_txt")
-                alergias_alim = c_al2.multiselect("Alimentarias", options=["Huevo", "Soya", "Mariscos / Yodo", "Frutos secos", "Lácteos", "Gluten", "Otros (Especificar)"], key="mod2_al_ali")
-                if "Otros (Especificar)" in alergias_alim: otras_alergias_ali_txt = c_al2.text_input("🥚 Especifique otras alergias alimentarias:", key="mod2_al_ali_txt")
+                alergias_med = c_al1.multiselect("Farmacológicas", ["Penicilinas / Betalactámicos", "AINEs", "Látex", "Opioides", "Relajantes Musculares", "Anestésicos Locales", "Medios de Contraste", "Otros (Especificar)"], key="mod2_al_med")
+                if "Otros (Especificar)" in alergias_med: otras_alergias_med_txt = c_al1.text_input("💊 Especifique:", key="mod2_al_med_txt")
+                alergias_alim = c_al2.multiselect("Alimentarias", ["Huevo", "Soya", "Mariscos / Yodo", "Frutos secos", "Lácteos", "Gluten", "Otros (Especificar)"], key="mod2_al_ali")
+                if "Otros (Especificar)" in alergias_alim: otras_alergias_ali_txt = c_al2.text_input("🥚 Especifique:", key="mod2_al_ali_txt")
 
             st.divider()
             st.markdown("#### 📋 Antecedentes Patológicos y Medicación Habitual")
@@ -434,47 +270,35 @@ with col_izquierda:
                 antecedentes_seleccionados = c_unif1.multiselect("Patologías Clínicas (APP)", options=lista_patologias, key="mod2_antecedentes")
 
                 if "Cirrosis Hepática" in antecedentes_seleccionados:
-                    st.caption("🟡 Evaluación de Severidad Hepática (Child-Pugh):")
+                    st.caption("🟡 Severidad Hepática (Child-Pugh):")
                     c_hep1, c_hep2 = st.columns(2)
                     child_ascitis = c_hep1.selectbox("Ascitis", ["Ausente", "Leve / Moderada (Controlada)", "Tensa / Grave (Refractaria)"], key="mod2_ascitis")
                     child_encefalo = c_hep2.selectbox("Encefalopatía", ["Ausente", "Grado I - II (Leve)", "Grado III - IV (Grave)"], key="mod2_encefalo")
 
                 if "Fractura / Traumatismo Mayor" in antecedentes_seleccionados:
-                    tipo_fractura_app = c_unif1.selectbox("🛹 Tipo / Localización de la Fractura", ["Fractura de Cadera (Fémur Proximal) [Riesgo Caprini Alto]", "Fractura de Pelvis o Acetábulo [Riesgo Caprini Alto]", "Fractura de Miembro Inferior (Diáfisis de Fémur, Tibia, Peroné)", "Otro Traumatismo Mayor"])
-                    tipo_fractura_ant = c_unif1.radio("⏱️ Tiempo desde el antecedente de la fractura:", ["Menor a un mes", "Mayor a un mes", "Mayor a un año"], key="mod2_tiempo_frac_ant")
-                
-                if "Otros (Especificar)" in antecedentes_seleccionados: 
-                    otros_antecedentes_txt = c_unif1.text_input("🔍 Especifique otros antecedentes:", key="mod2_ant_otros_txt")
+                    tipo_fractura_app = c_unif1.selectbox("🛹 Tipo de Fractura", ["Fractura de Cadera (Fémur Proximal) [Riesgo Caprini Alto]", "Fractura de Pelvis o Acetábulo [Riesgo Caprini Alto]", "Fractura de Miembro Inferior (Diáfisis de Fémur, Tibia, Peroné)", "Otro Traumatismo Mayor"])
+                    tipo_fractura_ant = c_unif1.radio("⏱️ Tiempo desde la fractura:", ["Menor a un mes", "Mayor a un mes", "Mayor a un año"], key="mod2_tiempo_frac_ant")
+                if "Otros (Especificar)" in antecedentes_seleccionados: otros_antecedentes_txt = c_unif1.text_input("🔍 Especifique otros:", key="mod2_ant_otros_txt")
                 
                 # --- MOTOR PREDICTIVO DE MEDICACIÓN ---
                 meds_dinamicos = set(["Analgésicos comunes (Paracetamol/AINEs)", "Protectores gástricos (IBP/Ranitidina)", "Vitaminas / Suplementos"])
-                
                 for app in antecedentes_seleccionados:
-                    if any(x in app for x in ["Hipertensión", "HTA", "Preeclampsia"]):
-                        meds_dinamicos.update(["Antihipertensivos (IECA/ARA II/BCC)", "Beta-bloqueadores", "Diuréticos"])
-                    if "Diabetes" in app:
-                        meds_dinamicos.update(["Metformina / Hipoglucemiantes orales", "Insulina"])
-                    if "Hipotiroidismo" in app:
-                        meds_dinamicos.add("Levotiroxina")
-                    if any(x in app for x in ["Asma", "EPOC", "Hiperreactividad", "Rinitis"]):
-                        meds_dinamicos.update(["Inhaladores (SABA/LAMA/Corticoides)", "Antihistamínicos"])
-                    if any(x in app for x in ["Cardiopatía", "Arritmia", "ACV", "Isquemia", "IAM", "Insuficiencia"]):
-                        meds_dinamicos.update(["Antiagregantes (Aspirina/Clopidogrel)", "Anticoagulantes (Warfarina/DOACs)", "Estatinas", "Antiarrítmicos / Digoxina"])
-                    if any(x in app for x in ["Epilepsia", "Convulsiones", "Psiquiátrico"]):
-                        meds_dinamicos.update(["Anticonvulsivantes", "Antidepresivos / Ansiolíticos"])
-                    if "Cáncer" in app:
-                        meds_dinamicos.update(["Medicación Oncológica (Quimioterapia / Inmunoterapia)", "Corticoides sistémicos", "Analgésicos Opioides"])
-                    if any(x in app for x in ["Autoinmune", "LES"]):
-                        meds_dinamicos.update(["Inmunosupresores / Biológicos", "Corticoides sistémicos"])
-                    if "Dislipidemia" in app:
-                        meds_dinamicos.add("Estatinas / Fibratos")
+                    if any(x in app for x in ["Hipertensión", "HTA", "Preeclampsia"]): meds_dinamicos.update(["Antihipertensivos (IECA/ARA II/BCC)", "Beta-bloqueadores", "Diuréticos"])
+                    if "Diabetes" in app: meds_dinamicos.update(["Metformina / Hipoglucemiantes orales", "Insulina"])
+                    if "Hipotiroidismo" in app: meds_dinamicos.add("Levotiroxina")
+                    if any(x in app for x in ["Asma", "EPOC", "Hiperreactividad", "Rinitis"]): meds_dinamicos.update(["Inhaladores (SABA/LAMA/Corticoides)", "Antihistamínicos"])
+                    if any(x in app for x in ["Cardiopatía", "Arritmia", "ACV", "Isquemia", "IAM", "Insuficiencia"]): meds_dinamicos.update(["Antiagregantes (Aspirina/Clopidogrel)", "Anticoagulantes (Warfarina/DOACs)", "Estatinas", "Antiarrítmicos / Digoxina"])
+                    if any(x in app for x in ["Epilepsia", "Convulsiones", "Psiquiátrico"]): meds_dinamicos.update(["Anticonvulsivantes", "Antidepresivos / Ansiolíticos"])
+                    if "Cáncer" in app: meds_dinamicos.update(["Medicación Oncológica (Quimioterapia / Inmunoterapia)", "Corticoides sistémicos", "Analgésicos Opioides"])
+                    if any(x in app for x in ["Autoinmune", "LES"]): meds_dinamicos.update(["Inmunosupresores / Biológicos", "Corticoides sistémicos"])
+                    if "Dislipidemia" in app: meds_dinamicos.add("Estatinas / Fibratos")
 
                 lista_medicamentos = sorted(list(meds_dinamicos))
                 lista_medicamentos.insert(0, "Ninguno")
                 lista_medicamentos.append("Otros (Especificar)")
                 
-                medicacion_actual = c_unif2.multiselect("Fármacos Predictivos", options=lista_medicamentos, key="mod2_medicacion")
-                if "Otros (Especificar)" in medicacion_actual: notas_medicacion_txt = c_unif2.text_input("📝 Especifique dosis o frecuencias:", key="mod2_med_notas_txt")
+                medicacion_actual = c_unif2.multiselect("Fármacos de Uso Continuo (Predictivo)", options=lista_medicamentos, key="mod2_medicacion")
+                if "Otros (Especificar)" in medicacion_actual: notas_medicacion_txt = c_unif2.text_input("📝 Especifique fármaco/dosis:", key="mod2_med_notas_txt")
 
             st.divider()
             st.markdown("#### 🚬 Hábitos y Estilo de Vida")
@@ -491,9 +315,9 @@ with col_izquierda:
                 hab_cigarrillo = c_cig1.checkbox("Tabaquismo (Cigarrillos)", key="mod2_hab_cig")
                 int_cigarrillo = c_cig2.selectbox("Intensidad Cigarrillo", ["+", "++", "+++"], key="mod2_int_cig", disabled=not hab_cigarrillo, label_visibility="collapsed")
                 
-                c_cafe1, c_cafe2 = st.columns([3, 1])
-                hab_cafe = c_cafe1.checkbox("Consumo de Café", key="mod2_hab_caf")
-                int_cafe = c_cafe2.selectbox("Intensidad Café", ["+", "++", "+++"], key="mod2_int_caf", disabled=not hab_cafe, label_visibility="collapsed")
+                c_caf1, c_caf2 = st.columns([3, 1])
+                hab_cafe = c_caf1.checkbox("Consumo de Café", key="mod2_hab_caf")
+                int_cafe = c_caf2.selectbox("Intensidad Café", ["+", "++", "+++"], key="mod2_int_caf", disabled=not hab_cafe, label_visibility="collapsed")
                 
                 c_dro1, c_dro2 = st.columns([3, 1])
                 hab_drogas = c_dro1.checkbox("Sustancias / Drogas de Abuso", key="mod2_hab_dro")
@@ -572,7 +396,6 @@ with col_izquierda:
                 if not es_pediatrico_va:
                     st.divider()
                     st.markdown("#### 😷 Factores Físicos y Sintomatología (OBESE / STOP)")
-                    st.caption("Marque las características particulares identificadas en la evaluación:")
                     vmd_barba = st.checkbox("🔸 Presencia de barba tupida (Dificulta el sello de la máscara)", key="mod3_barba")
                     vmd_edentulo = st.checkbox("🔸 Paciente edéntulo total o parcial", key="mod3_edentulo")
                     sb_s = st.checkbox("🔸 Historial de ronquido fuerte (Audible a través de puertas cerradas)", key="mod3_sb_s")
@@ -580,8 +403,7 @@ with col_izquierda:
                     sb_o = st.checkbox("🔸 Apnea nocturna observada por terceros (Pausas al respirar)", key="mod3_sb_o")
 
             st.divider()
-            st.markdown("#### 🧦 Evaluación Respiratoria Avanzada (ARISCAT)")
-            st.caption("Complete los hallazgos clínicos para la predicción de complicaciones pulmonares postoperatorias:")
+            st.markdown("#### 🫁 Evaluación Respiratoria Avanzada (ARISCAT)")
             c_aris1, c_aris2 = st.columns(2)
             with c_aris1: ariscat_enfermedad_pulmonar = st.checkbox("🔸 Patología respiratoria crónica activa (EPOC, Asma sintomática, Fibrosis)", key="mod3_ariscat_epoc")
             with c_aris2: ariscat_infeccion_reciente = st.checkbox("🔸 Infección de vías respiratorias (altas o bajas) en el último mes", key="mod3_ariscat_inf")
@@ -591,7 +413,7 @@ with col_izquierda:
         # ---------------------------------------------------------
         with st.expander("4. Evaluación Cardiovascular y Capacidad Funcional", expanded=True):
             capacidad_funcional = "No aplica (Pediátrico)"; clase_nyha = "No aplica (Pediátrico)"; cardio_angina = False; cardio_disnea = False; cardio_palpitaciones = False; cardio_edema = False; cardio_soplo = False; ecg_hallazgo = "No disponible / No solicitado"; fevi_valor = 60.0; fevi_disponible = False
-            clase_ross = "Clase I"; complejidad_cc = "Leve"
+            clase_ross = "Clase I"; complejidad_cc = "Leve"; tiene_marcapasos = False
             es_pediatrico = edad < 18
             mostrar_cardio_completo = True
 
@@ -629,6 +451,10 @@ with col_izquierda:
                 ecg_hallazgo = c_card3.selectbox("Hallazgo en Electrocardiograma (ECG)", ["Ritmo Sinusal Normal", "Fibrilación Auricular / Flutter / Extrasistolia frecuente", "Bloqueo de Rama (Izquierda / Derecha / Bifascicular)", "Bloqueo AV (Primer, Segundo o Tercer grado)", "Trastornos de la Repolarización / Isquemia subendocárdica", "Hipertrofia Ventricular / Signos de sobrecarga", "No disponible / No solicitado"], key="mod4_ecg")
                 fevi_disponible = c_card4.checkbox("¿Cuenta con reporte de Ecocardiograma?", key="mod4_check_fevi")
                 if fevi_disponible: fevi_valor = c_card4.number_input("Fracción de Eyección (FEVI %)", min_value=10.0, max_value=85.0, value=60.0, step=1.0, key="mod4_fevi_val")
+                
+                st.divider()
+                st.markdown("#### ⚡ Dispositivos Implantables")
+                tiene_marcapasos = st.checkbox("⚙️ Paciente portador de Marcapasos o Desfibrilador Automático Implantable (DAI)", key="mod4_marcapasos")
 
         # ---------------------------------------------------------
         # MÓDULO 5: PRUEBAS DE LABORATORIO Y COAGULACIÓN
@@ -638,15 +464,24 @@ with col_izquierda:
 
             hb_val = 14.0; hto_val = 42.0; plaquetas_val = 250000; urea_val = 30.0; creatinina_val = 0.8; albumina_serica = 3.5; sodio_serico = 140.0; potasio_serico = 4.0; cloro_serico = 102.0; bili_total = 1.0; tp_val = 12.0; ttpa_val = 30.0; inr_val = 1.0; tiene_gasometria = False
             ph_val = 7.40; paco2_val = 40.0; hco3_val = 24.0; pao2_val = 90.0; fio2_val = 21.0; be_val = 0.0; na_gas = 140.0; cl_gas = 102.0; lactato_val = 1.0
+            glucosa_basal = 90.0; hba1c_val = 5.5; ver_metabolico = False
             cirrosis_activa = "Cirrosis Hepática" in antecedentes_seleccionados
 
             if not sin_laboratorios or cirrosis_activa:
-                st.markdown("#### #### 🩸 Hemograma")
+                st.markdown("#### 🩸 Hemograma")
                 c_lab1, c_lab2, c_lab3 = st.columns(3)
                 hb_val = c_lab1.number_input("Hemoglobina (g/dL)", min_value=3.0, max_value=25.0, value=14.0, step=0.1, key="mod5_hb")
                 hto_val = c_lab2.number_input("Hematocrito (%)", min_value=10.0, max_value=75.0, value=42.0, step=1.0, key="mod5_hto")
                 plaquetas_val = c_lab3.number_input("Plaquetas (u/µL)", min_value=10000, max_value=1000000, value=250000, step=5000, key="mod5_plaq")
                 st.divider()
+
+                ver_metabolico = st.checkbox("🍬 Incluir Perfil Glucémico / Metabólico", value=True if "Diabetes" in str(antecedentes_seleccionados) else False, key="chk_grupo_metabolico")
+                if ver_metabolico:
+                    st.markdown("#### 🍬 Perfil Glucémico")
+                    c_glu1, c_glu2 = st.columns(2)
+                    glucosa_basal = c_glu1.number_input("Glucosa Basal (mg/dL)", min_value=20.0, max_value=800.0, value=90.0, step=1.0, key="mod5_glucosa")
+                    hba1c_val = c_glu2.number_input("Hemoglobina Glicosilada (HbA1c %)", min_value=3.0, max_value=20.0, value=5.5, step=0.1, key="mod5_hba1c")
+                    st.divider()
 
                 ver_renal = st.checkbox("🧪 Incluir Función Renal y Proteínas", value=True, key="chk_grupo_renal")
                 if ver_renal or cirrosis_activa:
@@ -657,7 +492,7 @@ with col_izquierda:
                     albumina_serica = c_ren3.number_input("Albúmina Sérica (g/dL)", min_value=1.0, max_value=6.0, value=3.5, step=0.1, key="mod5_albu")
                     st.divider()
 
-                ver_electrolitos = st.checkbox("🧪 Incluir Panel de Electrólitos Séricos", value=False, key="chk_grupo_elytes")
+                ver_electrolitos = st.checkbox("⚡ Incluir Panel de Electrólitos Séricos", value=False, key="chk_grupo_elytes")
                 if ver_electrolitos:
                     st.markdown("#### ⚡ Electrólitos Séricos")
                     c_el1, c_el2, c_el3 = st.columns(3)
@@ -697,7 +532,6 @@ with col_izquierda:
                     na_gas = c_gas7.number_input("Sodio en Gasometría (Na+)", min_value=100.0, max_value=180.0, value=140.0, step=1.0, key="mod5_na_gas")
                     cl_gas = c_gas8.number_input("Cloro en Gasometría (Cl-)", min_value=70.0, max_value=130.0, value=102.0, step=1.0, key="mod5_cl_gas")
                     lactato_val = c_gas9.number_input("Lactato Sérico (mmol/L)", min_value=0.0, max_value=25.0, value=1.0, step=0.1, key="mod5_lactato")
-                    st.divider()
 
         # ---------------------------------------------------------
         # MÓDULO 6: RIESGO TROMBOEMBÓLICO Y EMETOGÉNICO
@@ -735,10 +569,9 @@ with col_derecha:
         st.markdown("### 📊 PANEL DE CONTROL PERIOPERATORIO")
         tab1, tab2 = st.tabs(["🔢 Cálculos y Escalas", "📄 Reporte Final"])
         
-        # Declaraciones globales de seguridad para evitar NameError cruzados
-        score_obese_total = 0; score_stop_bang_total = 0; score_ariscat_total = 0; lee_val = 0; pts_apfel = 0; score_caprini = 0
+        # Declaraciones globales de seguridad para evitar NameError
+        score_obese_total = 0; score_stop_bang_total = 0; score_ariscat_total = 0; lee_val = 0; pts_apfel = 0; score_caprini = 0; pafi = 428.0; score_arne = 0
         es_ped = edad < 18
-        pafi = 428.0 
         
         with tab1:
             st.subheader("🧮 Espejo Clínico y Volúmenes (Módulo 1)")
@@ -768,21 +601,14 @@ with col_derecha:
                 bsa_calc = math.sqrt((peso_calc * talla_raw) / 3600.0)
                 
                 if es_ped:
-                    if edad_calc == 0:
-                        peso_esperado = 7.5  
-                        talla_esperada = 65.0
-                    elif 1 <= edad_calc <= 5:
-                        peso_esperado = (edad_calc * 2) + 8
-                        talla_esperada = (edad_calc * 6) + 77
-                    elif 6 <= edad_calc <= 12:
-                        peso_esperado = (edad_calc * 3) + 7
-                        talla_esperada = (edad_calc * 6) + 77
+                    if edad_calc == 0: peso_esperado = 7.5; talla_esperada = 65.0
+                    elif 1 <= edad_calc <= 5: peso_esperado = (edad_calc * 2) + 8; talla_esperada = (edad_calc * 6) + 77
+                    elif 6 <= edad_calc <= 12: peso_esperado = (edad_calc * 3) + 7; talla_esperada = (edad_calc * 6) + 77
                     else:  
                         if talla_raw >= 152.4:
                             if sexo_calc == "Masculino": peso_esperado = 50.0 + 2.3 * ((talla_raw / 2.54) - 60.0)
                             else: peso_esperado = 45.5 + 2.3 * ((talla_raw / 2.54) - 60.0)
-                        else:
-                            peso_esperado = (edad_calc * 3.3) + 5  
+                        else: peso_esperado = (edad_calc * 3.3) + 5  
                         talla_esperada = 162.0 if sexo_calc == "Femenino" else 173.0
 
                     porcentaje_peso = (peso_calc / peso_esperado) * 100
@@ -844,7 +670,6 @@ with col_derecha:
                     st.markdown(f"**Estado Obstétrico:** {'Paciente Obstétrica 🤰' if obs_calc else 'No aplica / No gestante'}")
                 
                 st.divider()
-                
                 st.markdown("##### 🏥 Contexto Quirúrgico y Planificación")
                 st.markdown(f"**Ámbito de Atención:** *{ambito_atencion}*")
                 st.markdown(f"**Especialidad Quirúrgica:** *{especialidad_calc}*")
@@ -943,6 +768,7 @@ with col_derecha:
                     if ped_retrognatia: desglose_arne_ped.append("Micrognatia/Retrognatia (+6 pts)"); score_arne_ped += 6
                     if ped_macroglosia: desglose_arne_ped.append("Macroglosia evidente (+6 pts)"); score_arne_ped += 6
                     if ped_cuello_corto: desglose_arne_ped.append("Cuello corto/Inmóvil (+6 pts)"); score_arne_ped += 6
+                    score_arne = score_arne_ped
 
                     desglose_pulm_ped = []
                     score_pulmonar_ped = 0
@@ -1143,6 +969,9 @@ with col_derecha:
                     if "Normal" not in ecg_hallazgo and "No disponible" not in ecg_hallazgo:
                         st.warning(f"⚠️ **Hallazgo ECG Crítico:** Se registra `{ecg_hallazgo}`. Monitorice DII y V5.")
 
+                    if tiene_marcapasos:
+                        st.error("🚨 **ALERTA ELECTROQUIRÚRGICA:** Paciente portador de Marcapasos/DAI. Riesgo de inhibición o descarga inapropiada. Solicite uso de electrobisturí BIPOLAR, tenga imán disponible en sala y considere reprogramación asincrónica (VOO/DOO) si la cirugía es supraumbilical.")
+
                 st.divider()
 
                 # =====================================================================
@@ -1179,6 +1008,15 @@ with col_derecha:
                     if inr_val > 1.5 or tp_val > 15.0:
                         st.error(f"🚨 **COAGULOPATÍA ACTIVA:** INR elevado (**{inr_val:.2f}**). Alto riesgo de sangrado.")
 
+                    if ver_metabolico or "Diabetes" in str(antecedentes_seleccionados):
+                        if glucosa_basal > 180:
+                            st.warning(f"⚠️ **Hiperglucemia Preoperatoria ({glucosa_basal:.0f} mg/dL):** Riesgo de cetoacidosis, diuresis osmótica e infección de herida. Considere corrección con insulina rápida.")
+                        elif glucosa_basal < 70:
+                            st.error(f"🚨 **HIPOGLUCEMIA CRÍTICA ({glucosa_basal:.0f} mg/dL):** Riesgo de daño neurológico bajo anestesia. Administre Dextrosa IV inmediatamente.")
+                            
+                        if hba1c_val >= 8.0:
+                            st.warning(f"⚠️ **Mal Control Metabólico Crónico (HbA1c {hba1c_val:.1f}%):** Aumento del riesgo de complicaciones cardiovasculares perioperatorias.")
+
                     detalles_organicos = []
                     if not sin_laboratorios or cirrosis_activa:
                         detalles_organicos.append(f"Creatinina: **{creatinina_val:.2f} mg/dL**")
@@ -1186,16 +1024,19 @@ with col_derecha:
                         detalles_organicos.append(f"Albúmina: **{albumina_serica:.1f} g/dL**")
                     if cirrosis_activa:
                         detalles_organicos.append(f"Bilirrubina: **{bili_total:.1f} mg/dL**")
+                    if ver_metabolico or "Diabetes" in str(antecedentes_seleccionados):
+                        detalles_organicos.append(f"Glucosa: **{glucosa_basal:.0f} mg/dL**")
+                        detalles_organicos.append(f"HbA1c: **{hba1c_val:.1f}%**")
                         
                     if detalles_organicos:
-                        st.markdown("**💾 Función Renal / Hepática Consolidada:**")
+                        st.markdown("**💾 Función Renal / Hepática / Metabólica:**")
                         st.markdown(" | ".join(detalles_organicos))
 
                     if tiene_gasometria:
                         st.markdown("---")
                         st.markdown("##### 🫁 Diagnóstico Ácido-Base (AGA)")
                         
-                        # --- MOTOR ÁCIDO-BASE ---
+                        # --- MOTOR ÁCIDO-BASE (Reglas de Boston) ---
                         estado_ab = "Normal"
                         if ph_val < 7.35:
                             if paco2_val > 45 and hco3_val <= 26: estado_ab = "Acidosis Respiratoria"
@@ -1214,7 +1055,7 @@ with col_derecha:
                         color_ph = "normal" if "Normal" in estado_ab else ("inverse" if "Acid" in estado_ab else "off")
                         st.metric(label="Diagnóstico Ácido-Base Primario", value=estado_ab, delta=f"pH: {ph_val:.2f}", delta_color=color_ph)
 
-                        pafi = pao2_val / (fio2_val / 100.0) if fio2_val > 20.0 else pao2_val / 0.21
+                        pafi = pao2_val / (fio2_val / 100.0) if fio2_val >= 21.0 else pao2_val / 0.21
                         anion_gap = na_gas - (cl_gas + hco3_val)
                         ag_corregido = anion_gap + 2.5 * (4.5 - (albumina_serica if albumina_serica > 1.0 else 1.0))
                         
@@ -1241,9 +1082,9 @@ with col_derecha:
                                 st.caption(f"📏 **Winters (PaCO2 Esperada):** {winters_min:.1f} - {winters_max:.1f} mmHg. *{comp_winters}*")
                                 
                         with g_col2:
-                            st.metric(label="Anion Gap (Corregido p/ Albúmina)", value=f"{ag_corregido:.1f} mEq/L", help="Rango normal: 8 - 12 mEq/L.")
-                            st.metric(label="Índice de Kirby (PaO2/FiO2)", value=f"{pafi:.0f} mmHg")
-                            st.metric(label="Gradiente A-a de O2", value=f"{gradiente_Aa:.1f} mmHg")
+                            st.metric(label="Anion Gap (Corregido p/ Albúmina)", value=f"{ag_corregido:.1f} mEq/L", help="Rango normal: 8 - 12 mEq/L. Ajustado usando la albúmina registrada en laboratorios.")
+                            st.metric(label="Índice de Kirby (PaO2/FiO2)", value=f"{pafi:.0f} mmHg", help="Normal > 300. Mide severidad de lesión pulmonar.")
+                            st.metric(label="Gradiente A-a de O2", value=f"{gradiente_Aa:.1f} mmHg", help="Estimado a nivel del mar (PB 760). Normal depende de edad/FiO2. Útil para distinguir hipoventilación de shunt.")
                         
                         if pafi < 200: st.error(f"🚨 **INSUFICIENCIA RESPIRATORIA CRÍTICA:** Kirby gravemente comprometido (**{pafi:.0f} mmHg**).")
                         if ag_corregido > 12 and "Acidosis Metabólica" in estado_ab:
@@ -1282,7 +1123,7 @@ with col_derecha:
 
                 if imc_control > 25.0: desglose_caprini.append("IMC > 25 kg/m² (+1 pt)"); score_caprini += 1
                 if obs_calc: desglose_caprini.append("Embarazo o postparto (+1 pt)"); score_caprini += 1
-                if "Alto" in riesgo_calc or "Intermedio" in riesgo_calc: desglose_caprini.append("Cirugía Mayor (>45min) (+2 pts)"); score_caprini += 2
+                if "Alto" in riesgo_cx or "Intermedio" in riesgo_cx: desglose_caprini.append("Cirugía Mayor (>45min) (+2 pts)"); score_caprini += 2
                 else: desglose_caprini.append("Cirugía Menor (<45min) (+1 pt)"); score_caprini += 1
                 if cardio_edema: desglose_caprini.append("Edema de miembros inferiores (+1 pt)"); score_caprini += 1
 
@@ -1370,6 +1211,8 @@ with col_derecha:
                 txt_labs_final = "No requeridos / Paciente clínicamente sano."
             else:
                 txt_labs_final = f"Hb: {hb_val:.1f}g/dL | Hto: {hto_val:.0f}% | Plaq: {plaquetas_val:,}/uL | TP: {tp_val:.1f}s | TTPa: {ttpa_val:.1f}s | INR: {inr_val:.2f}"
+                if ver_metabolico or "Diabetes" in str(antecedentes_seleccionados):
+                    txt_labs_final += f"\n   [Metabólico] Glucosa: {glucosa_basal:.0f} mg/dL | HbA1c: {hba1c_val:.1f}%"
                 if tiene_gasometria:
                     txt_labs_final += f"\n   [Gasometría] pH: {ph_val:.2f} | PaCO2: {paco2_val:.0f} mmHg | HCO3: {hco3_val:.1f} mEq/L | Lactato: {lactato_val:.1f} mmol/L | PaO2/FiO2: {pafi:.0f} mmHg"
 
@@ -1410,6 +1253,7 @@ Estatus de Validación: Certificado por Sistema Experto Perioperatorio
 • Alergias y Sensibilidades: {txt_alergias_final}
 • Antecedentes Patológicos Clínicos: {txt_app_final}
 • Medicación de Uso Continuo: {txt_meds_final}
+• Dispositivos Implantables: {'Marcapasos/DAI presente (Precaución con electrobisturí)' if tiene_marcapasos else 'No aplica'}
 • Hábitos y Estilo de Vida: {txt_habitos_final}
 
 4. SCREENING PREDICTIVO Y ESTRATIFICACIÓN DE RIESGO
