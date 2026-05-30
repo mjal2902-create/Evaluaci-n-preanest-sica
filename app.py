@@ -21,6 +21,9 @@ st.caption("Sistema de validación perioperatoria y seguridad del paciente.")
 st.caption("**Autor:** Dr. Marcos Aviles")
 st.markdown("---")
 
+# =============================================================================
+# 1. INICIALIZACIÓN UNIFICADA DE LAS COLUMNAS PRINCIPALES
+# =============================================================================
 col_izquierda, col_derecha = st.columns([1.3, 1])
 
 # =============================================================================
@@ -154,7 +157,6 @@ with col_izquierda:
             especialidad_cx = st.selectbox("Especialidad Quirúrgica", lista_especialidades, key="mod1_especialidad")
             c_cx3, c_cx4 = st.columns(2)
             
-            # --- MOTOR RELACIONAL: DIAGNÓSTICOS -> PROCEDIMIENTOS ---
             mapa_cx = {
                 "Cirugía General": {
                     "Colelitiasis / Colecistitis Aguda": ["Colecistectomía Laparoscópica", "Colecistectomía Abierta"],
@@ -244,17 +246,14 @@ with col_izquierda:
             procedimiento_final = c_cx4.text_input("Especifique el procedimiento", key="mod1_proc_txt") if proc_base == "Otro (Especificar)" else proc_base
             
             tiempo_fractura_cx = "No aplica"
-            if "Fractura" in diagnostico_final:
-                tiempo_fractura_cx = c_cx3.radio("⏱️ Tiempo de Evolución de la Fractura:", ["Menor a un mes", "Mayor a un mes", "Mayor a un año"], key="mod1_tiempo_fractura")
-            
             tipo_fractura_cx = "No aplica"
             if "Fractura" in diagnostico_final:
+                tiempo_fractura_cx = c_cx3.radio("⏱️ Tiempo de Evolución de la Fractura:", ["Menor a un mes", "Mayor a un mes", "Mayor a un año"], key="mod1_tiempo_fractura")
                 st.caption("⚠️ Detalle de Traumatología Quirúrgica detectado:")
                 tipo_fractura_cx = st.selectbox("🦴 Tipo / Localización de la Fractura a intervenir", ["Fractura de Cadera (Fémur Proximal) [Riesgo Caprini Extremo]", "Fractura de Pelvis o Acetábulo [Riesgo Caprini Extremo]", "Fractura de Miembro Inferior (Diáfisis de Fémur, Tibia, Peroné) [Riesgo Caprini Extremo]", "Fractura de Miembro Superior (Húmero, Radio, Cúbito, Clavícula)", "Fractura Vertebral / Columna (Compromiso medular / Estabilización)", "Fractura Conminuta de Tobillo / Retropié", "Fractura Maxilofacial / Mandibular Compleja"], key="mod1_tipo_fractura")
                 
             c_ane1, c_ane2 = st.columns(2)
             tipo_anestesia = c_ane1.selectbox("Técnica Anestésica Propuesta", ["Anestesia General (Balanceada / TIVA)", "Anestesia Regional (Neuroeje: Raquídea / Epidural)", "Bloqueo de Nervio Periférico + Sedación", "Cuidado Anestésico Monitorizado (MAC) / Sedación", "Anestesia Local"], key="mod1_tecnica")
-            
             st.markdown("<br>", unsafe_allow_html=True) 
             req_sangre = c_ane2.checkbox("🩸 **Previsión de sangrado mayor (>500ml) / Requiere reserva de sangre cruzada**", key="mod1_sangre")
 
@@ -311,7 +310,6 @@ with col_izquierda:
                     otros_antecedentes_txt = c_unif1.text_input("🔍 Especifique otros antecedentes:", key="mod2_ant_otros_txt")
                 
                 meds_dinamicos = set(["Analgésicos comunes (Paracetamol/AINEs)", "Protectores gástricos (IBP/Ranitidina)", "Vitaminas / Suplementos"])
-                
                 for app in antecedentes_seleccionados:
                     if any(x in app for x in ["Hipertensión", "HTA", "Preeclampsia"]): meds_dinamicos.update(["Antihipertensivos (IECA/ARA II/BCC)", "Beta-bloqueadores", "Diuréticos"])
                     if "Diabetes" in app: meds_dinamicos.update(["Metformina / Hipoglucemiantes orales", "Insulina"])
@@ -648,7 +646,7 @@ with col_derecha:
             if sb_s: score_stop_bang_total += 1
             if sb_t: score_stop_bang_total += 1
             if sb_o: score_stop_bang_total += 1
-            if any(x in str(antecedentes_seleccionados) for x in ["Hipertensión", "HTA"]): score_stop_bang_total += 1
+            if not sin_antecedentes and any(x in str(antecedentes_seleccionados) for x in ["Hipertensión", "HTA"]): score_stop_bang_total += 1
             if imc_control > 35.0: score_stop_bang_total += 1
             if edad_calc > 50: score_stop_bang_total += 1
             if "Mayor a 40 cm" in cuello_cat: score_stop_bang_total += 1
@@ -894,9 +892,10 @@ with col_derecha:
                     if ped_cuello_corto: desglose_arne_ped.append("Cuello corto/Inmóvil (+6 pts)")
 
                     desglose_pulm_ped = []
-                    if ped_ivra: desglose_pulm_ped.append("IVRA reciente (< 2 sem) (+1 pt)")
-                    if ped_estridor: desglose_pulm_ped.append("Historia de estridor (+1 pt)")
-                    if ariscat_infeccion_reciente: desglose_pulm_ped.append("Infección respiratoria activa (+1 pt)")
+                    score_pulmonar_ped = 0
+                    if ped_ivra: desglose_pulm_ped.append("IVRA reciente (< 2 sem) (+1 pt)"); score_pulmonar_ped += 1
+                    if ped_estridor: desglose_pulm_ped.append("Historia de estridor (+1 pt)"); score_pulmonar_ped += 1
+                    if ariscat_infeccion_reciente: desglose_pulm_ped.append("Infección respiratoria activa (+1 pt)"); score_pulmonar_ped += 1
 
                     m3_col1, m3_col2 = st.columns(2)
                     with m3_col1: 
@@ -940,7 +939,7 @@ with col_derecha:
                     if sb_s: desglose_sb.append("Ronquido Fuerte (S) (+1 pt)")
                     if sb_t: desglose_sb.append("Cansancio/Fatiga (T) (+1 pt)")
                     if sb_o: desglose_sb.append("Apnea Observada (O) (+1 pt)")
-                    if any(x in str(antecedentes_seleccionados) for x in ["Hipertensión", "HTA"]): desglose_sb.append("Hipertensión (P) (+1 pt)")
+                    if not sin_antecedentes and any(x in str(antecedentes_seleccionados) for x in ["Hipertensión", "HTA"]): desglose_sb.append("Hipertensión (P) (+1 pt)")
                     if imc_control > 35.0: desglose_sb.append("IMC > 35 kg/m² (B) (+1 pt)")
                     if edad_calc > 50: desglose_sb.append("Edad > 50 años (A) (+1 pt)")
                     if "Mayor a 40 cm" in cuello_cat: desglose_sb.append("Cuello > 40 cm (N) (+1 pt)")
@@ -1096,7 +1095,7 @@ with col_derecha:
 
                     if inr_val > 1.5 or tp_val > 15.0: st.error(f"🚨 **COAGULOPATÍA ACTIVA:** INR elevado (**{inr_val:.2f}**). Alto riesgo de sangrado.")
 
-                    if ver_metabolico or "Diabetes" in str(antecedentes_seleccionados):
+                    if ver_metabolico or (not sin_antecedentes and "Diabetes" in str(antecedentes_seleccionados)):
                         if glucosa_basal > 180: st.warning(f"⚠️ **Hiperglucemia Preoperatoria ({glucosa_basal:.0f} mg/dL):** Riesgo de cetoacidosis e infección de herida. Considere corrección.")
                         elif glucosa_basal < 70: st.error(f"🚨 **HIPOGLUCEMIA CRÍTICA ({glucosa_basal:.0f} mg/dL):** Riesgo de daño neurológico. Administre Dextrosa IV inmediatamente.")
                         if hba1c_val >= 8.0: st.warning(f"⚠️ **Mal Control Metabólico Crónico (HbA1c {hba1c_val:.1f}%):** Aumento del riesgo de complicaciones cardiovasculares.")
@@ -1107,7 +1106,7 @@ with col_derecha:
                         detalles_organicos.append(f"Urea: **{urea_val:.0f} mg/dL**")
                         detalles_organicos.append(f"Albúmina: **{albumina_serica:.1f} g/dL**")
                     if cirrosis_activa: detalles_organicos.append(f"Bilirrubina: **{bili_total:.1f} mg/dL**")
-                    if ver_metabolico or "Diabetes" in str(antecedentes_seleccionados):
+                    if ver_metabolico or (not sin_antecedentes and "Diabetes" in str(antecedentes_seleccionados)):
                         detalles_organicos.append(f"Glucosa: **{glucosa_basal:.0f} mg/dL**")
                         detalles_organicos.append(f"HbA1c: **{hba1c_val:.1f}%**")
                         
@@ -1189,6 +1188,7 @@ with col_derecha:
                 else: estrato_apfel = "Riesgo Alto (~60-80%) 🚨"; color_apfel = "inverse"
                     
                 desglose_caprini = []
+                
                 if tipo_fractura_ant == "Menor a un mes" or frac_calc == "Menor a un mes": desglose_caprini.append("Fractura / Trauma mayor < 1 mes (+5 pts)")
                 elif localizacion_frac_calc != "No aplica":
                     pts = 5 if "Riesgo Caprini Extremo" in localizacion_frac_calc else 2
@@ -1200,7 +1200,7 @@ with col_derecha:
 
                 if imc_control > 25.0: desglose_caprini.append("IMC > 25 kg/m² (+1 pt)")
                 if obs_calc: desglose_caprini.append("Embarazo o postparto (+1 pt)")
-                if "Alto" in riesgo_cx or "Intermedio" in riesgo_cx: desglose_caprini.append("Cirugía Mayor (>45min) (+2 pts)")
+                if "Alto" in riesgo_calc or "Intermedio" in riesgo_calc: desglose_caprini.append("Cirugía Mayor (>45min) (+2 pts)")
                 else: desglose_caprini.append("Cirugía Menor (<45min) (+1 pt)")
                 if cardio_edema: desglose_caprini.append("Edema de miembros inferiores (+1 pt)")
 
@@ -1277,7 +1277,7 @@ with col_derecha:
                 txt_labs_final = "No requeridos / Paciente clínicamente sano."
             else:
                 txt_labs_final = f"Hb: {hb_val:.1f}g/dL | Hto: {hto_val:.0f}% | Plaq: {plaquetas_val:,}/uL | TP: {tp_val:.1f}s | TTPa: {ttpa_val:.1f}s | INR: {inr_val:.2f}"
-                if ver_metabolico or "Diabetes" in str(antecedentes_seleccionados):
+                if ver_metabolico or (not sin_antecedentes and "Diabetes" in str(antecedentes_seleccionados)):
                     txt_labs_final += f"\n   [Metabólico] Glucosa: {glucosa_basal:.0f} mg/dL | HbA1c: {hba1c_val:.1f}%"
                 if tiene_gasometria:
                     txt_labs_final += f"\n   [Gasometría] pH: {ph_val:.2f} | PaCO2: {paco2_val:.0f} mmHg | HCO3: {hco3_val:.1f} mEq/L | Lactato: {lactato_val:.1f} mmol/L | PaO2/FiO2: {pafi:.0f} mmHg"
