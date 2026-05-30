@@ -114,7 +114,7 @@ with col_izquierda:
                 elif st.session_state.get("mod1_especialidad") == "Ginecología y Obstetricia": st.session_state["mod1_especialidad"] = "Cirugía General"
 
             es_obstetrico = False
-            if sexo == "Femenino" and 12 <= edad <= 45:
+            if sexo == "Femenino" and 10 <= edad <= 45:
                 es_obstetrico = st.checkbox("🤰 Paciente Obstétrica (Cambia diagnósticos y procedimientos)", key="mod1_es_obstetrico", on_change=conmutar_modulo_obstetrico)
 
             st.markdown("**Contexto Quirúrgico y Clasificación**")
