@@ -1189,11 +1189,22 @@ with col_derecha:
                 if pts_apfel <= 1: estrato_apfel = "Riesgo Bajo (~10-20%)"; color_apfel = "normal"
                 elif pts_apfel == 2: estrato_apfel = "Riesgo Moderado (~40%)"; color_apfel = "normal"
                 else: estrato_apfel = "Riesgo Alto (~60-80%) 🚨"; color_apfel = "inverse"
-                    
-                if score_caprini <= 1: estrato_caprini = "Riesgo Bajo"; color_caprini = "normal"
-                elif score_caprini == 2: estrato_caprini = "Riesgo Moderado"; color_caprini = "normal"
-                elif 3 <= score_caprini <= 4: estrato_caprini = "Riesgo Alto ⚠️"; color_caprini = "inverse"
-                else: estrato_caprini = "Riesgo Muy Alto / Extremo 🚨"; color_caprini = "inverse"
+                    # --- CALIBRACIÓN ESTRICTA DE LA ESCALA DE CAPRINI (MEDIATELY VALIDATION) ---
+                if score_caprini == 0: 
+                    estrato_caprini = "Riesgo Mínimo (<0.5%)"
+                    color_caprini = "normal"
+                elif 1 <= score_caprini <= 2: 
+                    estrato_caprini = "Riesgo Bajo (~1.5%)"
+                    color_caprini = "normal"
+                elif 3 <= score_caprini <= 4: 
+                    estrato_caprini = "Riesgo Moderado (~3.0%) ⚠️"
+                    color_caprini = "off"
+                elif 5 <= score_caprini <= 8: 
+                    estrato_caprini = "Riesgo Alto (~6.0%) 🚨"
+                    color_caprini = "inverse"
+                else: 
+                    estrato_caprini = "Riesgo Muy Alto (>11%) 🚨"
+                    color_caprini = "inverse"
                     
                 m6_col1, m6_col2 = st.columns(2)
                 with m6_col1: st.metric(label="Escala de Apfel (NVPO)", value=f"{pts_apfel} / 4 pts", delta=estrato_apfel, delta_color=color_apfel)
@@ -1210,14 +1221,13 @@ with col_derecha:
                     st.success("🟢 **Emetogénesis Controlada:** Riesgo bajo de NVPO.")
                     
                 if score_caprini >= 5:
-                    st.error(f"🚨 **ALERTA DE RIESGO TROMBOEMBÓLICO MUY ALTO ({score_caprini} pts):** Indicación mandatoria de **Profilaxis Combinada**: Medidas mecánicas + Enoxaparina 40 mg SC cada 24h.")
+                    st.error(f"🚨 **ALERTA RIESGO TROMBOEMBÓLICO ALTO/MUY ALTO ({score_caprini} pts):** Indicación mandatoria de **Profilaxis Combinada**: Medidas mecánicas + Farmacológica (HBPM Enoxaparina 40 mg SC cada 24h).")
                 elif 3 <= score_caprini <= 4:
-                    st.warning(f"⚠️ **Riesgo Caprini Alto ({score_caprini} pts):** HBPM farmacológica mandatoria + deambulación.")
-                elif score_caprini == 2:
-                    st.info(f"🔹 **Riesgo Caprini Moderado ({score_caprini} pts):** Considere medias elásticas.")
+                    st.warning(f"⚠️ **Riesgo Caprini Moderado ({score_caprini} pts):** Se recomienda Profilaxis farmacológica (HBPM) o medidas mecánicas de forma estricta.")
+                elif 1 <= score_caprini <= 2:
+                    st.info(f"🔹 **Riesgo Caprini Bajo ({score_caprini} pts):** Considere medias elásticas compresivas de forma preventiva.")
                 else:
-                    st.success("🟢 **Riesgo Tromboembólico Mínimo:** Solo deambulación temprana.")
-                    
+                    st.success("🟢 **Riesgo Tromboembólico Mínimo:** Solo se aconseja deambulación temprana, activa y frecuente.")
                 st.markdown("---")
                 st.caption("✨ **Monitorización de Pestaña 1 Completada.** Sincronización analítica establecida.")
 
