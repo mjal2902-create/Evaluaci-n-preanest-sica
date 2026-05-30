@@ -1351,5 +1351,3 @@ FIN DEL REPORTE - FIRMA REGISTRADA ELECTRÓNICAMENTE
 =====================================================================
 """
             st.code(reporte_medico_texto, language="text")
-
-```
