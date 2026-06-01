@@ -1,7 +1,7 @@
 import streamlit as st
 import math
 import plotly.graph_objects as go
-import streamlit.components.v1 as components 
+import streamlit.components.v1 as components
 
 st.set_page_config(layout="wide", page_title="Asistente Anestésico", page_icon="🩺")
 
@@ -53,14 +53,11 @@ components.html(
     <script>
     const doc = window.parent.document;
     const observer = new MutationObserver(function(mutations) {
-        // Apunta exclusivamente a los inputs dentro de los selectbox
         const selectInputs = doc.querySelectorAll('div[data-baseweb="select"] input');
         selectInputs.forEach(function(input) {
-            // El atributo 'none' le dice al celular que NO abra el teclado
             input.setAttribute('inputmode', 'none');
         });
     });
-    // Mantiene el script observando incluso si cambias de pestaña
     observer.observe(doc, { childList: true, subtree: true });
     </script>
     """,
@@ -69,9 +66,6 @@ components.html(
 )
 
 col_izquierda, col_derecha = st.columns([1.3, 1])
-
-# =============================================================================
-# COLUMNA IZQUIERDA: MÓDULOS DE EVALUACIÓN CLÍNICA
 
 # =============================================================================
 # COLUMNA IZQUIERDA: MÓDULOS DE EVALUACIÓN CLÍNICA
@@ -145,7 +139,6 @@ with col_izquierda:
 
             st.markdown("**Contexto Quirúrgico y Clasificación**")
 
-            # Inicialización de seguridad global para Módulo 1
             semanas_eg = 0; horas_ayuno = 8; tipo_ayuno = "No aplica"; plan_suspension_meds = []; interconsultas_req = []
 
             if "Quirófano" in ambito_atencion:
@@ -282,6 +275,7 @@ with col_izquierda:
             
             tiempo_fractura_cx = "No aplica"
             tipo_fractura_cx = "No aplica"
+            
             if "Fractura" in diagnostico_final:
                 tiempo_fractura_cx = c_cx3.radio(
                     "⏱️ Tiempo de Evolución de la Fractura:",
@@ -289,19 +283,13 @@ with col_izquierda:
                     key="mod1_tiempo_fractura",
                     help="Clave para la estratificación de riesgo trombótico en la escala de Caprini."
                 )
-                st.caption("⚠️ Detalle de Traumatología Quirúrgica detectado:")
-                tipo_fractura_cx = st.selectbox(
-                    "🦴 Tipo / Localización de la Fractura a intervenir",
-                    [
-                        "Fractura de Cadera (Fémur Proximal) [Riesgo Caprini Extremo]",
-                        "Fractura de Pelvis o Acetábulo [Riesgo Caprini Extremo]",
-                        "Fractura de Miembro Inferior (Diáfisis de Fémur, Tibia, Peroné) [Riesgo Caprini Extremo]",
-                        "Fractura de Miembro Superior (Húmero, Radio, Cúbito, Clavícula)",
-                        "Fractura Vertebral / Columna (Compromiso medular / Estabilización)",
-                        "Fractura Conminuta de Tobillo / Retropié",
-                        "Fractura Maxilofacial / Mandibular Compleja"
-                    ], key="mod1_tipo_fractura"
-                )
+                
+                # --- AUTO-CLASIFICACIÓN SILENCIOSA PARA CAPRINI ---
+                # Evitamos preguntar de nuevo lo que ya está en el diagnóstico principal
+                if any(palabra in diagnostico_final.upper() for palabra in ["CADERA", "FEMORAL", "FÉMUR", "PELVIS", "TIBIA", "PERONÉ", "INFERIOR"]):
+                    tipo_fractura_cx = "Riesgo Caprini Extremo"
+                else:
+                    tipo_fractura_cx = "Riesgo Caprini Standard"
                 
             c_ane1, c_ane2 = st.columns(2)
             tipo_anestesia = c_ane1.selectbox("Técnica Anestésica Propuesta", ["Anestesia General (Balanceada / TIVA)", "Anestesia Regional (Neuroeje: Raquídea / Epidural)", "Bloqueo de Nervio Periférico + Sedación", "Cuidado Anestésico Monitorizado (MAC) / Sedación", "Anestesia Local"], key="mod1_tecnica")
@@ -363,26 +351,16 @@ with col_izquierda:
                 
                 # --- MOTOR PREDICTIVO DE MEDICACIÓN ---
                 meds_dinamicos = set(["Analgésicos comunes (Paracetamol/AINEs)", "Protectores gástricos (IBP/Ranitidina)", "Vitaminas / Suplementos"])
-                
                 for app in antecedentes_seleccionados:
-                    if any(x in app for x in ["Hipertensión", "HTA", "Preeclampsia"]):
-                        meds_dinamicos.update(["Antihipertensivos (IECA/ARA II/BCC)", "Beta-bloqueadores", "Diuréticos"])
-                    if "Diabetes" in app:
-                        meds_dinamicos.update(["Metformina / Hipoglucemiantes orales", "Insulina"])
-                    if "Hipotiroidismo" in app:
-                        meds_dinamicos.add("Levotiroxina")
-                    if any(x in app for x in ["Asma", "EPOC", "Hiperreactividad", "Rinitis"]):
-                        meds_dinamicos.update(["Inhaladores (SABA/LAMA/Corticoides)", "Antihistamínicos"])
-                    if any(x in app for x in ["Cardiopatía", "Arritmia", "ACV", "Isquemia", "IAM", "Insuficiencia"]):
-                        meds_dinamicos.update(["Antiagregantes (Aspirina/Clopidogrel)", "Anticoagulantes (Warfarina/DOACs)", "Estatinas", "Antiarrítmicos / Digoxina"])
-                    if any(x in app for x in ["Epilepsia", "Convulsiones", "Psiquiátrico"]):
-                        meds_dinamicos.update(["Anticonvulsivantes", "Antidepresivos / Ansiolíticos"])
-                    if "Cáncer" in app:
-                        meds_dinamicos.update(["Medicación Oncológica (Quimioterapia / Inmunoterapia)", "Corticoides sistémicos", "Analgésicos Opioides"])
-                    if any(x in app for x in ["Autoinmune", "LES"]):
-                        meds_dinamicos.update(["Inmunosupresores / Biológicos", "Corticoides sistémicos"])
-                    if "Dislipidemia" in app:
-                        meds_dinamicos.add("Estatinas / Fibratos")
+                    if any(x in app for x in ["Hipertensión", "HTA", "Preeclampsia"]): meds_dinamicos.update(["Antihipertensivos (IECA/ARA II/BCC)", "Beta-bloqueadores", "Diuréticos"])
+                    if "Diabetes" in app: meds_dinamicos.update(["Metformina / Hipoglucemiantes orales", "Insulina"])
+                    if "Hipotiroidismo" in app: meds_dinamicos.add("Levotiroxina")
+                    if any(x in app for x in ["Asma", "EPOC", "Hiperreactividad", "Rinitis"]): meds_dinamicos.update(["Inhaladores (SABA/LAMA/Corticoides)", "Antihistamínicos"])
+                    if any(x in app for x in ["Cardiopatía", "Arritmia", "ACV", "Isquemia", "IAM", "Insuficiencia"]): meds_dinamicos.update(["Antiagregantes (Aspirina/Clopidogrel)", "Anticoagulantes (Warfarina/DOACs)", "Estatinas", "Antiarrítmicos / Digoxina"])
+                    if any(x in app for x in ["Epilepsia", "Convulsiones", "Psiquiátrico"]): meds_dinamicos.update(["Anticonvulsivantes", "Antidepresivos / Ansiolíticos"])
+                    if "Cáncer" in app: meds_dinamicos.update(["Medicación Oncológica (Quimioterapia / Inmunoterapia)", "Corticoides sistémicos", "Analgésicos Opioides"])
+                    if any(x in app for x in ["Autoinmune", "LES"]): meds_dinamicos.update(["Inmunosupresores / Biológicos", "Corticoides sistémicos"])
+                    if "Dislipidemia" in app: meds_dinamicos.add("Estatinas / Fibratos")
 
                 lista_medicamentos = sorted(list(meds_dinamicos))
                 lista_medicamentos.insert(0, "Ninguno")
@@ -767,7 +745,7 @@ with col_derecha:
             desglose_caprini.append("Fractura / Trauma mayor < 1 mes (+5 pts)"); score_caprini += 5
         elif localizacion_frac_calc != "No aplica":
             pts = 5 if "Riesgo Caprini Extremo" in localizacion_frac_calc else 2
-            desglose_caprini.append(f"Cirugía Ortopédica Mayor / Fractura (+{pts} pts)"); score_caprini += pts
+            desglose_caprini.append(f"Cirugía Ortopédica / Fractura (+{pts} pts)"); score_caprini += pts
 
         if 41 <= edad_calc <= 60: desglose_caprini.append("Edad 41-60 años (+1 pt)"); score_caprini += 1
         elif 61 <= edad_calc <= 74: desglose_caprini.append("Edad 61-74 años (+2 pts)"); score_caprini += 2
@@ -922,7 +900,7 @@ with col_derecha:
                     if obs_calc and semanas_eg >= 20: st.warning(f"⚠️ **ALERTA COMPRESIÓN AORTOCAVA:** Desplazamiento uterino a la izquierda de 15°.")
                 
                 st.markdown(f"**Diagnóstico Principal:** **{diag_calc}**")
-                if localizacion_frac_calc != "No aplica": st.markdown(f"**Detalle Trauma:** 🦴 *{localizacion_frac_calc}*")
+                if frac_calc != "No aplica": st.markdown(f"**Evolución del Trauma:** ⏱️ *{frac_calc}*")
                 st.markdown(f"**Procedimiento Quirúrgico:** **{proc_calc}**")
                 st.divider()
                 st.success(f"💉 **Estrategia Anestésica:** **{anestesia_calc}**")
@@ -1059,10 +1037,8 @@ with col_derecha:
                         m4_col1, m4_col2 = st.columns(2)
                         with m4_col1: st.metric(label="Clase Funcional (Ross)", value=clase_nyha)
                         with m4_col2: st.metric(label="Complejidad de la CC", value=capacidad_funcional)
-                        
                         if "Severa" in capacidad_funcional or "IV" in clase_nyha: st.error("🚨 **ALERTA CC COMPLEJA:** Alto riesgo de inestabilidad hemodinámica intraoperatoria.")
                         else: st.warning("⚠️ **Riesgo Intermedio Pediátrico:** Cardiopatía congénita moderada/leve.")
-                
                 else:
                     if lee_val == 0: clase_lee = "Clase I (Riesgo Bajo ~0.4%)"; color_lee = "normal"
                     elif lee_val == 1: clase_lee = "Clase II (Riesgo Moderado ~0.9%)"; color_lee = "normal"
@@ -1287,6 +1263,8 @@ with col_derecha:
 🏥 NOTA DE EVALUACIÓN PREANESTÉSICA CONSOLIDADA
 =====================================================================
 Centro Institucional: {hospital_final}
+Responsable: Dr. Marcos Aviles
+Estatus de Validación: Certificado por Sistema Experto Perioperatorio
 
 1. FILIACIÓN Y ANTROPOMETRÍA
 ---------------------------------------------------------------------
@@ -1301,7 +1279,7 @@ Centro Institucional: {hospital_final}
 2. CONTEXTO QUIRÚRGICO Y PLANIFICACIÓN
 ---------------------------------------------------------------------
 • Ámbito de Atención: {ambito_atencion}
-• Diagnóstico Principal: {diag_calc} {f'(Evolución: {frac_calc} | Localización: {localizacion_frac_calc})' if (frac_calc != "No aplica") else ''}
+• Diagnóstico Principal: {diag_calc} {f'(Evolución: {frac_calc})' if (frac_calc != "No aplica") else ''}
 • Procedimiento Quirúrgico: {proc_calc}
 • Carácter de la Cirugía: {caracter_calc}
 • Riesgo Quirúrgico Intrínseco (AHA/ACC): {riesgo_calc}
@@ -1323,7 +1301,7 @@ Centro Institucional: {hospital_final}
 
 4. SCREENING PREDICTIVO Y ESTRATIFICACIÓN DE RIESGO
 ---------------------------------------------------------------------
-• Índice de Intubación Difícil (Arné): {score_arne} puntos
+• Índice de Intubación Difícil (Arné): {score_arne if not es_ped else score_arne_ped} puntos
 • Riesgo de Ventilación (OBESE): {score_obese_total if not es_ped else 'N/A'} puntos
 • Tamizaje de Apnea del Sueño (STOP-Bang): {score_stop_bang_total if not es_ped else 'N/A'} puntos
 • Riesgo Pulmonar Postoperatorio (ARISCAT): {score_ariscat_total if not es_ped else 'N/A'} puntos
