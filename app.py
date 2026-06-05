@@ -509,12 +509,16 @@ with col_izquierda:
                     clase_nyha = f"Ross: {clase_ross.split(':')[0].strip()}"
 
             if mostrar_cardio_completo:
-                st.markdown("#### 🏃 Capacidad Metabólica y Clase Funcional")
-                c_card1, c_card2 = st.columns(2)
-                capacidad_funcional = c_card1.selectbox("Capacidad Funcional (Mets)", ["Excelente (≥ 10 METs) - Ej: Deportes de alta intensidad", "Buena (4 - 10 METs) - Ej: Sube dos pisos de escaleras sin detenerse", "Limitada (< 4 METs) - Ej: Camina 1 o 2 cuadras / Trabajo doméstico ligero", "Severamente Limitada (< 1 MET) - Ej: Disnea en reposo o actividades de autocuidado"], key="mod4_mets")
-                clase_nyha = c_card2.selectbox("Clasificación Funcional NYHA", ["Clase I: Sin limitación de la actividad física ordinaria", "Clase II: Limitación ligera. Confortable en reposo", "Clase III: Limitación marcada. Actividad menor a la ordinaria causa síntomas", "Clase IV: Incapacidad de realizar cualquier actividad sin malestar / Síntomas en reposo"], key="mod4_nyha")
-                
-                st.divider()
+                if "Consulta Externa" in ambito_atencion:
+                    st.markdown("#### 🏃 Capacidad Metabólica y Clase Funcional")
+                    c_card1, c_card2 = st.columns(2)
+                    capacidad_funcional = c_card1.selectbox("Capacidad Funcional (Mets)", ["Excelente (≥ 10 METs) - Ej: Deportes de alta intensidad", "Buena (4 - 10 METs) - Ej: Sube dos pisos de escaleras sin detenerse", "Limitada (< 4 METs) - Ej: Camina 1 o 2 cuadras / Trabajo doméstico ligero", "Severamente Limitada (< 1 MET) - Ej: Disnea en reposo o actividades de autocuidado"], key="mod4_mets")
+                    clase_nyha = c_card2.selectbox("Clasificación Funcional NYHA", ["Clase I: Sin limitación de la actividad física ordinaria", "Clase II: Limitación ligera. Confortable en reposo", "Clase III: Limitación marcada. Actividad menor a la ordinaria causa síntomas", "Clase IV: Incapacidad de realizar cualquier actividad sin malestar / Síntomas en reposo"], key="mod4_nyha")
+                    st.divider()
+                else:
+                    capacidad_funcional = "Omitido (No evaluable en agudo)"
+                    clase_nyha = "Omitido (No evaluable en agudo)"
+
                 st.markdown("#### 🫀 Sintomatología y Signos Clínicos Activos")
                 cardio_angina = st.checkbox("🔹 Angina inestable o de reciente comienzo", key="mod4_angina")
                 cardio_disnea = st.checkbox("🔹 Disnea de causa cardíaca no filiada / Ortopnea", key="mod4_disnea")
@@ -1084,17 +1088,16 @@ with col_derecha:
                             delta_fevi = "Normal ✅" if fevi_valor >= 50.0 else ("Disfunción Moderada ⚠️" if fevi_valor >= 40.0 else "Disfunción Severa 🚨")
                             st.metric(label="FEVI (Ecocardiograma)", value=f"{fevi_valor:.0f}%", delta=delta_fevi)
                         else:
-                            estrato_mets = "Limitada (<4 METs) ⚠️" if "Limitada" in capacidad_funcional or "Severamente" in capacidad_funcional else "Adecuada (≥4 METs) ✅"
-                            st.metric(label="Reserva Metabólica", value=estrato_mets)
+                            if "Consulta Externa" in ambito_atencion:
+                                estrato_mets = "Limitada (<4 METs) ⚠️" if "Limitada" in capacidad_funcional or "Severamente" in capacidad_funcional else "Adecuada (≥4 METs) ✅"
+                                st.metric(label="Reserva Metabólica", value=estrato_mets)
+                            else:
+                                st.metric(label="Reserva Metabólica", value="Omitida", delta="No evaluable en agudo", delta_color="off")
 
                     if "Consulta Externa" in ambito_atencion:
                         if lee_val >= 2 or "Limitada" in capacidad_funcional or "Severamente" in capacidad_funcional:
                             st.error(f"🚨 **ALERTA DE RIESGO CARDÍACO MAYOR:** Paciente en {clase_lee}. Evite taquicardia intraoperatoria.")
                         else: st.success("🟢 **Riesgo Cardiovascular Basal:** Adecuada reserva miocárdica.")
-                    else:
-                        if "Limitada" in capacidad_funcional or "Severamente" in capacidad_funcional:
-                            st.error(f"🚨 **ALERTA DE RIESGO CARDÍACO:** Reserva metabólica limitada. Riesgo de inestabilidad hemodinámica.")
-                        else: st.success("🟢 **Riesgo Cardiovascular:** Reserva miocárdica aparentemente adecuada.")
                         
                     sintomas_cardio = []
                     if cardio_angina: sintomas_cardio.append("💔 Angina Inestable")
@@ -1104,6 +1107,8 @@ with col_derecha:
                     if cardio_soplo: sintomas_cardio.append("🩺 Soplo patológico")
                     
                     if sintomas_cardio: st.error(f"🚨 **SÍNTOMAS CARDIOVASCULARES ACTIVOS:** Inestabilidad clínica: {', '.join(sintomas_cardio)}.")
+                    elif "Quirófano" in ambito_atencion: st.success("🟢 **Estatus Hemodinámico:** Sin síntomas de falla cardíaca aguda o isquemia activa.")
+                    
                     if "Normal" not in ecg_hallazgo and "No disponible" not in ecg_hallazgo: st.warning(f"⚠️ **Hallazgo ECG Crítico:** Se registra `{ecg_hallazgo}`. Monitorice DII y V5.")
                     if tiene_marcapasos: st.error("🚨 **ALERTA ELECTROQUIRÚRGICA:** Paciente portador de Marcapasos/DAI. Riesgo de inhibición. Solicite uso de electrobisturí BIPOLAR y tenga imán disponible.")
 
