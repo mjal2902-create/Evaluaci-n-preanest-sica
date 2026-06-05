@@ -463,18 +463,28 @@ with col_izquierda:
 
                 if not es_pediatrico_va:
                     st.divider()
-                    st.markdown("#### 😷 Factores Físicos y Sintomatología (OBESE / STOP)")
+                    
+                    # --- FILTRO TÁCTICO: OCULTAR PREGUNTAS INNECESARIAS EN QUIRÓFANO ---
+                    titulo_obese = "#### 😷 Factores Físicos y Sintomatología (OBESE / STOP-Bang)" if "Consulta Externa" in ambito_atencion else "#### 😷 Factores Físicos de Ventilación (OBESE)"
+                    st.markdown(titulo_obese)
+                    
                     vmd_barba = st.checkbox("🔸 Presencia de barba tupida (Dificulta el sello de la máscara)", key="mod3_barba")
                     vmd_edentulo = st.checkbox("🔸 Paciente edéntulo total o parcial", key="mod3_edentulo")
                     sb_s = st.checkbox("🔸 Historial de ronquido fuerte (Audible a través de puertas cerradas)", key="mod3_sb_s")
-                    sb_t = st.checkbox("🔸 Cansancio, fatiga o somnolencia diurna frecuente", key="mod3_sb_t")
-                    sb_o = st.checkbox("🔸 Apnea nocturna observada por terceros (Pausas al respirar)", key="mod3_sb_o")
+                    
+                    if "Consulta Externa" in ambito_atencion:
+                        sb_t = st.checkbox("🔸 Cansancio, fatiga o somnolencia diurna frecuente", key="mod3_sb_t")
+                        sb_o = st.checkbox("🔸 Apnea nocturna observada por terceros (Pausas al respirar)", key="mod3_sb_o")
+                    else:
+                        sb_t = False
+                        sb_o = False
 
-            st.divider()
-            st.markdown("#### 🫁 Evaluación Respiratoria Avanzada (ARISCAT)")
-            c_aris1, c_aris2 = st.columns(2)
-            with c_aris1: ariscat_enfermedad_pulmonar = st.checkbox("🔸 Patología respiratoria crónica activa (EPOC, Asma sintomática, Fibrosis)", key="mod3_ariscat_epoc")
-            with c_aris2: ariscat_infeccion_reciente = st.checkbox("🔸 Infección de vías respiratorias (altas o bajas) en el último mes", key="mod3_ariscat_inf")
+            if "Consulta Externa" in ambito_atencion:
+                st.divider()
+                st.markdown("#### 🫁 Evaluación Respiratoria Avanzada (ARISCAT)")
+                c_aris1, c_aris2 = st.columns(2)
+                with c_aris1: ariscat_enfermedad_pulmonar = st.checkbox("🔸 Patología respiratoria crónica activa (EPOC, Asma sintomática, Fibrosis)", key="mod3_ariscat_epoc")
+                with c_aris2: ariscat_infeccion_reciente = st.checkbox("🔸 Infección de vías respiratorias (altas o bajas) en el último mes", key="mod3_ariscat_inf")
 
         # ---------------------------------------------------------
         # MÓDULO 4: EVALUACIÓN CARDIOVASCULAR
@@ -780,6 +790,9 @@ with col_derecha:
         
         with tab1:
             st.markdown("##### 🕸️ Vistazo de Riesgo Perioperatorio")
+            if "Quirófano" in ambito_atencion:
+                st.caption("*(Ejes Cardiorrespiratorios calculados en background con datos basales)*")
+                
             r_cardio = min(lee_val + 1, 5)
             r_pulm = 1 if score_ariscat_total < 26 else (3 if score_ariscat_total < 45 else 5)
             
@@ -1005,26 +1018,27 @@ with col_derecha:
                             with st.expander("🔍 Ver desglose de puntos"):
                                 for item in desglose_obese: st.markdown(f"- {item}")
                     
-                    row2_col1, row2_col2 = st.columns(2)
-                    with row2_col1: 
-                        st.metric(label="STOP-Bang (Apnea)", value=f"{score_stop_bang_total} pts")
-                        if desglose_sb:
-                            with st.expander("🔍 Ver desglose de puntos"):
-                                for item in desglose_sb: st.markdown(f"- {item}")
-                    with row2_col2: 
-                        st.metric(label="ARISCAT (Pulmonar)", value=f"{score_ariscat_total} pts")
-                        if desglose_ariscat:
-                            with st.expander("🔍 Ver desglose de puntos"):
-                                for item in desglose_ariscat: st.markdown(f"- {item}")
+                    if "Consulta Externa" in ambito_atencion:
+                        row2_col1, row2_col2 = st.columns(2)
+                        with row2_col1: 
+                            st.metric(label="STOP-Bang (Apnea)", value=f"{score_stop_bang_total} pts")
+                            if desglose_sb:
+                                with st.expander("🔍 Ver desglose de puntos"):
+                                    for item in desglose_sb: st.markdown(f"- {item}")
+                        with row2_col2: 
+                            st.metric(label="ARISCAT (Pulmonar)", value=f"{score_ariscat_total} pts")
+                            if desglose_ariscat:
+                                with st.expander("🔍 Ver desglose de puntos"):
+                                    for item in desglose_ariscat: st.markdown(f"- {item}")
+                        
+                        if score_stop_bang_total >= 5: st.warning(f"⚠️ **STOP-Bang:** {estrato_sb}.")
+                        if score_ariscat_total >= 45: st.error(f"🚨 **Riesgo Pulmonar (ARISCAT):** {estrato_ariscat}.")
                     
                     if score_arne <= 10: st.success(f"🟢 **Índice de Intubación:** Riesgo Bajo ({score_arne} pts).")
                     else: st.error(f"🚨 **ALERTA:** Índice de Intubación Difícil Elevado ({score_arne} pts).")
 
                     if score_obese_total >= 2: st.error(f"🚨 **Índice de Ventilación (OBESE):** {estrato_obese}.")
                     else: st.success("🟢 **Índice de Ventilación:** Riesgo Bajo con Máscara.")
-
-                    if score_stop_bang_total >= 5: st.warning(f"⚠️ **STOP-Bang:** {estrato_sb}.")
-                    if score_ariscat_total >= 45: st.error(f"🚨 **Riesgo Pulmonar (ARISCAT):** {estrato_ariscat}.")
                     
                     hallazgos_va = []
                     if any(x in mallampati for x in ["III", "IV"]): hallazgos_va.append("👅 Mallampati Alto")
@@ -1047,10 +1061,8 @@ with col_derecha:
                         m4_col1, m4_col2 = st.columns(2)
                         with m4_col1: st.metric(label="Clase Funcional (Ross)", value=clase_nyha)
                         with m4_col2: st.metric(label="Complejidad de la CC", value=capacidad_funcional)
-                        
                         if "Severa" in capacidad_funcional or "IV" in clase_nyha: st.error("🚨 **ALERTA CC COMPLEJA:** Alto riesgo de inestabilidad hemodinámica intraoperatoria.")
                         else: st.warning("⚠️ **Riesgo Intermedio Pediátrico:** Cardiopatía congénita moderada/leve.")
-                
                 else:
                     if lee_val == 0: clase_lee = "Clase I (Riesgo Bajo ~0.4%)"; color_lee = "normal"
                     elif lee_val == 1: clase_lee = "Clase II (Riesgo Moderado ~0.9%)"; color_lee = "normal"
@@ -1059,10 +1071,14 @@ with col_derecha:
                         
                     m4_col1, m4_col2 = st.columns(2)
                     with m4_col1: 
-                        st.metric(label="Índice de Lee (RCRI)", value=f"{lee_val} pts", delta=clase_lee, delta_color=color_lee)
-                        if desglose_lee:
-                            with st.expander("🔍 Ver desglose de puntos"):
-                                for item in desglose_lee: st.markdown(f"- {item}")
+                        if "Consulta Externa" in ambito_atencion:
+                            st.metric(label="Índice de Lee (RCRI)", value=f"{lee_val} pts", delta=clase_lee, delta_color=color_lee)
+                            if desglose_lee:
+                                with st.expander("🔍 Ver desglose de puntos"):
+                                    for item in desglose_lee: st.markdown(f"- {item}")
+                        else:
+                            st.metric(label="Riesgo Cardiovascular", value="Clínico", delta="Basado en síntomas", delta_color="off", help="Índice de Lee predictivo omitido en el transoperatorio.")
+                            
                     with m4_col2:
                         if fevi_disponible:
                             delta_fevi = "Normal ✅" if fevi_valor >= 50.0 else ("Disfunción Moderada ⚠️" if fevi_valor >= 40.0 else "Disfunción Severa 🚨")
@@ -1071,9 +1087,14 @@ with col_derecha:
                             estrato_mets = "Limitada (<4 METs) ⚠️" if "Limitada" in capacidad_funcional or "Severamente" in capacidad_funcional else "Adecuada (≥4 METs) ✅"
                             st.metric(label="Reserva Metabólica", value=estrato_mets)
 
-                    if lee_val >= 2 or "Limitada" in capacidad_funcional or "Severamente" in capacidad_funcional:
-                        st.error(f"🚨 **ALERTA DE RIESGO CARDÍACO MAYOR:** Paciente en {clase_lee}. Evite taquicardia intraoperatoria.")
-                    else: st.success("🟢 **Riesgo Cardiovascular Basal:** Adecuada reserva miocárdica.")
+                    if "Consulta Externa" in ambito_atencion:
+                        if lee_val >= 2 or "Limitada" in capacidad_funcional or "Severamente" in capacidad_funcional:
+                            st.error(f"🚨 **ALERTA DE RIESGO CARDÍACO MAYOR:** Paciente en {clase_lee}. Evite taquicardia intraoperatoria.")
+                        else: st.success("🟢 **Riesgo Cardiovascular Basal:** Adecuada reserva miocárdica.")
+                    else:
+                        if "Limitada" in capacidad_funcional or "Severamente" in capacidad_funcional:
+                            st.error(f"🚨 **ALERTA DE RIESGO CARDÍACO:** Reserva metabólica limitada. Riesgo de inestabilidad hemodinámica.")
+                        else: st.success("🟢 **Riesgo Cardiovascular:** Reserva miocárdica aparentemente adecuada.")
                         
                     sintomas_cardio = []
                     if cardio_angina: sintomas_cardio.append("💔 Angina Inestable")
@@ -1279,8 +1300,14 @@ with col_derecha:
                     txt_labs_final += f"\n   [Gasometría] pH: {ph_val:.2f} | PaCO2: {paco2_val:.0f} mmHg | HCO3: {hco3_val:.1f} mEq/L | Lactato: {lactato_val:.1f} mmol/L | PaO2/FiO2: {pafi:.0f} mmHg"
 
             if "Consulta Externa" in ambito_atencion:
+                txt_stop = f"{score_stop_bang_total} puntos" if not es_ped else 'N/A'
+                txt_ariscat = f"{score_ariscat_total} puntos" if not es_ped else 'N/A'
+                txt_lee = f"{lee_val} puntos" if not es_ped else 'N/A'
                 txt_caprini_rep = "EXIGE Profilaxis Combinada: Mecánica + Farmacológica (HBPM Enoxaparina)." if score_caprini >= 5 else ("Profilaxis farmacológica o mecánica precoz." if score_caprini >= 2 else "Solo deambulación temprana activa.")
             else:
+                txt_stop = "Omitido (Escenario de Quirófano)"
+                txt_ariscat = "Omitido (Escenario de Quirófano)"
+                txt_lee = "Omitido (Escenario de Quirófano)"
                 txt_caprini_rep = "Manejo según protocolo estándar de Quirófano (Evaluación Caprini omitida)."
 
             reporte_medico_texto = f"""=====================================================================
@@ -1327,9 +1354,9 @@ Estatus de Validación: Certificado por Sistema Experto Perioperatorio
 ---------------------------------------------------------------------
 • Índice de Intubación Difícil (Arné): {score_arne if not es_ped else score_arne_ped} puntos
 • Riesgo de Ventilación (OBESE): {score_obese_total if not es_ped else 'N/A'} puntos
-• Tamizaje de Apnea del Sueño (STOP-Bang): {score_stop_bang_total if not es_ped else 'N/A'} puntos
-• Riesgo Pulmonar Postoperatorio (ARISCAT): {score_ariscat_total if not es_ped else 'N/A'} puntos
-• Índice de Riesgo Cardíaco Revisado (Lee / RCRI): {lee_val if not es_ped else 'N/A'} puntos
+• Tamizaje de Apnea del Sueño (STOP-Bang): {txt_stop}
+• Riesgo Pulmonar Postoperatorio (ARISCAT): {txt_ariscat}
+• Índice de Riesgo Cardíaco Revisado (Lee / RCRI): {txt_lee}
 • Riesgo de Náuseas y Vómitos (Apfel): {pts_apfel} / 4 puntos
 
 5. EXÁMENES COMPLEMENTARIOS DE BASE
