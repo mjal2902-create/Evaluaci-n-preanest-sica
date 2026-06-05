@@ -1098,6 +1098,10 @@ with col_derecha:
                         if lee_val >= 2 or "Limitada" in capacidad_funcional or "Severamente" in capacidad_funcional:
                             st.error(f"🚨 **ALERTA DE RIESGO CARDÍACO MAYOR:** Paciente en {clase_lee}. Evite taquicardia intraoperatoria.")
                         else: st.success("🟢 **Riesgo Cardiovascular Basal:** Adecuada reserva miocárdica.")
+                    else:
+                        if "Limitada" in capacidad_funcional or "Severamente" in capacidad_funcional:
+                            st.error(f"🚨 **ALERTA DE RIESGO CARDÍACO:** Reserva metabólica limitada. Riesgo de inestabilidad hemodinámica.")
+                        else: st.success("🟢 **Riesgo Cardiovascular:** Reserva miocárdica aparentemente adecuada.")
                         
                     sintomas_cardio = []
                     if cardio_angina: sintomas_cardio.append("💔 Angina Inestable")
@@ -1357,7 +1361,7 @@ Estatus de Validación: Certificado por Sistema Experto Perioperatorio
 
 4. SCREENING PREDICTIVO Y ESTRATIFICACIÓN DE RIESGO
 ---------------------------------------------------------------------
-• Índice de Intubación Difícil (Arné): {score_arne if not es_ped else score_arne_ped} puntos
+• Índice de Intubación Difícil (Arné): {score_arne} puntos
 • Riesgo de Ventilación (OBESE): {score_obese_total if not es_ped else 'N/A'} puntos
 • Tamizaje de Apnea del Sueño (STOP-Bang): {txt_stop}
 • Riesgo Pulmonar Postoperatorio (ARISCAT): {txt_ariscat}
