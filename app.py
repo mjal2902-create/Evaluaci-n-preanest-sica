@@ -285,7 +285,6 @@ with col_izquierda:
                 )
                 
                 # --- AUTO-CLASIFICACIÓN SILENCIOSA PARA CAPRINI ---
-                # Evitamos preguntar de nuevo lo que ya está en el diagnóstico principal
                 if any(palabra in diagnostico_final.upper() for palabra in ["CADERA", "FEMORAL", "FÉMUR", "PELVIS", "TIBIA", "PERONÉ", "INFERIOR"]):
                     tipo_fractura_cx = "Riesgo Caprini Extremo"
                 else:
@@ -604,16 +603,22 @@ with col_izquierda:
         # ---------------------------------------------------------
         # MÓDULO 6: RIESGO TROMBOEMBÓLICO Y EMETOGÉNICO
         # ---------------------------------------------------------
-        with st.expander("6. Riesgo Tromboembólico (Caprini) y Emetogénico (Apfel)", expanded=True):
+        titulo_mod6 = "6. Riesgo Emetogénico (Apfel)" if "Quirófano" in ambito_atencion else "6. Riesgo Tromboembólico (Caprini) y Emetogénico (Apfel)"
+        with st.expander(titulo_mod6, expanded=True):
             st.markdown("#### 🤢 Riesgo de Náuseas y Vómitos Postoperatorios (Escala de Apfel)")
             apfel_historia = st.checkbox("🔸 Antecedente personal de NVPO o cinetosis (mareo por movimiento)", key="mod6_apfel_hist")
             apfel_opioides = st.checkbox("🔸 Previsión de uso de opioides potentes en el postoperatorio", key="mod6_apfel_op")
 
-            st.divider()
-            st.markdown("#### 🧦 Prevención Cardiovascular: Riesgo Tromboembólico (Caprini)")
-            caprini_clinicos = st.multiselect("Factores Médicos Particulares", options=["Venas varicosas superficiales sintomáticas (+1)", "Uso actual de anticonceptivos orales o terapia de reemplazo hormonal (+1)", "Sepsis o Infección médica aguda activa (< 1 mes) (+1)", "Cáncer activo o antecedente de malignidad sólida/hematológica (+2)"], key="mod6_cap_clin")
-            caprini_quirurgicos = st.multiselect("Factores de Inmovilización y Procedimientos Especiales", options=["Cirugía artroscópica (+2)", "Inmovilización actual con yeso, férula o tracción (+2)", "Acceso venoso central permanente o catéter de diálisis (+2)", "Paciente encamado en reposo absoluto prolongado (> 72 horas) (+2)"], key="mod6_cap_cx")
-            caprini_altoriesgo = st.multiselect("Antecedentes de Trombofilias y Eventos Graves", options=["Antecedente personal de TVP o Tromboembolismo Pulmonar (TEP) (+3)", "Historia familiar directa de trombosis u oclusión vascular (+3)", "Trombofilia congénita o adquirida confirmada por laboratorio (+3)", "ACV / Ictus isquémico reciente (< 1 mes) (+5)", "Fractura de cadera, pelvis o extremidad inferior (< 1 mes) (+5)", "Artroplastia electiva programada de cadera o rodilla (+5)", "Lesión medular aguda con paraplejía o cuadriplejía (< 1 mes) (+5)"], key="mod6_cap_alto")
+            caprini_clinicos = []
+            caprini_quirurgicos = []
+            caprini_altoriesgo = []
+
+            if "Consulta Externa" in ambito_atencion:
+                st.divider()
+                st.markdown("#### 🧦 Prevención Cardiovascular: Riesgo Tromboembólico (Caprini)")
+                caprini_clinicos = st.multiselect("Factores Médicos Particulares", options=["Venas varicosas superficiales sintomáticas (+1)", "Uso actual de anticonceptivos orales o terapia de reemplazo hormonal (+1)", "Sepsis o Infección médica aguda activa (< 1 mes) (+1)", "Cáncer activo o antecedente de malignidad sólida/hematológica (+2)"], key="mod6_cap_clin")
+                caprini_quirurgicos = st.multiselect("Factores de Inmovilización y Procedimientos Especiales", options=["Cirugía artroscópica (+2)", "Inmovilización actual con yeso, férula o tracción (+2)", "Acceso venoso central permanente o catéter de diálisis (+2)", "Paciente encamado en reposo absoluto prolongado (> 72 horas) (+2)"], key="mod6_cap_cx")
+                caprini_altoriesgo = st.multiselect("Antecedentes de Trombofilias y Eventos Graves", options=["Antecedente personal de TVP o Tromboembolismo Pulmonar (TEP) (+3)", "Historia familiar directa de trombosis u oclusión vascular (+3)", "Trombofilia congénita o adquirida confirmada por laboratorio (+3)", "ACV / Ictus isquémico reciente (< 1 mes) (+5)", "Fractura de cadera, pelvis o extremidad inferior (< 1 mes) (+5)", "Artroplastia electiva programada de cadera o rodilla (+5)", "Lesión medular aguda con paraplejía o cuadriplejía (< 1 mes) (+5)"], key="mod6_cap_alto")
 
 # =============================================================================
 # COLUMNA DERECHA: MONITOR METABÓLICO PERIOPERATORIO ESTÁTICO (STICKY)
@@ -741,31 +746,32 @@ with col_derecha:
         # --- SCORE TROMBOEMBÓLICO (CAPRINI) ---
         desglose_caprini = []
         score_caprini = 0
-        if tipo_fractura_ant == "Menor a un mes" or frac_calc == "Menor a un mes": 
-            desglose_caprini.append("Fractura / Trauma mayor < 1 mes (+5 pts)"); score_caprini += 5
-        elif localizacion_frac_calc != "No aplica":
-            pts = 5 if "Riesgo Caprini Extremo" in localizacion_frac_calc else 2
-            desglose_caprini.append(f"Cirugía Ortopédica / Fractura (+{pts} pts)"); score_caprini += pts
+        if "Consulta Externa" in ambito_atencion:
+            if tipo_fractura_ant == "Menor a un mes" or frac_calc == "Menor a un mes": 
+                desglose_caprini.append("Fractura / Trauma mayor < 1 mes (+5 pts)"); score_caprini += 5
+            elif localizacion_frac_calc != "No aplica":
+                pts = 5 if "Riesgo Caprini Extremo" in localizacion_frac_calc else 2
+                desglose_caprini.append(f"Cirugía Ortopédica / Fractura (+{pts} pts)"); score_caprini += pts
 
-        if 41 <= edad_calc <= 60: desglose_caprini.append("Edad 41-60 años (+1 pt)"); score_caprini += 1
-        elif 61 <= edad_calc <= 74: desglose_caprini.append("Edad 61-74 años (+2 pts)"); score_caprini += 2
-        elif edad_calc >= 75: desglose_caprini.append("Edad ≥ 75 años (+3 pts)"); score_caprini += 3
+            if 41 <= edad_calc <= 60: desglose_caprini.append("Edad 41-60 años (+1 pt)"); score_caprini += 1
+            elif 61 <= edad_calc <= 74: desglose_caprini.append("Edad 61-74 años (+2 pts)"); score_caprini += 2
+            elif edad_calc >= 75: desglose_caprini.append("Edad ≥ 75 años (+3 pts)"); score_caprini += 3
 
-        if imc_control > 25.0: desglose_caprini.append("IMC > 25 kg/m² (+1 pt)"); score_caprini += 1
-        if obs_calc: desglose_caprini.append("Embarazo o postparto (+1 pt)"); score_caprini += 1
-        if "Alto" in riesgo_cx or "Intermedio" in riesgo_cx: desglose_caprini.append("Cirugía Mayor (>45min) (+2 pts)"); score_caprini += 2
-        else: desglose_caprini.append("Cirugía Menor (<45min) (+1 pt)"); score_caprini += 1
-        if cardio_edema: desglose_caprini.append("Edema de miembros inferiores (+1 pt)"); score_caprini += 1
+            if imc_control > 25.0: desglose_caprini.append("IMC > 25 kg/m² (+1 pt)"); score_caprini += 1
+            if obs_calc: desglose_caprini.append("Embarazo o postparto (+1 pt)"); score_caprini += 1
+            if "Alto" in riesgo_cx or "Intermedio" in riesgo_cx: desglose_caprini.append("Cirugía Mayor (>45min) (+2 pts)"); score_caprini += 2
+            else: desglose_caprini.append("Cirugía Menor (<45min) (+1 pt)"); score_caprini += 1
+            if cardio_edema: desglose_caprini.append("Edema de miembros inferiores (+1 pt)"); score_caprini += 1
 
-        for f in caprini_clinicos: 
-            v = 1 if "(+1)" in f else 2
-            desglose_caprini.append(f"{f.rsplit('(', 1)[0].strip()} (+{v} pts)"); score_caprini += v
-        for f in caprini_quirurgicos: 
-            v = 2 if "(+2)" in f else 0
-            if v > 0: desglose_caprini.append(f"{f.rsplit('(', 1)[0].strip()} (+{v} pts)"); score_caprini += v
-        for f in caprini_altoriesgo: 
-            v = 3 if "(+3)" in f else 5
-            desglose_caprini.append(f"{f.rsplit('(', 1)[0].strip()} (+{v} pts)"); score_caprini += v
+            for f in caprini_clinicos: 
+                v = 1 if "(+1)" in f else 2
+                desglose_caprini.append(f"{f.rsplit('(', 1)[0].strip()} (+{v} pts)"); score_caprini += v
+            for f in caprini_quirurgicos: 
+                v = 2 if "(+2)" in f else 0
+                if v > 0: desglose_caprini.append(f"{f.rsplit('(', 1)[0].strip()} (+{v} pts)"); score_caprini += v
+            for f in caprini_altoriesgo: 
+                v = 3 if "(+3)" in f else 5
+                desglose_caprini.append(f"{f.rsplit('(', 1)[0].strip()} (+{v} pts)"); score_caprini += v
 
         # =====================================================================
         # 📈 RENDERIZADO VISUAL DEL MONITOR (Pestañas)
@@ -776,7 +782,11 @@ with col_derecha:
             st.markdown("##### 🕸️ Vistazo de Riesgo Perioperatorio")
             r_cardio = min(lee_val + 1, 5)
             r_pulm = 1 if score_ariscat_total < 26 else (3 if score_ariscat_total < 45 else 5)
-            r_tromb = 1 if score_caprini == 0 else (2 if score_caprini <= 2 else (3 if score_caprini <= 4 else (4 if score_caprini <= 8 else 5)))
+            
+            r_tromb = 1
+            if "Consulta Externa" in ambito_atencion:
+                r_tromb = 1 if score_caprini == 0 else (2 if score_caprini <= 2 else (3 if score_caprini <= 4 else (4 if score_caprini <= 8 else 5)))
+                
             r_nvpo = 1 if pts_apfel <= 1 else (3 if pts_apfel == 2 else 5)
             r_va = 1
             if score_arne > 10: r_va = 5
@@ -1037,8 +1047,10 @@ with col_derecha:
                         m4_col1, m4_col2 = st.columns(2)
                         with m4_col1: st.metric(label="Clase Funcional (Ross)", value=clase_nyha)
                         with m4_col2: st.metric(label="Complejidad de la CC", value=capacidad_funcional)
+                        
                         if "Severa" in capacidad_funcional or "IV" in clase_nyha: st.error("🚨 **ALERTA CC COMPLEJA:** Alto riesgo de inestabilidad hemodinámica intraoperatoria.")
                         else: st.warning("⚠️ **Riesgo Intermedio Pediátrico:** Cardiopatía congénita moderada/leve.")
+                
                 else:
                     if lee_val == 0: clase_lee = "Clase I (Riesgo Bajo ~0.4%)"; color_lee = "normal"
                     elif lee_val == 1: clase_lee = "Clase II (Riesgo Moderado ~0.9%)"; color_lee = "normal"
@@ -1191,11 +1203,14 @@ with col_derecha:
                 elif pts_apfel == 2: estrato_apfel = "Riesgo Moderado (~40%)"; color_apfel = "normal"
                 else: estrato_apfel = "Riesgo Alto (~60-80%) 🚨"; color_apfel = "inverse"
                     
-                if score_caprini == 0: estrato_caprini = "Riesgo Mínimo (<0.5%)"; color_caprini = "normal"
-                elif 1 <= score_caprini <= 2: estrato_caprini = "Riesgo Bajo (~1.5%)"; color_caprini = "normal"
-                elif 3 <= score_caprini <= 4: estrato_caprini = "Riesgo Moderado (~3.0%) ⚠️"; color_caprini = "off"
-                elif 5 <= score_caprini <= 8: estrato_caprini = "Riesgo Alto (~6.0%) 🚨"; color_caprini = "inverse"
-                else: estrato_caprini = "Riesgo Muy Alto (>11%) 🚨"; color_caprini = "inverse"
+                if "Consulta Externa" in ambito_atencion:
+                    if score_caprini == 0: estrato_caprini = "Riesgo Mínimo (<0.5%)"; color_caprini = "normal"
+                    elif 1 <= score_caprini <= 2: estrato_caprini = "Riesgo Bajo (~1.5%)"; color_caprini = "normal"
+                    elif 3 <= score_caprini <= 4: estrato_caprini = "Riesgo Moderado (~3.0%) ⚠️"; color_caprini = "off"
+                    elif 5 <= score_caprini <= 8: estrato_caprini = "Riesgo Alto (~6.0%) 🚨"; color_caprini = "inverse"
+                    else: estrato_caprini = "Riesgo Muy Alto (>11%) 🚨"; color_caprini = "inverse"
+                else:
+                    estrato_caprini = "No evaluado en Quirófano"; color_caprini = "off"
                     
                 m6_col1, m6_col2 = st.columns(2)
                 with m6_col1: 
@@ -1204,10 +1219,13 @@ with col_derecha:
                         with st.expander("🔍 Ver desglose de puntos"):
                             for item in desglose_apfel: st.markdown(f"- {item}")
                 with m6_col2: 
-                    st.metric(label="Score de Caprini (ETV)", value=f"{score_caprini} pts", delta=estrato_caprini, delta_color=color_caprini)
-                    if desglose_caprini:
-                        with st.expander("🔍 Ver desglose de puntos"):
-                            for item in desglose_caprini: st.markdown(f"- {item}")
+                    if "Consulta Externa" in ambito_atencion:
+                        st.metric(label="Score de Caprini (ETV)", value=f"{score_caprini} pts", delta=estrato_caprini, delta_color=color_caprini)
+                        if desglose_caprini:
+                            with st.expander("🔍 Ver desglose de puntos"):
+                                for item in desglose_caprini: st.markdown(f"- {item}")
+                    else:
+                        st.metric(label="Score de Caprini (ETV)", value="No aplica", delta=estrato_caprini, delta_color=color_caprini, help="La profilaxis tromboembólica detallada se evalúa típicamente en Consulta Externa.")
                     
                 st.markdown("##### 🔍 Directrices de Profilaxis Perioperatoria:")
                 if pts_apfel >= 3:
@@ -1216,10 +1234,11 @@ with col_derecha:
                 elif pts_apfel == 2: st.warning(f"⚠️ **Profilaxis Apfel Moderada:** Ondansetrón 4 mg IV previo a la emersión.")
                 else: st.success("🟢 **Emetogénesis Controlada:** Riesgo bajo de NVPO.")
                     
-                if score_caprini >= 5: st.error(f"🚨 **ALERTA RIESGO TROMBOEMBÓLICO ALTO/MUY ALTO ({score_caprini} pts):** Indicación mandatoria de **Profilaxis Combinada**: Medidas mecánicas + HBPM (Enoxaparina 40 mg SC cada 24h).")
-                elif 3 <= score_caprini <= 4: st.warning(f"⚠️ **Riesgo Caprini Moderado ({score_caprini} pts):** Se recomienda profilaxis farmacológica (HBPM) o medidas mecánicas.")
-                elif 1 <= score_caprini <= 2: st.info(f"🔹 **Riesgo Caprini Bajo ({score_caprini} pts):** Considere el uso de medias elásticas compresivas.")
-                else: st.success("🟢 **Riesgo Tromboembólico Mínimo:** Solo se aconseja deambulación temprana, activa y frecuente.")
+                if "Consulta Externa" in ambito_atencion:
+                    if score_caprini >= 5: st.error(f"🚨 **ALERTA RIESGO TROMBOEMBÓLICO ALTO/MUY ALTO ({score_caprini} pts):** Indicación mandatoria de **Profilaxis Combinada**: Medidas mecánicas + HBPM (Enoxaparina 40 mg SC cada 24h).")
+                    elif 3 <= score_caprini <= 4: st.warning(f"⚠️ **Riesgo Caprini Moderado ({score_caprini} pts):** Se recomienda profilaxis farmacológica (HBPM) o medidas mecánicas.")
+                    elif 1 <= score_caprini <= 2: st.info(f"🔹 **Riesgo Caprini Bajo ({score_caprini} pts):** Considere el uso de medias elásticas compresivas.")
+                    else: st.success("🟢 **Riesgo Tromboembólico Mínimo:** Solo se aconseja deambulación temprana, activa y frecuente.")
 
         # =====================================================================
         # PESTAÑA 2: GENERACIÓN DE REPORTE Y HISTORIA CLÍNICA COPIABLE
@@ -1258,6 +1277,11 @@ with col_derecha:
                     txt_labs_final += f"\n   [Metabólico] Glucosa: {glucosa_basal:.0f} mg/dL | HbA1c: {hba1c_val:.1f}%"
                 if tiene_gasometria:
                     txt_labs_final += f"\n   [Gasometría] pH: {ph_val:.2f} | PaCO2: {paco2_val:.0f} mmHg | HCO3: {hco3_val:.1f} mEq/L | Lactato: {lactato_val:.1f} mmol/L | PaO2/FiO2: {pafi:.0f} mmHg"
+
+            if "Consulta Externa" in ambito_atencion:
+                txt_caprini_rep = "EXIGE Profilaxis Combinada: Mecánica + Farmacológica (HBPM Enoxaparina)." if score_caprini >= 5 else ("Profilaxis farmacológica o mecánica precoz." if score_caprini >= 2 else "Solo deambulación temprana activa.")
+            else:
+                txt_caprini_rep = "Manejo según protocolo estándar de Quirófano (Evaluación Caprini omitida)."
 
             reporte_medico_texto = f"""=====================================================================
 🏥 NOTA DE EVALUACIÓN PREANESTÉSICA CONSOLIDADA
@@ -1317,7 +1341,7 @@ Estatus de Validación: Certificado por Sistema Experto Perioperatorio
 6. PLAN DE ACCIÓN Y PROFILAXIS RECOMENDADA
 ---------------------------------------------------------------------
 • Manejo Antiemético (Apfel): {'EXIGE Profilaxis Multimodal Combinada (Dexametasona + Ondansetrón).' if pts_apfel >= 3 else ('Profilaxis estándar (Ondansetrón IV).' if pts_apfel == 2 else 'Manejo sintomático según demanda.')}
-• Manejo Antitrombótico (Caprini): {'EXIGE Profilaxis Combinada: Mecánica + Farmacológica (HBPM Enoxaparina).' if score_caprini >= 5 else ('Profilaxis farmacológica o mecánica precoz.' if score_caprini >= 2 else 'Solo deambulación temprana activa.')}
+• Manejo Antitrombótico (Caprini): {txt_caprini_rep}
 • Consideraciones de Vía Aérea: {f'ALERTA: Vía Aérea Difícil Predictiva.' if (not es_ped and score_arne > 10) or (es_ped and ped_vad_previo) else 'Vía aérea con predictores anatómicos estables de intubación.'}
 • Observación Especial Pediátrica: {f"Riesgo de Hiperreactividad Laríngea activo. CONSIDERAR ADICIÓN DE LIDOCAÍNA IV PROTOCOLO DE TESIS." if es_ped and (ped_ivra or ped_estridor) else ("Estable sin criterios especiales." if es_ped else "No aplica (Paciente adulto).")}
 
