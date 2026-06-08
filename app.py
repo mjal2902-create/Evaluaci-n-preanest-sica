@@ -409,16 +409,30 @@ with col_izquierda:
                 if not colabora_ped:
                     mostrar_va_adultos = False
                     st.markdown("#### 👶 Evaluación de Vía Aérea Pediátrica (Lactantes / Infantes)")
-                    ped_estridor = st.checkbox("🔹 Historia de estridor laríngeo, crup recurrente o laringomalacia", key="mod3_ped_estridor")
-                    ped_ivra = st.checkbox("🔹 Infección de Vías Respiratorias Altas (IVRA) activa o reciente (< 2 semanas)", key="mod3_ped_ivra")
-                    ped_vad_previo = st.checkbox("🔹 Antecedente documentado de laringoscopia difícil o intubación fallida", key="mod3_ped_vad_prev")
-                    ped_ronquido = st.checkbox("🔹 Ronquido nocturno severo o Apnea obstructiva pediátrica conocida", key="mod3_ped_ronq")
-                    st.divider()
-                    st.markdown("**Malformaciones Anatómicas y Complejidad Sindrómica:**")
-                    ped_retrognatia = st.checkbox("🔹 Micrognatia / Retrognatia severa (Ej: Pierre Robin, Treacher Collins)", key="mod3_ped_retro")
-                    ped_macroglosia = st.checkbox("🔹 Macroglosia evidente o sospecha (Ej: Síndrome de Down)", key="mod3_ped_macro")
-                    ped_cuello_corto = st.checkbox("🔹 Limitación de la movilidad cervical o cuello corto (Ej: Klippel-Feil)", key="mod3_ped_ccorto")
-                    ped_masas = st.checkbox("🔹 Presencia de masas cervicales o maxilofaciales compresivas", key="mod3_ped_masas")
+                    
+                    # --- CONVERSIÓN A MULTISELECT PEDIÁTRICO ---
+                    ped_va_opciones = st.multiselect(
+                        "Seleccione las malformaciones o antecedentes clínicos presentes:",
+                        [
+                            "🔸 Historia de estridor laríngeo, crup recurrente o laringomalacia",
+                            "🔸 Infección de Vías Respiratorias Altas (IVRA) activa o reciente (< 2 semanas)",
+                            "🔸 Antecedente documentado de laringoscopia difícil o intubación fallida",
+                            "🔸 Ronquido nocturno severo o Apnea obstructiva pediátrica conocida",
+                            "🔸 Micrognatia / Retrognatia severa (Ej: Pierre Robin, Treacher Collins)",
+                            "🔸 Macroglosia evidente o sospecha (Ej: Síndrome de Down)",
+                            "🔸 Limitación de la movilidad cervical o cuello corto (Ej: Klippel-Feil)",
+                            "🔸 Presencia de masas cervicales o maxilofaciales compresivas"
+                        ], key="mod3_ped_multi"
+                    )
+                    
+                    ped_estridor = "🔸 Historia de estridor laríngeo, crup recurrente o laringomalacia" in ped_va_opciones
+                    ped_ivra = "🔸 Infección de Vías Respiratorias Altas (IVRA) activa o reciente (< 2 semanas)" in ped_va_opciones
+                    ped_vad_previo = "🔸 Antecedente documentado de laringoscopia difícil o intubación fallida" in ped_va_opciones
+                    ped_ronquido = "🔸 Ronquido nocturno severo o Apnea obstructiva pediátrica conocida" in ped_va_opciones
+                    ped_retrognatia = "🔸 Micrognatia / Retrognatia severa (Ej: Pierre Robin, Treacher Collins)" in ped_va_opciones
+                    ped_macroglosia = "🔸 Macroglosia evidente o sospecha (Ej: Síndrome de Down)" in ped_va_opciones
+                    ped_cuello_corto = "🔸 Limitación de la movilidad cervical o cuello corto (Ej: Klippel-Feil)" in ped_va_opciones
+                    ped_masas = "🔸 Presencia de masas cervicales o maxilofaciales compresivas" in ped_va_opciones
 
             if mostrar_va_adultos:
                 if es_pediatrico_va:
@@ -455,36 +469,60 @@ with col_izquierda:
 
                 mov_cervical_arne = st.selectbox("Movilidad de Cabeza y Cuello (Extensión cervical)", ["Normal: Extensión completa (> 90°)", "Limitación Moderada: Extensión parcialmente reducida (80° - 90°)", "Limitación Severa: Rigidez extrema o fijación estructural (< 80°)"], key="mod3_mov_arne")
 
-                st.markdown("**Hallazgos Anatómicos Particulares adicionales:**")
-                vad_incisivos = st.checkbox("🔹 Incisivos largos y prominentes", key="mod3_incisivos")
-                vad_paladar = st.checkbox("🔹 Paladar alto / Ojival", key="mod3_paladar")
-                vad_lengua = st.checkbox("🔹 Gran tamaño de lengua (Macroglosia)", key="mod3_lengua")
-                vad_retrognatia = st.checkbox("🔹 Retrognatia / Micrognatia (Mentón retraído)", key="mod3_retrognatia")
+                # --- CONVERSIÓN A MULTISELECT ANATÓMICO ---
+                hallazgos_anat_sel = st.multiselect(
+                    "Hallazgos Anatómicos Particulares adicionales:",
+                    [
+                        "🔹 Incisivos largos y prominentes", 
+                        "🔹 Paladar alto / Ojival", 
+                        "🔹 Gran tamaño de lengua (Macroglosia)", 
+                        "🔹 Retrognatia / Micrognatia (Mentón retraído)"
+                    ], key="mod3_hallazgos_multi"
+                )
+                vad_incisivos = "🔹 Incisivos largos y prominentes" in hallazgos_anat_sel
+                vad_paladar = "🔹 Paladar alto / Ojival" in hallazgos_anat_sel
+                vad_lengua = "🔹 Gran tamaño de lengua (Macroglosia)" in hallazgos_anat_sel
+                vad_retrognatia = "🔹 Retrognatia / Micrognatia (Mentón retraído)" in hallazgos_anat_sel
 
                 if not es_pediatrico_va:
                     st.divider()
                     
-                    # --- FILTRO TÁCTICO: OCULTAR PREGUNTAS INNECESARIAS EN QUIRÓFANO ---
+                    # --- CONVERSIÓN A MULTISELECT OBESE/STOP ---
                     titulo_obese = "#### 😷 Factores Físicos y Sintomatología (OBESE / STOP-Bang)" if "Consulta Externa" in ambito_atencion else "#### 😷 Factores Físicos de Ventilación (OBESE)"
-                    st.markdown(titulo_obese)
                     
-                    vmd_barba = st.checkbox("🔸 Presencia de barba tupida (Dificulta el sello de la máscara)", key="mod3_barba")
-                    vmd_edentulo = st.checkbox("🔸 Paciente edéntulo total o parcial", key="mod3_edentulo")
-                    sb_s = st.checkbox("🔸 Historial de ronquido fuerte (Audible a través de puertas cerradas)", key="mod3_sb_s")
-                    
+                    opciones_obese_stop = [
+                        "🔸 Presencia de barba tupida (Dificulta el sello de la máscara)",
+                        "🔸 Paciente edéntulo total o parcial",
+                        "🔸 Historial de ronquido fuerte (Audible a través de puertas cerradas)"
+                    ]
                     if "Consulta Externa" in ambito_atencion:
-                        sb_t = st.checkbox("🔸 Cansancio, fatiga o somnolencia diurna frecuente", key="mod3_sb_t")
-                        sb_o = st.checkbox("🔸 Apnea nocturna observada por terceros (Pausas al respirar)", key="mod3_sb_o")
-                    else:
-                        sb_t = False
-                        sb_o = False
+                        opciones_obese_stop.extend([
+                            "🔸 Cansancio, fatiga o somnolencia diurna frecuente",
+                            "🔸 Apnea nocturna observada por terceros (Pausas al respirar)"
+                        ])
+                        
+                    sel_obese_stop = st.multiselect(titulo_obese, options=opciones_obese_stop, key="mod3_obese_multi")
+                    
+                    vmd_barba = "🔸 Presencia de barba tupida (Dificulta el sello de la máscara)" in sel_obese_stop
+                    vmd_edentulo = "🔸 Paciente edéntulo total o parcial" in sel_obese_stop
+                    sb_s = "🔸 Historial de ronquido fuerte (Audible a través de puertas cerradas)" in sel_obese_stop
+                    sb_t = "🔸 Cansancio, fatiga o somnolencia diurna frecuente" in sel_obese_stop
+                    sb_o = "🔸 Apnea nocturna observada por terceros (Pausas al respirar)" in sel_obese_stop
 
             if "Consulta Externa" in ambito_atencion:
                 st.divider()
                 st.markdown("#### 🫁 Evaluación Respiratoria Avanzada (ARISCAT)")
-                c_aris1, c_aris2 = st.columns(2)
-                with c_aris1: ariscat_enfermedad_pulmonar = st.checkbox("🔸 Patología respiratoria crónica activa (EPOC, Asma sintomática, Fibrosis)", key="mod3_ariscat_epoc")
-                with c_aris2: ariscat_infeccion_reciente = st.checkbox("🔸 Infección de vías respiratorias (altas o bajas) en el último mes", key="mod3_ariscat_inf")
+                
+                # --- CONVERSIÓN A MULTISELECT ARISCAT ---
+                sel_ariscat = st.multiselect(
+                    "Factores de Riesgo Pulmonar Activos:",
+                    [
+                        "🔸 Patología respiratoria crónica activa (EPOC, Asma sintomática, Fibrosis)", 
+                        "🔸 Infección de vías respiratorias (altas o bajas) en el último mes"
+                    ], key="mod3_ariscat_multi"
+                )
+                ariscat_enfermedad_pulmonar = "🔸 Patología respiratoria crónica activa (EPOC, Asma sintomática, Fibrosis)" in sel_ariscat
+                ariscat_infeccion_reciente = "🔸 Infección de vías respiratorias (altas o bajas) en el último mes" in sel_ariscat
 
         # ---------------------------------------------------------
         # MÓDULO 4: EVALUACIÓN CARDIOVASCULAR
@@ -520,11 +558,23 @@ with col_izquierda:
                     clase_nyha = "Omitido (No evaluable en agudo)"
 
                 st.markdown("#### 🫀 Sintomatología y Signos Clínicos Activos")
-                cardio_angina = st.checkbox("🔹 Angina inestable o de reciente comienzo", key="mod4_angina")
-                cardio_disnea = st.checkbox("🔹 Disnea de causa cardíaca no filiada / Ortopnea", key="mod4_disnea")
-                cardio_palpitaciones = st.checkbox("🔹 Palpitaciones clínicas, síncope o arritmia sintomática", key="mod4_palpitaciones")
-                cardio_edema = st.checkbox("🔹 Edema maleolar bilateral reciente o signos de congestión", key="mod4_edema")
-                cardio_soplo = st.checkbox("🔹 Soplo cardíaco patológico relevante (Ej: Sugestivo de Estenosis Aórtica)", key="mod4_soplo")
+                
+                # --- CONVERSIÓN A MULTISELECT CARDIOVASCULAR ---
+                sel_cardio_sint = st.multiselect(
+                    "Seleccione los síntomas o signos presentes:",
+                    [
+                        "🔹 Angina inestable o de reciente comienzo",
+                        "🔹 Disnea de causa cardíaca no filiada / Ortopnea",
+                        "🔹 Palpitaciones clínicas, síncope o arritmia sintomática",
+                        "🔹 Edema maleolar bilateral reciente o signos de congestión",
+                        "🔹 Soplo cardíaco patológico relevante (Ej: Sugestivo de Estenosis Aórtica)"
+                    ], key="mod4_sintomas_multi"
+                )
+                cardio_angina = "🔹 Angina inestable o de reciente comienzo" in sel_cardio_sint
+                cardio_disnea = "🔹 Disnea de causa cardíaca no filiada / Ortopnea" in sel_cardio_sint
+                cardio_palpitaciones = "🔹 Palpitaciones clínicas, síncope o arritmia sintomática" in sel_cardio_sint
+                cardio_edema = "🔹 Edema maleolar bilateral reciente o signos de congestión" in sel_cardio_sint
+                cardio_soplo = "🔹 Soplo cardíaco patológico relevante (Ej: Sugestivo de Estenosis Aórtica)" in sel_cardio_sint
                 
                 st.divider()
                 st.markdown("#### 📊 Hallazgos en Exámenes Complementarios")
@@ -620,8 +670,17 @@ with col_izquierda:
         titulo_mod6 = "6. Riesgo Emetogénico (Apfel)" if "Quirófano" in ambito_atencion else "6. Riesgo Tromboembólico (Caprini) y Emetogénico (Apfel)"
         with st.expander(titulo_mod6, expanded=True):
             st.markdown("#### 🤢 Riesgo de Náuseas y Vómitos Postoperatorios (Escala de Apfel)")
-            apfel_historia = st.checkbox("🔸 Antecedente personal de NVPO o cinetosis (mareo por movimiento)", key="mod6_apfel_hist")
-            apfel_opioides = st.checkbox("🔸 Previsión de uso de opioides potentes en el postoperatorio", key="mod6_apfel_op")
+            
+            # --- CONVERSIÓN A MULTISELECT APFEL ---
+            sel_apfel = st.multiselect(
+                "Factores de Riesgo:",
+                [
+                    "🔸 Antecedente personal de NVPO o cinetosis (mareo por movimiento)", 
+                    "🔸 Previsión de uso de opioides potentes en el postoperatorio"
+                ], key="mod6_apfel_multi"
+            )
+            apfel_historia = "🔸 Antecedente personal de NVPO o cinetosis (mareo por movimiento)" in sel_apfel
+            apfel_opioides = "🔸 Previsión de uso de opioides potentes en el postoperatorio" in sel_apfel
 
             caprini_clinicos = []
             caprini_quirurgicos = []
@@ -751,11 +810,9 @@ with col_derecha:
 
         # --- SCORE NVPO (APFEL) ---
         desglose_apfel = []
-        pts_apfel = 0
-        if apfel_historia: desglose_apfel.append("Cinetosis / NVPO previa (+1 pt)"); pts_apfel += 1
-        if apfel_opioides: desglose_apfel.append("Uso de opioides postop (+1 pt)"); pts_apfel += 1
-        if sexo_calc == "Femenino": desglose_apfel.append("Sexo Femenino (+1 pt)"); pts_apfel += 1
-        if sin_habitos or not hab_cigarrillo: desglose_apfel.append("No fumador (+1 pt)"); pts_apfel += 1
+        pts_apfel = sum([apfel_historia, apfel_opioides])
+        if sexo_calc == "Femenino": pts_apfel += 1
+        if sin_habitos or not hab_cigarrillo: pts_apfel += 1
 
         # --- SCORE TROMBOEMBÓLICO (CAPRINI) ---
         desglose_caprini = []
@@ -1361,7 +1418,7 @@ Estatus de Validación: Certificado por Sistema Experto Perioperatorio
 
 4. SCREENING PREDICTIVO Y ESTRATIFICACIÓN DE RIESGO
 ---------------------------------------------------------------------
-• Índice de Intubación Difícil (Arné): {score_arne} puntos
+• Índice de Intubación Difícil (Arné): {score_arne if not es_ped else score_arne_ped} puntos
 • Riesgo de Ventilación (OBESE): {score_obese_total if not es_ped else 'N/A'} puntos
 • Tamizaje de Apnea del Sueño (STOP-Bang): {txt_stop}
 • Riesgo Pulmonar Postoperatorio (ARISCAT): {txt_ariscat}
