@@ -107,7 +107,8 @@ with col_izquierda:
         with st.expander("1. Datos Demográficos y Contexto Quirúrgico", expanded=True):
             st.divider() 
             st.markdown("### 🏢 Ámbito de la Evaluación Anestésica")
-            ambito_atencion = st.radio("Seleccione el entorno actual del paciente:", ["Quirófano / Emergencia 🏥", "Consulta Externa Preanestésica 📑"], horizontal=True, key="mod1_ambito_atencion")
+            # --- AQUÍ SE INVIRTIÓ EL ORDEN DE LOS BOTONES ---
+            ambito_atencion = st.radio("Seleccione el entorno actual del paciente:", ["Consulta Externa Preanestésica 📑", "Quirófano / Emergencia 🏥"], horizontal=True, key="mod1_ambito_atencion")
             st.divider()
 
             # Precarga de variables en Session State para evitar errores en recargas
@@ -487,7 +488,7 @@ with col_izquierda:
                 if not es_pediatrico_va:
                     st.divider()
                     
-                    # --- CONVERSIÓN A MULTISELECT OBESE/STOP ---
+                    # --- FILTRO TÁCTICO: OCULTAR PREGUNTAS INNECESARIAS EN QUIRÓFANO ---
                     titulo_obese = "#### 😷 Factores Físicos y Sintomatología (OBESE / STOP-Bang)" if "Consulta Externa" in ambito_atencion else "#### 😷 Factores Físicos de Ventilación (OBESE)"
                     
                     opciones_obese_stop = [
@@ -667,7 +668,7 @@ with col_izquierda:
         # ---------------------------------------------------------
         # MÓDULO 6: RIESGO TROMBOEMBÓLICO Y EMETOGÉNICO
         # ---------------------------------------------------------
-        titulo_mod6 = "6. Riesgo Emetogénico (Apfel)" if "Quirófano" in ambito_atencion else "6. Riesgo Tromboembólico (Caprini) y Emetogénico (Apfel)"
+        titulo_mod6 = "6. Riesgo Tromboembólico (Caprini) y Emetogénico (Apfel)" if "Consulta Externa" in ambito_atencion else "6. Riesgo Emetogénico (Apfel)"
         with st.expander(titulo_mod6, expanded=True):
             st.markdown("#### 🤢 Riesgo de Náuseas y Vómitos Postoperatorios (Escala de Apfel)")
             
@@ -682,16 +683,35 @@ with col_izquierda:
             apfel_historia = "🔸 Antecedente personal de NVPO o cinetosis (mareo por movimiento)" in sel_apfel
             apfel_opioides = "🔸 Previsión de uso de opioides potentes en el postoperatorio" in sel_apfel
 
-            caprini_clinicos = []
-            caprini_quirurgicos = []
-            caprini_altoriesgo = []
+            caprini_unificado = []
 
             if "Consulta Externa" in ambito_atencion:
                 st.divider()
                 st.markdown("#### 🧦 Prevención Cardiovascular: Riesgo Tromboembólico (Caprini)")
-                caprini_clinicos = st.multiselect("Factores Médicos Particulares", options=["Venas varicosas superficiales sintomáticas (+1)", "Uso actual de anticonceptivos orales o terapia de reemplazo hormonal (+1)", "Sepsis o Infección médica aguda activa (< 1 mes) (+1)", "Cáncer activo o antecedente de malignidad sólida/hematológica (+2)"], key="mod6_cap_clin")
-                caprini_quirurgicos = st.multiselect("Factores de Inmovilización y Procedimientos Especiales", options=["Cirugía artroscópica (+2)", "Inmovilización actual con yeso, férula o tracción (+2)", "Acceso venoso central permanente o catéter de diálisis (+2)", "Paciente encamado en reposo absoluto prolongado (> 72 horas) (+2)"], key="mod6_cap_cx")
-                caprini_altoriesgo = st.multiselect("Antecedentes de Trombofilias y Eventos Graves", options=["Antecedente personal de TVP o Tromboembolismo Pulmonar (TEP) (+3)", "Historia familiar directa de trombosis u oclusión vascular (+3)", "Trombofilia congénita o adquirida confirmada por laboratorio (+3)", "ACV / Ictus isquémico reciente (< 1 mes) (+5)", "Fractura de cadera, pelvis o extremidad inferior (< 1 mes) (+5)", "Artroplastia electiva programada de cadera o rodilla (+5)", "Lesión medular aguda con paraplejía o cuadriplejía (< 1 mes) (+5)"], key="mod6_cap_alto")
+                
+                # --- CONSOLIDACIÓN MAESTRA DE CAPRINI EN UN SOLO MULTISELECT ---
+                opciones_caprini_todas = [
+                    "Venas varicosas superficiales sintomáticas (+1)", 
+                    "Uso actual de anticonceptivos orales o terapia de reemplazo hormonal (+1)", 
+                    "Sepsis o Infección médica aguda activa (< 1 mes) (+1)",
+                    "Cáncer activo o antecedente de malignidad sólida/hematológica (+2)",
+                    "Cirugía artroscópica (+2)", 
+                    "Inmovilización actual con yeso, férula o tracción (+2)", 
+                    "Acceso venoso central permanente o catéter de diálisis (+2)", 
+                    "Paciente encamado en reposo absoluto prolongado (> 72 horas) (+2)",
+                    "Antecedente personal de TVP o Tromboembolismo Pulmonar (TEP) (+3)", 
+                    "Historia familiar directa de trombosis u oclusión vascular (+3)", 
+                    "Trombofilia congénita o adquirida confirmada por laboratorio (+3)",
+                    "ACV / Ictus isquémico reciente (< 1 mes) (+5)", 
+                    "Fractura de cadera, pelvis o extremidad inferior (< 1 mes) (+5)", 
+                    "Artroplastia electiva programada de cadera o rodilla (+5)", 
+                    "Lesión medular aguda con paraplejía o cuadriplejía (< 1 mes) (+5)"
+                ]
+                caprini_unificado = st.multiselect(
+                    "Factores de Riesgo Clínico y Quirúrgico", 
+                    options=opciones_caprini_todas, 
+                    key="mod6_cap_unificado"
+                )
 
 # =============================================================================
 # COLUMNA DERECHA: MONITOR METABÓLICO PERIOPERATORIO ESTÁTICO (STICKY)
@@ -834,15 +854,16 @@ with col_derecha:
             else: desglose_caprini.append("Cirugía Menor (<45min) (+1 pt)"); score_caprini += 1
             if cardio_edema: desglose_caprini.append("Edema de miembros inferiores (+1 pt)"); score_caprini += 1
 
-            for f in caprini_clinicos: 
-                v = 1 if "(+1)" in f else 2
-                desglose_caprini.append(f"{f.rsplit('(', 1)[0].strip()} (+{v} pts)"); score_caprini += v
-            for f in caprini_quirurgicos: 
-                v = 2 if "(+2)" in f else 0
-                if v > 0: desglose_caprini.append(f"{f.rsplit('(', 1)[0].strip()} (+{v} pts)"); score_caprini += v
-            for f in caprini_altoriesgo: 
-                v = 3 if "(+3)" in f else 5
-                desglose_caprini.append(f"{f.rsplit('(', 1)[0].strip()} (+{v} pts)"); score_caprini += v
+            for f in caprini_unificado:
+                if "(+1)" in f: v = 1
+                elif "(+2)" in f: v = 2
+                elif "(+3)" in f: v = 3
+                elif "(+5)" in f: v = 5
+                else: v = 0
+                
+                if v > 0:
+                    desglose_caprini.append(f"{f.rsplit('(', 1)[0].strip()} (+{v} pts)")
+                    score_caprini += v
 
         # =====================================================================
         # 📈 RENDERIZADO VISUAL DEL MONITOR (Pestañas)
