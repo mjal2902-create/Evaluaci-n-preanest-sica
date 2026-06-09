@@ -107,8 +107,7 @@ with col_izquierda:
         with st.expander("1. Datos Demográficos y Contexto Quirúrgico", expanded=True):
             st.divider() 
             st.markdown("### 🏢 Ámbito de la Evaluación Anestésica")
-            # --- AQUÍ SE INVIRTIÓ EL ORDEN DE LOS BOTONES ---
-            ambito_atencion = st.radio("Seleccione el entorno actual del paciente:", ["Consulta Externa Preanestésica 📑", "Quirófano / Emergencia 🏥"], horizontal=True, key="mod1_ambito_atencion")
+            ambito_atencion = st.radio("Seleccione el entorno actual del paciente:", ["Consulta Externa Preanestésica 📑", "Quirófano / Emergencia 🏥"], index=0, horizontal=True, key="mod1_ambito_atencion")
             st.divider()
 
             # Precarga de variables en Session State para evitar errores en recargas
@@ -140,7 +139,7 @@ with col_izquierda:
 
             st.markdown("**Contexto Quirúrgico y Clasificación**")
 
-            semanas_eg = 0; horas_ayuno = 8; tipo_ayuno = "No aplica"; plan_suspension_meds = []; interconsultas_req = []
+            semanas_eg = 0; horas_ayuno = 8; tipo_ayuno = "No aplica"
 
             if "Quirófano" in ambito_atencion:
                 c_cx1, c_asa = st.columns(2)
@@ -160,11 +159,6 @@ with col_izquierda:
                 c_cx1, c_asa = st.columns(2)
                 c_cx1.info("📋 **Carácter Quirúrgico:** Fijado automáticamente como **Electiva**.")
                 asa_ps = c_asa.selectbox("Clasificación ASA Proyectada", ["ASA I: Paciente sano normal", "ASA II: Enfermedad sistémica leve", "ASA III: Enfermedad sistémica grave", "ASA IV: Enf. sistémica grave con amenaza vital"], key="mod1_asa")
-
-                st.markdown("📑 **Planificación y Optimización de Consulta Externa**")
-                c_ce1, c_ce2 = st.columns(2)
-                plan_suspension_meds = c_ce1.multiselect("🛑 Plan de Suspensión de Fármacos Críticos:", ["Suspender Antiagregantes (Aspirina/Clopidogrel) 5-7 días antes", "Suspender Anticoagulantes Orales (Warfarina/DOACs) según protocolo", "Suspender Metformina 24 horas antes del procedimiento", "Continuar Beta-bloqueadores de forma habitual el día de la cirugía", "No requiere suspensiones de tratamiento continuo"], key="mod1_ce_suspensiones")
-                interconsultas_req = c_ce2.multiselect("🩺 Interconsultas de Optimización Solicitadas:", ["Valoración por Cardiología (Riesgo Quirúrgico)", "Valoración por Neumología (Espirometría / EPOC)", "Valoración por Endocrinología (Control metabólico HbA1c)", "Ninguna interconsulta adicional requerida"], key="mod1_ce_interconsultas")
 
             riesgo_cx = st.selectbox("Riesgo Quirúrgico Intrínseco (AHA/ACC)", ["Bajo (<1%) - Ej: Superficial, Endoscópica, Catarata", "Intermedio (1-5%) - Ej: Intraperitoneal, Ortopédica mayor", "Alto (>5%) - Ej: Vascular mayor, Torácica, Aórtica"], key="mod1_riesgo")
             st.divider()
@@ -1402,6 +1396,7 @@ with col_derecha:
 =====================================================================
 Centro Institucional: {hospital_final}
 Paciente quien acude a consulta preanestesica con los siguientes datos:
+
 1. FILIACIÓN Y ANTROPOMETRÍA
 ---------------------------------------------------------------------
 • Sexo Biológico: {sexo_calc}
@@ -1424,8 +1419,6 @@ Paciente quien acude a consulta preanestesica con los siguientes datos:
 {f'• Reserva de Hemoderivados: REQUERIDA (Riesgo de sangrado mayor)' if req_sangre_calc else '• Reserva de Hemoderivados: No requerida de rutina'}
 {f'• Estatus NPO en Quirófano: {horas_ayuno} horas de ayuno para {tipo_ayuno}' if "Quirófano" in ambito_atencion else ''}
 {f'• Edad Gestacional: {semanas_eg} semanas de gestación (Prever ISR y desplazamiento lateral)' if (obs_calc and "Quirófano" in ambito_atencion) else ''}
-{f'• Planificación CE - Suspensión de Fármacos: {", ".join(plan_suspension_meds) if plan_suspension_meds else "No requiere"}' if "Consulta Externa" in ambito_atencion else ''}
-{f'• Planificación CE - Interconsultas Solicitadas: {", ".join(interconsultas_req) if interconsultas_req else "Ninguna"}' if "Consulta Externa" in ambito_atencion else ''}
 
 3. SEGURIDAD, ALERGIAS Y ANTECEDENTES (APP)
 ---------------------------------------------------------------------
