@@ -1401,9 +1401,7 @@ with col_derecha:
 🏥 NOTA DE EVALUACIÓN PREANESTÉSICA CONSOLIDADA
 =====================================================================
 Centro Institucional: {hospital_final}
-Responsable: Dr. Marcos Aviles
-Estatus de Validación: Certificado por Sistema Experto Perioperatorio
-
+Paciente quien acude a consulta preanestesica con los siguientes datos:
 1. FILIACIÓN Y ANTROPOMETRÍA
 ---------------------------------------------------------------------
 • Sexo Biológico: {sexo_calc}
